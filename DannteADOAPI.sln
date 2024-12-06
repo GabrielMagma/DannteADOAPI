@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DannteADOAPI", "DannteADOAPI\DannteADOAPI.csproj", "{C11DDFF7-EDA4-4782-BF51-CFE36DC886D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ADO.BL", "ADO.BL\ADO.BL.csproj", "{32261139-A091-40B6-A494-5A1B7466C082}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADO.Access", "ADO.Access\ADO.Access.csproj", "{835641B7-647C-47C2-AF1F-B1DBF92EC859}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C11DDFF7-EDA4-4782-BF51-CFE36DC886D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C11DDFF7-EDA4-4782-BF51-CFE36DC886D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C11DDFF7-EDA4-4782-BF51-CFE36DC886D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C11DDFF7-EDA4-4782-BF51-CFE36DC886D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32261139-A091-40B6-A494-5A1B7466C082}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32261139-A091-40B6-A494-5A1B7466C082}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32261139-A091-40B6-A494-5A1B7466C082}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32261139-A091-40B6-A494-5A1B7466C082}.Release|Any CPU.Build.0 = Release|Any CPU
+		{835641B7-647C-47C2-AF1F-B1DBF92EC859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{835641B7-647C-47C2-AF1F-B1DBF92EC859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{835641B7-647C-47C2-AF1F-B1DBF92EC859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{835641B7-647C-47C2-AF1F-B1DBF92EC859}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4A8A897A-934E-4276-9587-34079E4EA051}
+	EndGlobalSection
+EndGlobal
