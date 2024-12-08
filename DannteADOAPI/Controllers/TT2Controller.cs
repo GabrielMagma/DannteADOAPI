@@ -16,7 +16,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Genera un archivo *_completed.csv añadiendo code_sig basado en la tabla all_asset.
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
@@ -33,7 +33,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Genera archivos *_check.csv y *_update.csv y automáticamente ejecuta las funciones check-by-insert y create-from-insert.
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
@@ -50,7 +50,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Procesa archivos *_update.csv para actualizar registros en la tabla all_asset
         /// </summary>
         /// <param></param>
         /// <returns></returns>  

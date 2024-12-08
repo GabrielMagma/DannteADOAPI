@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ADO.BL.Responses;
 using ADO.BL.Interfaces;
+using System.Drawing;
 
 namespace DannteADOAPI.Controllers
 {
@@ -16,7 +17,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Este endpoint busca archivos LAC.csv ORIGINALES en la carpeta especificada, particionandolos en archivos: _unchanged, _continues, _continuesInvalid, _closed, _closedInvalid
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
@@ -34,7 +35,7 @@ namespace DannteADOAPI.Controllers
 
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Este endpoint busca archivos _unchanged en la carpeta especificada cuyo información es referente a registros SIN ALTERACIONES que se deben ADICIONAR a los LACs con estado 1
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
@@ -51,7 +52,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Este endpoint busca archivos _continues.csv en la carpeta especificada cuyo información es referente a registros SIN CIERRE y valor provisional 23:59:59 con fecha de incio actual que se deben ADICIONAR a los LACs esperando CIERRE
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
@@ -68,7 +69,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Este endpoint busca archivos _update.csv en la carpeta especificada cuyo información es referente a registros SIN INCIO que ACTUALIZAN a los LACs con CIERRE.
         /// </summary>
         /// <param></param>
         /// <returns></returns>  

@@ -16,7 +16,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Este endpoint procesa archivos *.csv y realiza operaciones de inserción o actualización en la base de datos.
+        /// Lee y carga los archivos TC1 para el año y mes proporcionados.
         /// </summary>
         /// <param></param>
         /// <returns></returns>  
