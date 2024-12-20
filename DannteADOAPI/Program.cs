@@ -61,6 +61,13 @@ builder.Services.AddTransient<IRayosCSVDataAccess, RayosCSVDataAccess>();
 builder.Services.AddTransient<IRamalesServices, RamalesServices>();
 builder.Services.AddTransient<IRamalesDataAccess, RamalesDataAccess>();
 
+builder.Services.AddTransient<ITestServices, TestServices>();
+builder.Services.AddTransient<ITest2Services, Test2Services>();
+
+builder.Services.AddTransient<ITT2GlobalServices, TT2GlobalServices>();
+builder.Services.AddTransient<ILacsGlobalServices, LacsGlobalServices>();
+builder.Services.AddTransient<ISSPDGlobalServices, SSPDGlobalServices>();
+
 builder.Services.AddDbContext<DannteEssaTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbConnection")));
 

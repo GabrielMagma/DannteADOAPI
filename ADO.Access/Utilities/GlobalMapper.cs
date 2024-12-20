@@ -1,5 +1,6 @@
-﻿using AjusteCSV.BL.Data;
-using AjusteCSV.BL.DTOs;
+﻿
+using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
 using AutoMapper;
 
 namespace ADO.Access
