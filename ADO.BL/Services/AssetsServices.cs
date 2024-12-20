@@ -85,7 +85,7 @@ namespace ADO.BL.Services
 
             using (var connection = new NpgsqlConnection(_connectionString))
             {
-                connection.OpenAsync();
+                connection.Open();
 
                 // Crear tabla temporal
                 string tempTableQuery = @"
@@ -95,7 +95,7 @@ namespace ADO.BL.Services
 
                 using (var tempTableCmd = new NpgsqlCommand(tempTableQuery, connection))
                 {
-                    tempTableCmd.ExecuteNonQueryAsync();
+                    tempTableCmd.ExecuteNonQuery();
                 }
 
                 // Usar COPY para cargar datos en la tabla temporal
@@ -180,7 +180,7 @@ namespace ADO.BL.Services
 
                 using (var upsertCmd = new NpgsqlCommand(upsertQuery, connection))
                 {
-                    upsertCmd.ExecuteNonQueryAsync();
+                    upsertCmd.ExecuteNonQuery();
                 }
 
                 // Eliminar la tabla temporal
@@ -188,7 +188,7 @@ namespace ADO.BL.Services
 
                 using (var dropTempTableCmd = new NpgsqlCommand(dropTempTableQuery, connection))
                 {
-                    dropTempTableCmd.ExecuteNonQueryAsync();
+                    dropTempTableCmd.ExecuteNonQuery();
                 }
             }
 
