@@ -12,18 +12,19 @@ namespace ADO.BL.Services
     {
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
+        private readonly string _FilesLACDirectoryPath;
         public FileLACValidationServices(IConfiguration configuration)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
-
+            _FilesLACDirectoryPath = configuration["FilesLACPath"];
         }
 
         public ResponseQuery<bool> ValidationLAC(IFormFile file, ResponseQuery<bool> response)
         {
             try
             {
-                string inputFolder = ".\\filesLAC";
+                string inputFolder = _FilesLACDirectoryPath;
 
                 var filePath = $"{inputFolder}\\{file.FileName}";
                     

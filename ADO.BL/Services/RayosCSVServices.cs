@@ -4,6 +4,7 @@ using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
+using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
@@ -14,17 +15,19 @@ namespace ADO.BL.Services
     {
         private readonly IRayosCSVDataAccess rayosCSVDataAccess;
         private readonly IMapper mapper;
-        public RayosCSVServices(IRayosCSVDataAccess _rayosCSVDataAccess, IMapper _mapper)
+        private readonly string _RayosDirectoryPath;
+        public RayosCSVServices(IConfiguration configuration, IRayosCSVDataAccess _rayosCSVDataAccess, IMapper _mapper)
         {
             rayosCSVDataAccess = _rayosCSVDataAccess;
             mapper = _mapper;
+            _RayosDirectoryPath = configuration["RayosPath"];
         }
 
         public ResponseEntity<List<string>> SearchDataCSV(ResponseEntity<List<string>> response)
         {
             try
             {
-                string inputFolder = "C:\\Users\\ingen\\source\\repos\\LecturaCSV\\LecturaCSV\\filesData";        
+                string inputFolder = _RayosDirectoryPath;
 
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {

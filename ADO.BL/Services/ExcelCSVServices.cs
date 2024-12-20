@@ -1,6 +1,7 @@
 ﻿using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using CsvHelper;
+using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
@@ -8,25 +9,29 @@ using System.Globalization;
 namespace ADO.BL.Services
 {
     public class ExcelCSVServices : IExcelCSVServices
-    {        
-        
+    {
+        private readonly string _ExcelCSVDirectoryPath;
+        public ExcelCSVServices(IConfiguration configuration)
+        {
+            _ExcelCSVDirectoryPath = configuration["ExcelCSVPath"];
+        }
+
         public ResponseQuery<string> ProcessXlsx(ResponseQuery<string> response)
         {
             try
             {
 
-                string inputFolder = ".\\filesData";
-                string outputFolder = ".\\filesCSV";
+                string inputFolder = _ExcelCSVDirectoryPath;
 
                 // Procesar cada archivo .xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx"))
                 {
-                    ProcessXlsxToCsv(filePath, outputFolder);
+                    ProcessXlsxToCsv(filePath, inputFolder);
                 }
 
                 Console.WriteLine("Proceso completado.");
 
-                response.Message = "File created on the project root ./filesCSV";
+                response.Message = "File created on the project root ./filesData";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;
@@ -39,16 +44,16 @@ namespace ADO.BL.Services
                 response.SuccessData = false;
             }
             catch (Exception ex)
-            {                
+            {
                 response.Message = ex.Message;
                 response.Success = false;
                 response.SuccessData = false;
             }
-                       
+
             return response;
         }
 
-        static void ProcessXlsxToCsv(string filePath, string outputFolder)
+        static void ProcessXlsxToCsv(string filePath, string inputFolder)
         {
             using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
@@ -118,7 +123,7 @@ namespace ADO.BL.Services
                 }
 
                 // Guardar como CSV
-                string outputFilePath = Path.Combine(outputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_assets.csv");
+                string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_assets.csv");
                 using (var writer = new StreamWriter(outputFilePath))
                 using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {

@@ -12,10 +12,13 @@ namespace ADO.BL.Services
     {
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
+        private readonly string _ESSACompDirectoryPath;
         public ExcelCSVCompensacionesESSAServices(IConfiguration configuration)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
+            _ESSACompDirectoryPath = configuration["EssaCompensationsPath"];
+
 
         }
 
@@ -25,7 +28,7 @@ namespace ADO.BL.Services
             {
 
 
-                string inputFolder = $"C:\\Users\\ingen\\source\\repos\\LecturaCSV\\LecturaCSV\\FilesCompensacionesESSA";
+                string inputFolder = _ESSACompDirectoryPath;
 
                 // Procesar cada archivo .xlsx en la carpeta
 

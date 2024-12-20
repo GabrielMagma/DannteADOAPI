@@ -4,6 +4,7 @@ using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
 using System.Globalization;
@@ -15,17 +16,20 @@ namespace ADO.BL.Services
     {
         private readonly IRamalesDataAccess ramalesDataAccess;
         private readonly IMapper mapper;
-        public RamalesServices(IRamalesDataAccess _ramalesDataAccess, IMapper _mapper)
+        private readonly string _RamalesDirectoryPath;
+        public RamalesServices(IConfiguration configuration, IRamalesDataAccess _ramalesDataAccess, IMapper _mapper)
         {
             ramalesDataAccess = _ramalesDataAccess;
             mapper = _mapper;
+            _RamalesDirectoryPath = configuration["RamalesPath"];
+
         }
 
         public ResponseEntity<List<string>> SearchData(ResponseEntity<List<string>> response)
         {
             try
             {
-                string inputFolder = "C:\\Users\\ingen\\source\\repos\\LecturaCSV\\LecturaCSV\\filesData";
+                string inputFolder = _RamalesDirectoryPath;
 
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
