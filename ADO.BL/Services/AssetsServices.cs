@@ -17,7 +17,7 @@ namespace ADO.BL.Services
 
         public AssetsServices(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
             _assetsDirectoryPath = configuration["AssetsDirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
         }
@@ -125,6 +125,8 @@ namespace ADO.BL.Services
 
                             try
                             {
+                                var dateInst = string.IsNullOrEmpty(values[10]) ? DateOnly.Parse(values[11]) : DateOnly.Parse(values[10]);
+                                var dateUnin = string.IsNullOrEmpty(values[11]) ? new DateOnly(2099, 12, 31) : DateOnly.Parse(values[11]);
                                 writer.StartRow();
                                 writer.Write(values[0], NpgsqlTypes.NpgsqlDbType.Varchar); // type_asset
                                 writer.Write(values[1], NpgsqlTypes.NpgsqlDbType.Varchar); // code_sig
@@ -136,8 +138,8 @@ namespace ADO.BL.Services
                                 writer.Write(values[7], NpgsqlTypes.NpgsqlDbType.Varchar); // poblation
                                 writer.Write(values[8], NpgsqlTypes.NpgsqlDbType.Varchar); // group015
                                 writer.Write(values[9], NpgsqlTypes.NpgsqlDbType.Varchar); // uccap14
-                                writer.Write(string.IsNullOrEmpty(values[10]) ? (DateTime?)null : ParseDate(values[10]), NpgsqlTypes.NpgsqlDbType.Date); // date_inst
-                                writer.Write(string.IsNullOrEmpty(values[11]) ? new DateTime(2099, 12, 31) : ParseDate(values[11]), NpgsqlTypes.NpgsqlDbType.Date); // date_unin
+                                writer.Write(dateInst, NpgsqlTypes.NpgsqlDbType.Date); // date_inst
+                                writer.Write(dateUnin, NpgsqlTypes.NpgsqlDbType.Date); // date_unin
                                 writer.Write(string.IsNullOrEmpty(values[12]) ? 2 : int.Parse(values[12]), NpgsqlTypes.NpgsqlDbType.Integer); // state
                                 writer.Write(string.IsNullOrEmpty(values[13]) ? (long?)null : long.Parse(values[13]), NpgsqlTypes.NpgsqlDbType.Bigint); // id_zone
                                 writer.Write(values[14], NpgsqlTypes.NpgsqlDbType.Varchar); // name_zone

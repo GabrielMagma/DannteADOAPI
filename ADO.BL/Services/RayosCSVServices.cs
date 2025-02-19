@@ -13,21 +13,55 @@ namespace ADO.BL.Services
 {
     public class RayosCSVServices : IRayosCSVServices
     {
-        private readonly IRayosCSVDataAccess rayosCSVDataAccess;
-        private readonly IMapper mapper;
+        private readonly IRayosCSVDataAccess rayosCSVDataAccess;        
         private readonly string _RayosDirectoryPath;
-        public RayosCSVServices(IConfiguration configuration, IRayosCSVDataAccess _rayosCSVDataAccess, IMapper _mapper)
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IMapper mapper;
+
+        public RayosCSVServices(IConfiguration configuration, 
+            IRayosCSVDataAccess _rayosCSVDataAccess,
+            IStatusFileEepDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
             rayosCSVDataAccess = _rayosCSVDataAccess;
             mapper = _mapper;
             _RayosDirectoryPath = configuration["RayosPath"];
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
-        public ResponseEntity<List<string>> SearchDataCSV(ResponseEntity<List<string>> response)
+        public async Task<ResponseEntity<List<string>>> SearchDataCSV(RayosValidationDTO request, ResponseEntity<List<string>> response)
         {
             try
             {
                 string inputFolder = _RayosDirectoryPath;
+                var errorFlag = false;
+
+                int fecha = 0;
+                int region = 1;
+                int zona = 2;
+                int circuito = 3;
+                int latitud = 4;
+                int longitud = 5;
+                int tipo = 6;
+                int corriente = 7;
+                int error = 8;
+                int municipio = 9;
+
+                var statusFileList = new List<StatusFileDTO>();
+                if (request.Encabezado == false)
+                {
+                    fecha = request.columns.Fecha - 1;
+                    region = request.columns.Region - 1;
+                    zona = request.columns.Zona - 1;
+                    circuito = request.columns.Circuito - 1;
+                    latitud = request.columns.Latitud - 1;
+                    longitud = request.columns.Longitud - 1;
+                    tipo = request.columns.Tipo - 1;
+                    corriente = request.columns.Corriente - 1;
+                    error = request.columns.Error - 1;
+                    municipio = request.columns.Municipio - 1;
+                }
 
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
@@ -38,6 +72,18 @@ namespace ADO.BL.Services
                     // columnas tabla error
                     dataTableError.Columns.Add("C1");
                     dataTableError.Columns.Add("C2");
+                    var count = 1;
+
+                    var statusFilesingle = new StatusFileDTO();
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
+                    statusFilesingle.UserId = request.UserId;
+                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileType = "RAYOS";
+                    statusFilesingle.Year = request.Year;
+                    statusFilesingle.Month = request.Month;                    
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= 12; i++)
@@ -49,25 +95,28 @@ namespace ADO.BL.Services
                     // columnas tabla datos correctos
                     foreach (var item in fileLines)
                     {
+
                         var valueLines = item.Split(";");
                         string message = string.Empty;
-                        var dateTemp = valueLines[2] != "" ? valueLines[2] : string.Empty;
+                        var dateTemp = valueLines[fecha] != "" ? valueLines[fecha] : string.Empty;
                         var date = dateTemp.Split(',', '.')[0];
                         if (valueLines.Length != 12)
                         {
-                            message = "Error de cantidad de columnas llenas";
+                            message = $"Error de cantidad de columnas llenas en la línea {count}, formato incorrecto";
                             var newRowError = dataTableError.NewRow();
-                            newRowError[0] = $"Error en la data {item}, formato incorrecto";
+                            newRowError[0] = $"{item}";
+                            newRowError[1] = message;
                             dataTableError.Rows.Add(newRowError);
                         }
-                        else if (valueLines[0] == "" || valueLines[1] == "" || valueLines[2] == "" ||
-                                valueLines[3] == "" || valueLines[4] == "" || valueLines[5] == "" ||
-                                valueLines[9] == "")
+                        else if (valueLines[fecha] == "" || valueLines[region] == "" || valueLines[zona] == "" ||
+                                valueLines[circuito] == "" || valueLines[latitud] == "" || valueLines[longitud] == "" ||
+                                valueLines[municipio] == "")
                         {
+                            message = $"Error de la data en la línea {count}, las columnas Fecha, Región, Zona, Circuito, Latitud, Longitud y Municipio son Requeridas";
                             var newRowError = dataTableError.NewRow();
-                            newRowError[0] = $"Error en la data {item}, las columnas Fecha, Región, Zona, Circuito, Latitud, Longitud y Municipio son Requeridas";
+                            newRowError[0] = $"{item}";
+                            newRowError[1] = message;
                             dataTableError.Rows.Add(newRowError);
-
                         }
                         else if (date != "")
                         {
@@ -83,31 +132,30 @@ namespace ADO.BL.Services
                                 var newRow = dataTable.NewRow();
                                 newRow[0] = date;
 
-                                newRow[1] = valueLines[0];
-                                newRow[2] = valueLines[1];
-                                newRow[3] = valueLines[11];
-                                newRow[4] = valueLines[3].Replace(" ", "");
-                                newRow[5] = valueLines[4];
-                                newRow[6] = valueLines[5];
-                                newRow[7] = valueLines[6];
-                                newRow[8] = valueLines[7];
-                                newRow[9] = valueLines[8];
-                                newRow[10] = valueLines[9];
-                                newRow[11] = valueLines[10];
+                                newRow[1] = valueLines[region];
+                                newRow[2] = valueLines[zona];
+                                newRow[3] = valueLines[circuito].Replace(" ", "");
+                                newRow[4] = valueLines[latitud];
+                                newRow[5] = valueLines[longitud];
+                                newRow[6] = valueLines[tipo];
+                                newRow[7] = valueLines[corriente];
+                                newRow[8] = valueLines[error];
+                                newRow[9] = valueLines[municipio];
+
                                 dataTable.Rows.Add(newRow);
 
                                 var newEntity = new MpLightningDTO();
                                 var aniomes = date.Split('/', ' ');
-                                newEntity.NameRegion = valueLines[0].Trim().ToUpper();
-                                newEntity.NameZone = valueLines[1].Trim().ToUpper();
-                                newEntity.NameLocality = valueLines[8].Trim().ToUpper();
-                                newEntity.Fparent = valueLines[11].Trim().Replace(" ", "");
+                                newEntity.NameRegion = valueLines[region].Trim().ToUpper();
+                                newEntity.NameZone = valueLines[zona].Trim().ToUpper();
+                                newEntity.NameLocality = valueLines[municipio].Trim().ToUpper();
+                                newEntity.Fparent = valueLines[circuito].Trim().Replace(" ", "");
                                 newEntity.DateEvent = DateTime.Parse(date);
-                                newEntity.Latitude = float.Parse(valueLines[3].Replace(',', '.').Trim());
-                                newEntity.Longitude = float.Parse(valueLines[4].Replace(',', '.').Trim());
-                                newEntity.Amperage = float.Parse(valueLines[6].Replace(',', '.').Trim());
-                                newEntity.Error = float.Parse(valueLines[7].Replace(',', '.').Trim());
-                                newEntity.Type = int.Parse(valueLines[5].Trim());
+                                newEntity.Latitude = float.Parse(valueLines[latitud].Replace(',', '.').Trim());
+                                newEntity.Longitude = float.Parse(valueLines[longitud].Replace(',', '.').Trim());
+                                newEntity.Amperage = float.Parse(valueLines[corriente].Replace(',', '.').Trim());
+                                newEntity.Error = float.Parse(valueLines[error].Replace(',', '.').Trim());
+                                newEntity.Type = int.Parse(valueLines[tipo].Trim());
                                 newEntity.Year = int.Parse(aniomes[2]);
                                 newEntity.Month = int.Parse(aniomes[1]);
 
@@ -140,13 +188,16 @@ namespace ADO.BL.Services
                             csv.NextRecord();
                         }
                     }
+                    statusFilesingle.Status = 1;
 
                     if (dataTableError.Rows.Count > 0)
                     {
+                        statusFilesingle.Status = 0;
+                        errorFlag = true;
                         RegisterError(dataTableError, inputFolder, filePath);
                     }
 
-                    if (listDTOMpLightning.Count > 0)
+                    if (listDTOMpLightning.Count > 0 && errorFlag == false)
                     {
                         int i = 0;
                         while ((i * 1000) < listDTOMpLightning.Count())
@@ -160,14 +211,27 @@ namespace ADO.BL.Services
 
                     }
 
+                    statusFileList.Add(statusFilesingle);
 
                     Console.WriteLine("Proceso completado.");
-                }
+                }                
 
-                response.Message = "All Registers are created and/or updated";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                if (errorFlag)
+                {                    
+                    response.Message = "file with errors";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
+                }
+                else
+                {
+                    var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    response.Message = "All files are created";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
 
             }            
             catch (FormatException ex)
@@ -186,20 +250,40 @@ namespace ADO.BL.Services
             return response;
         }
 
-        public ResponseEntity<List<string>> SearchDataExcel(ResponseEntity<List<string>> response)
+        public async Task<ResponseEntity<List<string>>> SearchDataExcel(RayosValidationDTO request, ResponseEntity<List<string>> response)
         {
             try
             {
-                string inputFolder = "C:\\Users\\ingen\\source\\repos\\LecturaCSV\\LecturaCSV\\filesData";
+                string inputFolder = _RayosDirectoryPath;
+                var errorFlag = false;
 
-                //Procesar cada archivo.xlsx en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx"))
+                int fecha = 1;
+                int region = 2;
+                int zona = 3;
+                int circuito = 4;
+                int latitud = 5;
+                int longitud = 6;
+                int tipo = 7;
+                int corriente = 8;
+                int error = 9;
+                int municipio = 10;
+
+                if (request.Encabezado == false)
                 {
-                    ProcessXlsxToCsv(filePath, inputFolder);
+                    fecha = request.columns.Fecha;
+                    region = request.columns.Region;
+                    zona = request.columns.Zona;
+                    circuito = request.columns.Circuito;
+                    latitud = request.columns.Latitud;
+                    longitud = request.columns.Longitud;
+                    tipo = request.columns.Tipo;
+                    corriente = request.columns.Corriente;
+                    error = request.columns.Error;
+                    municipio = request.columns.Municipio;
                 }
 
-
-                void ProcessXlsxToCsv(string filePath, string inputFolder)
+                //Procesar cada archivo.xlsx en la carpeta
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx"))                
                 {
                     using (var package = new ExcelPackage(new FileInfo(filePath)))
                     {
@@ -207,7 +291,7 @@ namespace ADO.BL.Services
                         var worksheet = package.Workbook.Worksheets[0];
                         var dataTable = new DataTable();
                         var dataTableError = new DataTable();
-                        var listDTOMpLightning = new List<MpLightningDTO>();
+                        var listDTOMpLightning = new List<MpLightningDTO>();                        
 
                         // agregar nombres a columnas
                         for (int i = 1; i <= 12; i++)
@@ -216,7 +300,7 @@ namespace ADO.BL.Services
                         }
 
                         // columnas tabla error
-                        dataTableError.Columns.Add("C1");
+                        dataTableError.Columns.Add("C1");                        
 
                         for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
                         {
@@ -233,23 +317,23 @@ namespace ADO.BL.Services
                             {
                                 break;
                             }
-                            var date = worksheet.Cells[row, 1].Text != "" ? worksheet.Cells[row, 1].Text : string.Empty;
-                            if (worksheet.Cells[row, 1].Text == "" || worksheet.Cells[row, 2].Text == "" || worksheet.Cells[row, 3].Text == "" ||
-                                worksheet.Cells[row, 4].Text == "" || worksheet.Cells[row, 5].Text == "" || worksheet.Cells[row, 6].Text == "" ||
-                                worksheet.Cells[row, 10].Text == "")
-                            {
-                                var newRowError = dataTableError.NewRow();
-                                newRowError[0] = $"Error en la data en la fila {row}, las columnas Fecha, Región, Zona, Circuito, Latitud, Longitud y Municipio son Requeridas";
-                                dataTableError.Rows.Add(newRowError);
 
+                            var date = worksheet.Cells[row, fecha].Text != "" ? worksheet.Cells[row, fecha].Text : string.Empty;
+                            if (worksheet.Cells[row, fecha].Text == "" || worksheet.Cells[row, region].Text == "" || worksheet.Cells[row, zona].Text == "" ||
+                                worksheet.Cells[row, circuito].Text == "" || worksheet.Cells[row, latitud].Text == "" || worksheet.Cells[row, longitud].Text == "" ||
+                                worksheet.Cells[row, municipio].Text == "")
+                            {                                
+                                var newRowError = dataTableError.NewRow();                                
+                                newRowError[0] = $"Error en la data en la línea {row}, las columnas Fecha, Región, Zona, Circuito, Latitud, Longitud y Municipio son Requeridas";
+                                dataTableError.Rows.Add(newRowError);
                             }
                             else if (date != "")
                             {
                                 date = ParseDate(date);
                                 if (date.Contains("Error"))
-                                {
-                                    var newRowError = dataTableError.NewRow();
-                                    newRowError[0] = date + $" En la fila {row} y columna Fecha";
+                                {                                                                        
+                                    var newRowError = dataTableError.NewRow();                                    
+                                    newRowError[0] = date + $" En la línea {row} y columna Fecha";
                                     dataTableError.Rows.Add(newRowError);
                                 }
                                 else
@@ -263,17 +347,17 @@ namespace ADO.BL.Services
                                     dataTable.Rows.Add(newRow);
 
                                     var newEntity = new MpLightningDTO();
-                                    var aniomes = worksheet.Cells[row, 1].Text.Split('/', ' ');
-                                    newEntity.NameRegion = worksheet.Cells[row, 2].Text.Trim().ToUpper();
-                                    newEntity.NameZone = worksheet.Cells[row, 3].Text.Trim().ToUpper();
-                                    newEntity.NameLocality = worksheet.Cells[row, 10].Text.Trim().ToUpper();
-                                    newEntity.Fparent = worksheet.Cells[row, 4].Text.Trim();
-                                    newEntity.DateEvent = DateTime.Parse(worksheet.Cells[row, 1].Text);
-                                    newEntity.Latitude = float.Parse(worksheet.Cells[row, 5].Text.Trim());
-                                    newEntity.Longitude = float.Parse(worksheet.Cells[row, 6].Text.Trim());
-                                    newEntity.Amperage = float.Parse(worksheet.Cells[row, 8].Text.Trim());
-                                    newEntity.Error = float.Parse(worksheet.Cells[row, 9].Text.Trim());
-                                    newEntity.Type = int.Parse(worksheet.Cells[row, 7].Text.Trim());
+                                    var aniomes = worksheet.Cells[row, fecha].Text.Split('/', ' ');
+                                    newEntity.NameRegion = worksheet.Cells[row, region].Text.Trim().ToUpper();
+                                    newEntity.NameZone = worksheet.Cells[row, zona].Text.Trim().ToUpper();
+                                    newEntity.NameLocality = worksheet.Cells[row, municipio].Text.Trim().ToUpper();
+                                    newEntity.Fparent = worksheet.Cells[row, circuito].Text.Trim().Replace(" ", "");
+                                    newEntity.DateEvent = DateTime.Parse(worksheet.Cells[row, fecha].Text);
+                                    newEntity.Latitude = float.Parse(worksheet.Cells[row, latitud].Text.Trim());
+                                    newEntity.Longitude = float.Parse(worksheet.Cells[row, longitud].Text.Trim());
+                                    newEntity.Amperage = float.Parse(worksheet.Cells[row, corriente].Text.Trim());
+                                    newEntity.Error = float.Parse(worksheet.Cells[row, error].Text.Trim());
+                                    newEntity.Type = int.Parse(worksheet.Cells[row, tipo].Text.Trim());
                                     newEntity.Year = int.Parse(aniomes[2]);
                                     newEntity.Month = int.Parse(aniomes[1]);
 
@@ -309,10 +393,11 @@ namespace ADO.BL.Services
 
                         if (dataTableError.Rows.Count > 0)
                         {
+                            errorFlag = true;
                             RegisterError(dataTableError, inputFolder, filePath);
                         }
 
-                        if (listDTOMpLightning.Count > 0)
+                        if (listDTOMpLightning.Count > 0 && errorFlag == false)
                         {
                             int i = 0;
                             while ((i * 1000) < listDTOMpLightning.Count())
@@ -328,10 +413,20 @@ namespace ADO.BL.Services
                     }
 
                 }
-                response.Message = "All Registers are created and/or updated";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                if (errorFlag)
+                {
+                    response.Message = "file with errors";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
+                }
+                else
+                {
+                    response.Message = "All files are created";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
 
             }
             catch (FormatException ex)
@@ -356,14 +451,15 @@ namespace ADO.BL.Services
             using (var writer = new StreamWriter(outputFilePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-
                 foreach (DataRow row in table.Rows)
                 {
-                    csv.WriteField(row[0]);
+                    for (var i = 0; i < 2; i++)
+                    {
+                        csv.WriteField(row[i]);
+                    }
                     csv.NextRecord();
                 }
             }
-
         }
 
         private static string ParseDate(string dateString)

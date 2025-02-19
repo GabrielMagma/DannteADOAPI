@@ -3,6 +3,9 @@ using ADO.BL.Responses;
 using ADO.BL.Interfaces;
 using System.Drawing;
 using Microsoft.Win32;
+using ADO.BL.DTOs;
+using Microsoft.AspNetCore.SignalR;
+using DannteADOAPI.Helper;
 
 namespace DannteADOAPI.Controllers
 {
@@ -11,10 +14,17 @@ namespace DannteADOAPI.Controllers
     public class SSPDGlobalController : Controller
     {
         readonly ISSPDGlobalServices SSPDServices;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public SSPDGlobalController(ISSPDGlobalServices _sspdServices)
+        public SSPDGlobalController(ISSPDGlobalServices _sspdServices, IHubContext<NotificationHub> hubContext)
         {
             SSPDServices = _sspdServices;
+            _hubContext = hubContext;
+        }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
         }
 
         /// <summary>
@@ -24,14 +34,12 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(SSPDGlobalController.ReadFileSspdOrginal))]
-        public async Task<IActionResult> ReadFileSspdOrginal()
+        public async Task<IActionResult> ReadFileSspdOrginal(LacValidationDTO request)
         {
-            return await Task.Run(() =>
-            {
-                ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-                SSPDServices.ReadFileSspdOrginal(response);
-                return Ok(response);
-            });
+            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
+            await SSPDServices.ReadFileSspdOrginal(request, response);
+            await AddMessage(response.Success, response.Message);
+            return Ok(response);            
         }
 
     }

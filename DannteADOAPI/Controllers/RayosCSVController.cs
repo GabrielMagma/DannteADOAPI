@@ -1,6 +1,9 @@
-﻿using ADO.BL.Interfaces;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DannteADOAPI.Controllers
 {
@@ -9,11 +12,19 @@ namespace DannteADOAPI.Controllers
     public class RayosCSVController : ControllerBase
     {
         readonly IRayosCSVServices rayosServices;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public RayosCSVController(IRayosCSVServices _rayosServices)
+        public RayosCSVController(IRayosCSVServices _rayosServices, IHubContext<NotificationHub> hubContext)
         {
             rayosServices = _rayosServices;
+            _hubContext = hubContext;
         }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
+        }
+
         /// <summary>
         /// Servicio que toma los datos desde un archivo csv, los filtra, guarda en un csv y los almacena en la tabla mp_lightning de la base de datos
         /// </summary>
@@ -21,14 +32,12 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(RayosCSVController.SearchDataCSV))]
-        public async Task<IActionResult> SearchDataCSV()
+        public async Task<IActionResult> SearchDataCSV(RayosValidationDTO request)
         {
-            return await Task.Run(() =>
-            {
-                ResponseEntity<List<string>> response = new ResponseEntity<List<string>>();
-                rayosServices.SearchDataCSV(response);
-                return Ok(response);
-            });
+            ResponseEntity<List<string>> response = new ResponseEntity<List<string>>();
+            await rayosServices.SearchDataCSV(request, response);
+            await AddMessage(response.Success, response.Message);
+            return Ok(response);
         }
 
         /// <summary>
@@ -38,14 +47,12 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route(nameof(RayosCSVController.SearchDataExcel))]
-        public async Task<IActionResult> SearchDataExcel()
+        public async Task<IActionResult> SearchDataExcel(RayosValidationDTO request)
         {
-            return await Task.Run(() =>
-            {
-                ResponseEntity<List<string>> response = new ResponseEntity<List<string>>();
-                rayosServices.SearchDataExcel(response);
-                return Ok(response);
-            });
+            ResponseEntity<List<string>> response = new ResponseEntity<List<string>>();
+            await rayosServices.SearchDataExcel(request, response);
+            await AddMessage(response.Success, response.Message);
+            return Ok(response);            
         }
     }
 }

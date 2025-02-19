@@ -1,10 +1,13 @@
-﻿using ADO.BL.Interfaces;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using CsvHelper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using System.Data;
 using System.Globalization;
+using System.Text;
 
 namespace ADO.BL.Services
 {
@@ -12,120 +15,147 @@ namespace ADO.BL.Services
     {
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
+        private readonly string _TT2FixDirectoryPath;
         public FileTT2ValidationServices(IConfiguration configuration)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
+            _TT2FixDirectoryPath = configuration["TT2FIXDirectoryPath"];
         }
 
-        public ResponseQuery<bool> ValidationTT2(IFormFile file, ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ValidationTT2(ResponseQuery<bool> response)
         {
             try
             {
 
-                string inputFolder = ".\\filesTT2";
-
-                var filePath = $"{inputFolder}\\{file.FileName}";
-
-                string nameFile = file.FileName.Replace(".csv", "");
+                string inputFolder = _TT2FixDirectoryPath;
+                                
                 var dataTable = new DataTable();
-                    var dataTableError = new DataTable();
-                    int count = 1;
-                    var columns = int.Parse(_configuration["Validations:TT2Columns"]);
-                    var UIAPos = int.Parse(_configuration["Validations:TT2UIA"]);
-                    var SIGPos = int.Parse(_configuration["Validations:TT2CODESIG"]);
-                    // columnas tabla error
-                    dataTableError.Columns.Add("C1");
-                    dataTableError.Columns.Add("C2");
+                var dataTableError = new DataTable();
 
-                    // columnas tabla datos correctos
-                    for (int i = 1; i <= columns; i++)
-                    {
-                        dataTable.Columns.Add($"C{i}");
-                    }
 
-                var reader = new StreamReader(file.OpenReadStream());
+                // columnas tabla datos correctos
+                dataTable.Columns.Add("COD_CREG");
+                dataTable.Columns.Add("CODIGO_UBICACION");
+                dataTable.Columns.Add("GRUPO_CALIDAD");
+                dataTable.Columns.Add("IDMERCADO");
+                dataTable.Columns.Add("CAPACIDAD");
+                dataTable.Columns.Add("PROPIEDAD");
+                dataTable.Columns.Add("TIPO_SUBESTACION");
+                dataTable.Columns.Add("LONGITUD");
+                dataTable.Columns.Add("LATITUD");
+                dataTable.Columns.Add("ALTITUD");
+                dataTable.Columns.Add("ESTADO");
+                dataTable.Columns.Add("FECHA_ESTADO");
+                dataTable.Columns.Add("RESOLUCION_METODOLOGIA");
 
-                while (reader.Peek() >= 0)
+                dataTableError.Columns.Add("Error");
+                dataTableError.Columns.Add("Data");
+
+
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
-                    var lines = string.Empty;
-                    lines = reader.ReadLine();
-                    var valueLines = lines.Split(",");
-                    string message = string.Empty;
-                    var beacon = 0;
-                    for (int i = 0; i < columns; i++)
+                    string[] fileLines = File.ReadAllLines(filePath);
+                    var listDataString = new StringBuilder();
+                    var listUIA = new StringBuilder();
+                    var allAssetList = new List<AssetDTO>();
+                    foreach (var item in fileLines)
                     {
-                        if (valueLines[i] != "")
+                        var valueLinesTemp = item.Split(',',';');
+                        if (valueLinesTemp[0] != "CODIGO TRANSFORMADOR")
                         {
-                            beacon++;
+                            listDataString.Append($"'{valueLinesTemp[0]}',");
                         }
                     }
 
-                    if (beacon > 0)
+                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteDevelopment";
+
+                    using (var connection = new NpgsqlConnection(_connectionString))
                     {
-
-                        if (valueLines.Length != columns)
+                        connection.Open();
+                        var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);
+                        var SelectQuery = $@"SELECT uia, code_sig FROM public.all_asset where uia in ({listDef})";
+                        using (var reader = new NpgsqlCommand(SelectQuery, connection))
                         {
-                            message = "Error de cantidad de columnas llenas";
-                            RegisterError(dataTableError, lines, count, nameFile, message);
-                        }
-
-                        else if (valueLines[UIAPos] == "" || valueLines[SIGPos] == "")
-                        {
-                            message = "Error de la data de NIU y/o UIA, no está llena correctamente, por favor corregirla";
-                            RegisterError(dataTableError, lines, count, nameFile, message);
-                        }
-
-                        else if (valueLines[2].Length != 2)
-                        {
-                            message = "Error de la data de grupo calidad, debe ser sólamente de dos dígitos, por favor corregirla";
-                            RegisterError(dataTableError, lines, count, nameFile, message);
-                        }
-
-                        else if (valueLines[7] == "" || valueLines[8] == "")
-                        {
-                            message = "Error de la data de Latitud y/o Longitud, no está llena correctamente, por favor corregirla";
-                            RegisterError(dataTableError, lines, count, nameFile, message);
-                        }
-
-                        else if (valueLines[11] != "")
-                        {
-                            var datefile = ParseDate(valueLines[11]);
-                            var dateToday = DateTime.Now;
-                            if (datefile.Contains("Error"))
+                            try
                             {
-                                message = "Error de la fecha en la data, no tiene el formato correcto";
-                                RegisterError(dataTableError, lines, count, nameFile, message);
+
+                                using (var result = await reader.ExecuteReaderAsync())
+                                {
+                                    while (await result.ReadAsync())
+                                    {
+                                        listUIA.Append($"'{result[0]}',");
+                                        var temp = new AssetDTO();
+                                        temp.Uia = result[0].ToString();
+                                        temp.Code_sig = result[1].ToString();
+                                        allAssetList.Add(temp);
+                                    }
+                                }
                             }
-                            else if (DateTime.Parse(datefile) > dateToday)
+                            catch (NpgsqlException ex)
                             {
-                                message = "Error de la fecha en la data, no puede ser mayor a la fecha actual";
-                                RegisterError(dataTableError, lines, count, nameFile, message);
+                                Console.WriteLine(ex.Message);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                    }
+
+
+                    foreach (var item in fileLines)
+                    {
+                        var valueLines = item.Split(';', ',');
+
+                        if (valueLines[0] != "CODIGO TRANSFORMADOR")
+                        {
+                            
+
+                            var codesigTemp = allAssetList.FirstOrDefault(x => x.Uia == valueLines[0]);
+
+                            if (codesigTemp != null)
+                            {
+                                var newRow = dataTable.NewRow();
+                                newRow[0] = valueLines[0];
+                                newRow[1] = codesigTemp.Code_sig;
+                                newRow[2] = valueLines[1];
+                                newRow[3] = valueLines[2];
+                                newRow[4] = valueLines[3];
+                                newRow[5] = valueLines[4];
+                                newRow[6] = valueLines[5];
+                                newRow[7] = valueLines[6];
+                                newRow[8] = valueLines[7];
+                                newRow[9] = valueLines[8];
+                                newRow[10] = valueLines[9];
+                                newRow[11] = valueLines[10];
+                                newRow[12] = valueLines[11];                                
+
+                                dataTable.Rows.Add(newRow);
                             }
                             else
                             {
-                                InsertData(dataTable, valueLines, columns);
+                                var newRow = dataTableError.NewRow();
+                                newRow[0] = "no Code_sig";
+                                newRow[1] = item;
+                                dataTableError.Rows.Add(newRow);
                             }
                         }
-
-                        else
-                        {
-                            InsertData(dataTable, valueLines, columns);
-                        }
                     }
-                        count++;
-                        beacon = 0;
+
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        createCSV(dataTable, filePath);
+                    }
+
+                    if (dataTableError.Rows.Count > 0)
+                    {
+                        createCSVError(dataTableError, filePath);
+                    }
+
                 }
 
-                if (dataTable.Rows.Count > 0)
-                {
-                    createCSV(dataTable, filePath, columns);
-                }
-
-                if (dataTableError.Rows.Count > 0)
-                {
-                    createCSVError(dataTableError, filePath);
-                }
+                
                                 
                 response.Message = "All files are created";
                 response.SuccessData = true;
@@ -133,12 +163,6 @@ namespace ADO.BL.Services
                 return response;
 
             }
-            //catch (SqliteException ex)
-            //{
-            //    response.Message = ex.Message;
-            //    response.Success = false;
-            //    response.SuccessData = false;
-            //}
             catch (FormatException ex)
             {
                 
@@ -158,43 +182,23 @@ namespace ADO.BL.Services
 
         }
 
-        private static void InsertData(DataTable dataTable, string[] valueLines, int columns)
+        private void createCSV(DataTable table, string filePath)
         {
-            var newRow = dataTable.NewRow();
-
-            for (int i = 0; i <= columns - 1; i++)
-            {
-                newRow[i] = valueLines[i];
-            }
-
-            dataTable.Rows.Add(newRow);
-
-        }
-
-        private static void RegisterError(DataTable table, string item, int count, string fileName, string message)
-        {
-            var messageError = $"{message} en la línea {count} del archivo {fileName}";
-
-            var newRow = table.NewRow();
-
-            newRow[0] = item;
-            newRow[1] = messageError;
-
-            table.Rows.Add(newRow);
-
-        }
-
-        private static void createCSV(DataTable table, string filePath, int columns)
-        {
-            string inputFolder = ".\\filesTT2";
-            string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Correct.csv");
+            string inputFolder = _TT2FixDirectoryPath;
+            string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Fixed.csv");
             using (var writer = new StreamWriter(outputFilePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
 
+                foreach (DataColumn column in table.Columns)
+                {
+                    csv.WriteField(column.ColumnName);
+                }
+                csv.NextRecord();
+
                 foreach (DataRow row in table.Rows)
                 {
-                    for (var i = 0; i < columns; i++)
+                    for (var i = 0; i < 13; i++)
                     {
                         csv.WriteField(row[i]);
                     }
@@ -203,14 +207,13 @@ namespace ADO.BL.Services
             }
         }
 
-        private static void createCSVError(DataTable table, string filePath)
+        private void createCSVError(DataTable table, string filePath)
         {
-            string inputFolder = ".\\filesTT2";
+            string inputFolder = _TT2FixDirectoryPath;
             string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Error.csv");
             using (var writer = new StreamWriter(outputFilePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-
                 foreach (DataRow row in table.Rows)
                 {
                     for (var i = 0; i < 2; i++)
@@ -219,34 +222,10 @@ namespace ADO.BL.Services
                     }
                     csv.NextRecord();
                 }
+
             }
         }
 
-        private string ParseDate(string dateString)
-        {
-            //var _timeFormats = new List<string> {
-            //        "yyyy-MM-dd HH:mm:ss",
-            //        "yyyy-MM-dd HH:mm",
-            //        "dd-MM-yyyy HH:mm",
-            //        "yyyy/MM/dd HH:mm",
-            //        "dd/MM/yyyy HH:mm",
-            //        "dd/MM/yyyy HH:mm:ss",
-            //        "dd/MM/yyyy",
-            //        "d/MM/yyyy",
-            //        "dd-MM-yyyy",
-            //    };
-            
-            foreach (var format in _timeFormats)
-            {
-                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
-                {
-                    return parsedDate.ToString();
-                }
-            }
-            return $"Error en el formato de fecha {dateString} no es válido.";
-            //throw new FormatException($"Error en el formato de fecha {dateString} no es válido.");
-        }
 
-        
     }
 }

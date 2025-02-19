@@ -15,4 +15,8 @@
     <ProjectReference Include="..\ADO.BL\ADO.BL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DataTemp\" />
+  </ItemGroup>
+
 </Project>

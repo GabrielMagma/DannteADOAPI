@@ -14,32 +14,48 @@ namespace ADO.BL.Services
 {
     public class RamalesServices : IRamalesServices
     {
-        private readonly IRamalesDataAccess ramalesDataAccess;
-        private readonly IMapper mapper;
+        private readonly IRamalesDataAccess ramalesDataAccess;        
         private readonly string _RamalesDirectoryPath;
-        public RamalesServices(IConfiguration configuration, IRamalesDataAccess _ramalesDataAccess, IMapper _mapper)
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IMapper mapper;
+
+        public RamalesServices(IConfiguration configuration, 
+            IRamalesDataAccess _ramalesDataAccess,
+            IStatusFileEepDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
-            ramalesDataAccess = _ramalesDataAccess;
-            mapper = _mapper;
+            ramalesDataAccess = _ramalesDataAccess;            
             _RamalesDirectoryPath = configuration["RamalesPath"];
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
 
         }
 
-        public ResponseEntity<List<string>> SearchData(ResponseEntity<List<string>> response)
+        public async Task<ResponseEntity<List<string>>> SearchData(RamalesValidationDTO request, ResponseEntity<List<string>> response)
         {
             try
             {
                 string inputFolder = _RamalesDirectoryPath;
-
+                var responseTotal = false;
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
-                    ProcessXlsx(filePath, inputFolder);
+                  var responseProcess = ProcessFile(request, filePath, inputFolder);
+                  Console.WriteLine(responseProcess);
                 }
-
-                response.Message = "All Registers are created and/or updated";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                if (responseTotal)
+                {
+                    response.Message = "All Registers are created and/or updated";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
+                else
+                {
+                    response.Message = "File with errors";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
+                }
 
             }            
             catch (FormatException ex)
@@ -58,15 +74,61 @@ namespace ADO.BL.Services
             return response;
         }
 
-        async void ProcessXlsx(string filePath, string inputFolder)
+        async Task<bool> ProcessFile(RamalesValidationDTO request, string filePath, string inputFolder)
         {
-
             string[] fileLines = File.ReadAllLines(filePath);
             var dataTable = new DataTable();
             var dataTableError = new DataTable();
             var filesIOList = new List<FileIoTempDTO>();
             var filesIODetailList = new List<FileIoTempDetailDTO>();
-            //var listDTOMpLightning = new List<MpLightningDTO>();
+            var count = 1;
+
+            var errorFlag = false;
+
+            int codEvento = 0;
+            int fechaIni = 1;
+            int fechaFin = 2;
+            int duracion = 3;
+            int fparent = 4;
+            int codInter = 5;
+            int nombreInter = 6;
+            int apoyoApertura = 7;
+            int apoyoFalla = 8;
+            int codCausaEvent = 9;
+            int totalTrafo = 10;
+            int totalCliente = 11;
+            int totalOpe = 12;
+
+            var statusFileList = new List<StatusFileDTO>();
+
+            var statusFilesingle = new StatusFileDTO();
+            // Extraer el nombre del archivo sin la extensión
+            var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+            statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
+            statusFilesingle.UserId = request.UserId;
+            statusFilesingle.FileName = fileName;
+            statusFilesingle.FileType = "RAYOS";
+            statusFilesingle.Year = request.Year;
+            statusFilesingle.Month = request.Month;
+
+            if (request.Encabezado == false)
+            {
+                codEvento = request.columns.CodEvento - 1;
+                fechaIni = request.columns.FechaIni - 1;
+                fechaFin = request.columns.FechaFin - 1;
+                duracion = request.columns.Duracion - 1;
+                fparent = request.columns.Fparent - 1;
+                codInter = request.columns.CodInter - 1;
+                nombreInter = request.columns.NombreInter - 1;
+                apoyoApertura = request.columns.ApoyoApertura - 1;
+                apoyoFalla = request.columns.ApoyoFalla - 1;
+                codCausaEvent = request.columns.CodCausaEvent - 1;
+                totalTrafo = request.columns.TotalTrafo - 1;
+                totalCliente = request.columns.TotalCliente - 1;
+                totalOpe = request.columns.TotalOpe - 1;
+            }
+
 
             // agregar nombres a columnas
             for (int i = 1; i <= 8; i++)
@@ -76,6 +138,7 @@ namespace ADO.BL.Services
 
             // columnas tabla error
             dataTableError.Columns.Add("C1");
+            dataTableError.Columns.Add("C2");
 
             int j = 0;
             while ((j * 1000) < fileLines.Count())
@@ -173,16 +236,18 @@ namespace ADO.BL.Services
                     }
                     if (beacon == columnCount + 1)
                     {
-                        break;
+                        break;                    
                     }
-                    var date = valueLines[1] != "" ? valueLines[1].Trim().ToString() : string.Empty;
+
+                    var date = valueLines[fechaIni] != "" ? valueLines[fechaIni].Trim().ToString() : string.Empty;
                     //var date = dateTemp.ToString();                    
-                    if (valueLines[0] == "" || valueLines[1] == "" || valueLines[2] == "" || valueLines[3] == "" ||
-                        valueLines[4] == "" || valueLines[5] == "" || valueLines[6] == "" || valueLines[7] == "" ||
-                        valueLines[8] == "" || valueLines[9] == "" || valueLines[10] == "" || valueLines[11] == "" || valueLines[12] == "")
+                    if (valueLines[codEvento] == "" || valueLines[fechaIni] == "" || valueLines[fechaFin] == "" || valueLines[duracion] == "" ||
+                        valueLines[fparent] == "" || valueLines[codInter] == "" || valueLines[nombreInter] == "" || valueLines[apoyoApertura] == "" ||
+                        valueLines[apoyoFalla] == "" || valueLines[codCausaEvent] == "" || valueLines[totalTrafo] == "" || valueLines[totalCliente] == "" || valueLines[totalOpe] == "")
                     {
                         var newRowError = dataTableError.NewRow();
-                        newRowError[0] = $"Error en la data en la fila {valueLines}, las columnas Codigo evento, Total Trafo y Total clientes son Requeridas";
+                        newRowError[0] = $"Error en la data en la fila {count}, las columnas Codigo evento, Total Trafo y Total clientes son Requeridas";
+                        newRowError[1] = $"{valueLines}";
                         dataTableError.Rows.Add(newRowError);
                     }
                     else if (date != "")
@@ -191,47 +256,47 @@ namespace ADO.BL.Services
                         if (date.Contains("Error"))
                         {
                             var newRowError = dataTableError.NewRow();
-                            newRowError[0] = date + $" En la fila {valueLines} y columna Fecha";
+                            newRowError[0] = date + $" En la fila {count} y columna Fecha";
+                            newRowError[1] = $"{valueLines}";
                             dataTableError.Rows.Add(newRowError);
                         }
                         else
                         {
                             var aniomes = date.Split('/', ' ');
-                            var LacUnit = fileLacList.Where(x => x.event_code == valueLines[0]).ToList();
+                            var LacUnit = fileLacList.Where(x => x.event_code == valueLines[codEvento]).ToList();
                             var UiaLists = new List<string>();
                             foreach (var item1 in LacUnit)
                             {
                                 UiaLists.Add(item1.Uia);
                             }
 
-                            var countCodeSig = allAssetList.Where(x => UiaLists.Contains(x.Uia)).ToList();
-                            //var countClients = fileTc1List.Where(x => UiaLists.Contains(x.Uia) && x.Month == int.Parse(aniomes[1]) && x.Year == int.Parse(aniomes[2])).Count();
+                            var countCodeSig = allAssetList.Where(x => UiaLists.Contains(x.Uia)).ToList();                            
 
                             var newRow = dataTable.NewRow();
                             newRow[0] = date;
-                            newRow[1] = valueLines[0];
-                            newRow[2] = valueLines[10];
+                            newRow[1] = valueLines[codEvento];
+                            newRow[2] = valueLines[totalTrafo];
                             newRow[3] = countCodeSig.Count();
-                            newRow[4] = int.Parse(valueLines[10]) - countCodeSig.Count();
+                            newRow[4] = int.Parse(valueLines[totalTrafo]) - countCodeSig.Count();
 
                             dataTable.Rows.Add(newRow);
 
                             var filesIOUnit = new FileIoTempDTO();
-                            var dateOnlyIniPart = valueLines[1].Split(' ');
-                            var dateOnlyFinPart = valueLines[2].Split(' ');
-                            filesIOUnit.CodigoEvento = valueLines[0];
+                            var dateOnlyIniPart = valueLines[fechaIni].Split(' ');
+                            var dateOnlyFinPart = valueLines[fechaFin].Split(' ');
+                            filesIOUnit.CodigoEvento = valueLines[codEvento];
                             filesIOUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
                             filesIOUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
-                            filesIOUnit.Duracion = float.Parse(valueLines[3]);
-                            filesIOUnit.CodigoCircuito = valueLines[4];
-                            filesIOUnit.CodInteruptor = valueLines[5];
-                            filesIOUnit.NombreTipoInteruptor = valueLines[6];
-                            filesIOUnit.ApoyoApertura = valueLines[7];
-                            filesIOUnit.ApoyoFalla = valueLines[8];
-                            filesIOUnit.CodigoCausaEvento = int.Parse(valueLines[9]);
-                            filesIOUnit.TotalTafo = int.Parse(valueLines[10]);
-                            filesIOUnit.TotalClientes = int.Parse(valueLines[11]);
-                            filesIOUnit.TotalOperaciones = int.Parse(valueLines[12]);
+                            filesIOUnit.Duracion = float.Parse(valueLines[duracion]);
+                            filesIOUnit.CodigoCircuito = valueLines[fparent];
+                            filesIOUnit.CodInteruptor = valueLines[codInter];
+                            filesIOUnit.NombreTipoInteruptor = valueLines[nombreInter];
+                            filesIOUnit.ApoyoApertura = valueLines[apoyoApertura];
+                            filesIOUnit.ApoyoFalla = valueLines[apoyoFalla];
+                            filesIOUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
+                            filesIOUnit.TotalTafo = int.Parse(valueLines[totalTrafo]);
+                            filesIOUnit.TotalClientes = int.Parse(valueLines[totalCliente]);
+                            filesIOUnit.TotalOperaciones = int.Parse(valueLines[totalOpe]);
 
                             filesIOList.Add(filesIOUnit);
 
@@ -239,20 +304,20 @@ namespace ADO.BL.Services
                             {
                                 var filesIODetailUnit = new FileIoTempDetailDTO();
 
-                                filesIODetailUnit.CodigoEvento = valueLines[0];
+                                filesIODetailUnit.CodigoEvento = valueLines[codEvento];
                                 filesIODetailUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
                                 filesIODetailUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
-                                filesIODetailUnit.Duracion = float.Parse(valueLines[3]);
-                                filesIODetailUnit.CodigoCircuito = valueLines[4].Trim().Replace(" ", "");
-                                filesIODetailUnit.CodInteruptor = valueLines[5];
-                                filesIODetailUnit.NombreTipoInteruptor = valueLines[6];
-                                filesIODetailUnit.ApoyoApertura = valueLines[7];
-                                filesIODetailUnit.ApoyoFalla = valueLines[8];
-                                filesIODetailUnit.CodigoCausaEvento = int.Parse(valueLines[9]);
+                                filesIODetailUnit.Duracion = float.Parse(valueLines[duracion]);
+                                filesIODetailUnit.CodigoCircuito = valueLines[fparent].Trim().Replace(" ", "");
+                                filesIODetailUnit.CodInteruptor = valueLines[codInter];
+                                filesIODetailUnit.NombreTipoInteruptor = valueLines[nombreInter];
+                                filesIODetailUnit.ApoyoApertura = valueLines[apoyoApertura];
+                                filesIODetailUnit.ApoyoFalla = valueLines[apoyoFalla];
+                                filesIODetailUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
                                 filesIODetailUnit.TotalTafo = 1;
                                 filesIODetailUnit.UiaTrafo = item3.Uia;
-                                filesIODetailUnit.TotalClientes = int.Parse(valueLines[11]);
-                                filesIODetailUnit.TotalOperaciones = int.Parse(valueLines[12]);
+                                filesIODetailUnit.TotalClientes = int.Parse(valueLines[totalCliente]);
+                                filesIODetailUnit.TotalOperaciones = int.Parse(valueLines[totalOpe]);
 
                                 filesIODetailList.Add(filesIODetailUnit);
                             }
@@ -263,12 +328,13 @@ namespace ADO.BL.Services
                     else
                     {
                         var newRowError = dataTableError.NewRow();
-                        newRowError[0] = $"Error en la fila {valueLines} y columna Fecha, la fecha no puede ser nula";
+                        newRowError[0] = $"Error en la fila {count} y columna Fecha, la fecha no puede ser nula";
+                        newRowError[1] = $"{valueLines}";
                         dataTableError.Rows.Add(newRowError);
                     }
 
                 }
-
+                count++;
                 j++;
 
                 Console.WriteLine(j * 1000);
@@ -290,13 +356,18 @@ namespace ADO.BL.Services
                 }
             }
 
+            statusFilesingle.Status = 1;
+
             if (dataTableError.Rows.Count > 0)
             {
+                statusFilesingle.Status = 0;
+                errorFlag = true;
                 RegisterError(dataTableError, inputFolder, filePath);
             }
 
+            statusFileList.Add(statusFilesingle);
 
-            if (filesIOList.Count > 0)
+            if (filesIOList.Count > 0 && errorFlag == false)
             {
                 int i = 0;
                 while ((i * 1000) < filesIOList.Count())
@@ -310,8 +381,11 @@ namespace ADO.BL.Services
 
             }
 
-            if (filesIODetailList.Count > 0)
+            if (filesIODetailList.Count > 0 && errorFlag == false)
             {
+                var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
+                var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
+
                 int i = 0;
                 while ((i * 1000) < filesIODetailList.Count())
                 {
@@ -324,8 +398,11 @@ namespace ADO.BL.Services
 
             }
 
+            
+
             Console.WriteLine("Proceso terminado");
 
+            return errorFlag;
 
         }
 
@@ -338,7 +415,10 @@ namespace ADO.BL.Services
 
                 foreach (DataRow row in table.Rows)
                 {
-                    csv.WriteField(row[0]);
+                    for (var i = 0; i < 2; i++)
+                    {
+                        csv.WriteField(row[i]);
+                    }
                     csv.NextRecord();
                 }
             }

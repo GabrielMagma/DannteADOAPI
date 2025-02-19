@@ -1,5 +1,8 @@
-﻿using ADO.BL.Interfaces;
+﻿using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
+using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Globalization;
@@ -12,38 +15,56 @@ namespace ADO.BL.Services
         private readonly string _connectionString;
         private readonly string _assetsDirectoryPath;
         private readonly string[] _timeFormats;
+        private readonly ITC1ValidationServices _ITC1ValidationServices;
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IMapper mapper;
 
-        public TC1Services(IConfiguration configuration)
+        public TC1Services(IConfiguration configuration, 
+            ITC1ValidationServices Itc1ValidationServices,
+            IStatusFileEepDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            //_connectionString = configuration.GetConnectionString("PgDbEepConnection");
             _assetsDirectoryPath = configuration["Tc1DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
+            _ITC1ValidationServices = Itc1ValidationServices;
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
-        public ResponseQuery<List<string>> ReadAssets(ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<List<string>>> ReadAssets(TC1ValidationDTO request, ResponseQuery<List<string>> response)
         {
             try
             {
-                var files = Directory.GetFiles(_assetsDirectoryPath, "*_TC1.csv");  // OJO TOCA ESTANDARIZAR!!!
-
-                foreach (var filePath in files)
+                var responseError = new ResponseEntity<List<StatusFileDTO>>();
+                var ErrorinFiles = await _ITC1ValidationServices.ValidationTC1(request, responseError);
+                if (ErrorinFiles.Success == false)
                 {
-                    InsertAssets(filePath);
-                    Console.WriteLine($"Archivo {filePath} subido exitosamente.");
+                    response.Message = "Archivo con errores";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
                 }
+                else
+                {
+                    var files = Directory.GetFiles(_assetsDirectoryPath, "*_Correct.csv");  // OJO TOCA ESTANDARIZAR!!!
 
-                response.Message = "Proceso completado para todos los archivos";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                    foreach (var filePath in files)
+                    {
+                        await InsertAssets(filePath);
+                        Console.WriteLine($"Archivo {filePath} subido exitosamente.");
+                    }
 
+                    //var subgroupMap = mapper.Map<List<StatusFile>>(ErrorinFiles.Data);
+                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+
+                    response.Message = "Proceso completado para todos los archivos";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
             }
-            //catch (SqliteException ex)
-            //{
-            //    response.Message = ex.Message;
-            //    response.Success = false;
-            //    response.SuccessData = false;
-            //}
             catch (FormatException ex)
             {
                 response.Message = ex.Message;
@@ -132,6 +153,6 @@ namespace ADO.BL.Services
                     throw new Exception("Formato de nombre de archivo no válido. Debe ser YYYYMM_TC1.csv");
                 }
             }
-        }
+        }        
     }
 }

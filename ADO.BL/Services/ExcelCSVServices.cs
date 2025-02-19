@@ -11,9 +11,11 @@ namespace ADO.BL.Services
     public class ExcelCSVServices : IExcelCSVServices
     {
         private readonly string _ExcelCSVDirectoryPath;
+        private readonly string[] _timeFormats;
         public ExcelCSVServices(IConfiguration configuration)
         {
             _ExcelCSVDirectoryPath = configuration["ExcelCSVPath"];
+            _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
         }
 
         public ResponseQuery<string> ProcessXlsx(ResponseQuery<string> response)
@@ -53,7 +55,7 @@ namespace ADO.BL.Services
             return response;
         }
 
-        static void ProcessXlsxToCsv(string filePath, string inputFolder)
+        private void ProcessXlsxToCsv(string filePath, string inputFolder)
         {
             using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
@@ -140,26 +142,16 @@ namespace ADO.BL.Services
             }
         }
 
-        private static string ParseDate(string dateString)
+        private string ParseDate(string dateString)
         {
-            var _timeFormats = new List<string> {
-                    "yyyy-MM-dd HH:mm",
-                    "dd-MM-yyyy HH:mm",
-                    "yyyy/MM/dd HH:mm",
-                    "dd/MM/yyyy HH:mm",
-                    "dd/MM/yyyy",
-                    "d/MM/yyyy",
-                };
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
-                    var datesplit = parsedDate.ToString().Split("/");
-                    var date = datesplit[2] + "-" + datesplit[1] + "-" + datesplit[0] + " 00:00:00";
-                    return date;
+                    return parsedDate.ToUniversalTime().ToLongTimeString();
                 }
             }
-            throw new FormatException($"El formato de fecha {dateString} no es válido.");
+            return "31/12/2099";
         }
     }
 

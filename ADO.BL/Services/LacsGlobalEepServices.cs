@@ -1,53 +1,71 @@
-﻿
+﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using System.Data;
 using System.Globalization;
 using System.Text;
 
 namespace ADO.BL.Services
 {
-    public class LacsGlobalServices : ILacsGlobalServices
+    public class LacsGlobalEepServices : ILacsGlobalEepServices
     {
         private readonly IConfiguration _configuration;
         private readonly string _connectionString;
         private readonly string _lacDirectoryPath;
         private readonly string[] _timeFormats;
+        private readonly ILACValidationEepServices lACValidationServices;
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IMapper mapper;
 
-        public LacsGlobalServices(IConfiguration configuration)
+        public LacsGlobalEepServices(IConfiguration configuration, 
+            ILACValidationEepServices _lACValidationServices,
+            IStatusFileEepDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
-            _lacDirectoryPath = configuration["LacDirectoryPath"];
+            _connectionString = configuration.GetConnectionString("PgDbEepConnection");
+            _lacDirectoryPath = configuration["FilesLACPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
+            lACValidationServices = _lACValidationServices;
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
-        public async Task<ResponseQuery<List<string>>> ReadFileLacOrginal(ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<List<string>>> ReadFileLacOrginal(LacValidationDTO request, ResponseQuery<List<string>> response)
         {
             try
             {
-                var completed1 = await BeginProcess();
-                Console.WriteLine(completed1);
-                var completed2 = await ReadSspdUnchanged();
-                Console.WriteLine(completed2);
-                var completed3 = await ReadSSpdContinues();
-                Console.WriteLine(completed3);
-                var completed4 = await ReadSspdUpdate();
-                Console.WriteLine(completed4);
+                var responseError = new ResponseEntity<List<StatusFileDTO>>();
+                var viewErrors = await lACValidationServices.ValidationLAC(request, responseError);
+                if (viewErrors.Success == false) {
+                    response.Message = "el archivo cargado tiene errores, por favor corregir";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
+                }
+                else
+                {
+                    var completed1 = await BeginProcess();
+                    Console.WriteLine(completed1);
+                    var completed2 = await ReadSspdUnchanged();
+                    Console.WriteLine(completed2);
+                    var completed3 = await ReadSSpdContinues();
+                    Console.WriteLine(completed3);
+                    var completed4 = await ReadSspdUpdate();
+                    Console.WriteLine(completed4);
 
-                response.Message = "Proceso completado para todos los archivos";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                    var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
+                    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
 
+                    response.Message = "Proceso completado para todos los archivos";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
             }
-            //catch (SqliteException ex)
-            //{
-            //    response.Message = ex.Message;
-            //    response.Success = false;
-            //    response.SuccessData = false;
-            //}
             catch (FormatException ex)
             {
                 response.Message = ex.Message;
@@ -70,7 +88,7 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("BeginProcess");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _withN.csv
-                var files = Directory.GetFiles(_lacDirectoryPath, "*.csv")
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_Correct.csv")
                     .Where(file => !file.EndsWith("_unchanged.csv")
                                    && !file.EndsWith("_continues.csv")
                                    && !file.EndsWith("_continuesInvalid.csv")
@@ -361,12 +379,12 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
-                    return parsedDate;
+                    return parsedDate.ToUniversalTime();
                 }
             }
-            throw new FormatException($"El formato de fecha {dateString} no es válido.");
+            return DateTime.Parse("31/12/2099 00:00:00");
         }
 
         private void WriteAllLinesWithoutTrailingNewline(string path, List<string> lines)
@@ -421,9 +439,10 @@ namespace ADO.BL.Services
                                              ? ParseDate(values[2])
                                              : (!string.IsNullOrEmpty(values[1]) ? ParseDate($"{values[1].Split(' ')[0]} 23:59:59") : (DateTime?)null);
 
-
-                                writer.Write(startDate, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
-                                writer.Write(endDate, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
+                                var startDateDef = DateTime.Parse(values[1]);
+                                var endDateDef = DateTime.Parse(values[2]);
+                                writer.Write(startDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
+                                writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
                                 writer.Write(values[3], NpgsqlTypes.NpgsqlDbType.Varchar); // uia
                                 writer.Write(int.Parse(values[4]), NpgsqlTypes.NpgsqlDbType.Integer); // element_type
                                 writer.Write(int.Parse(values[5]), NpgsqlTypes.NpgsqlDbType.Integer); // event_cause

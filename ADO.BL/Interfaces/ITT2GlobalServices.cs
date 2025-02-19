@@ -1,4 +1,5 @@
-﻿using ADO.BL.Responses;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Responses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace ADO.BL.Interfaces
 {
     public interface ITT2GlobalServices
     {
-        public Task<ResponseQuery<List<string>>> CompleteTT2Originals(ResponseQuery<List<string>> response);
+        public Task<ResponseQuery<List<string>>> CompleteTT2Originals(TT2ValidationDTO request, ResponseQuery<List<string>> response);
     }
 }

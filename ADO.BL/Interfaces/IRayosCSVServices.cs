@@ -1,13 +1,14 @@
-﻿using ADO.BL.Responses;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Responses;
 
 namespace ADO.BL.Interfaces
 {
     public interface IRayosCSVServices
     {
 
-        public ResponseEntity<List<string>> SearchDataCSV(ResponseEntity<List<string>> response);
+        public Task<ResponseEntity<List<string>>> SearchDataCSV(RayosValidationDTO request, ResponseEntity<List<string>> response);
 
-        public ResponseEntity<List<string>> SearchDataExcel(ResponseEntity<List<string>> response);
+        public Task<ResponseEntity<List<string>>> SearchDataExcel(RayosValidationDTO request, ResponseEntity<List<string>> response);
 
     }
 }

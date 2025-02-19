@@ -1,11 +1,12 @@
-﻿using ADO.BL.Responses;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Responses;
 
 namespace ADO.BL.Interfaces
 {
     public interface IRamalesServices
     {
 
-        public ResponseEntity<List<string>> SearchData(ResponseEntity<List<string>> response);        
+        public Task<ResponseEntity<List<string>>> SearchData(RamalesValidationDTO request, ResponseEntity<List<string>> response);        
 
     }
 }

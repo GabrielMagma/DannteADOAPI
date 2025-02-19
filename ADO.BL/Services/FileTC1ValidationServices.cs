@@ -17,7 +17,7 @@ namespace ADO.BL.Services
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
         }
-
+         
         public ResponseQuery<bool> ValidationTC1(IFormFile file, ResponseQuery<bool> response)
         {
             try

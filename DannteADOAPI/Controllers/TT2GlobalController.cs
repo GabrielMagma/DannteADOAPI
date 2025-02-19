@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ADO.BL.Responses;
 using ADO.BL.Interfaces;
+using ADO.BL.DTOs;
+using Microsoft.AspNetCore.SignalR;
+using DannteADOAPI.Helper;
 
 namespace DannteADOAPI.Controllers
 {
@@ -9,10 +12,17 @@ namespace DannteADOAPI.Controllers
     public class TT2GlobalController : Controller
     {
         readonly ITT2GlobalServices TT2Services;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public TT2GlobalController(ITT2GlobalServices _tt2Services)
+        public TT2GlobalController(ITT2GlobalServices _tt2Services, IHubContext<NotificationHub> hubContext)
         {
             TT2Services = _tt2Services;
+            _hubContext = hubContext;
+        }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
         }
 
         /// <summary>
@@ -22,14 +32,12 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(TT2GlobalController.CompleteTT2Originals))]
-        public async Task<IActionResult> CompleteTT2Originals()
+        public async Task<IActionResult> CompleteTT2Originals(TT2ValidationDTO request)
         {
-            return await Task.Run(() =>
-            {
-                ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-                TT2Services.CompleteTT2Originals(response);
-                return Ok(response);
-            });
+            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
+            await TT2Services.CompleteTT2Originals(request, response);
+            await AddMessage(response.Success, response.Message);
+            return Ok(response);            
         }
     }
 }

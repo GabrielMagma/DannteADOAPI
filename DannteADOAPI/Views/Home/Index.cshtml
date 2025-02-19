@@ -6,3 +6,28 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+
+<div id="divNoti">   
+
+</div>
+
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+<script>
+    var connection = new signalR.HubConnectionBuilder().withUrl("/notiHub").build();
+    
+    connection.start().then(function () {
+        console.log("Conexión exitosa");
+    }).catch(function (err) {
+        console.error(err);
+    });
+
+    connection.on("Receive", function (success, message) {
+        let divNewNoti = document.createElement("div");
+
+        divNewNoti.textContent = success + ", " + message;
+
+        document.getElementById("divNoti").appendChild(divNewNoti);
+    })
+
+</script>

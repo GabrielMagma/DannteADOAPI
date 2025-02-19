@@ -17,6 +17,9 @@ namespace ADO.Access.DataEep
         public virtual DbSet<AllAsset> AllAssets { get; set; } = null!;
         public virtual DbSet<AllAssetNew> AllAssetNews { get; set; } = null!;
         public virtual DbSet<Ideam> Ideams { get; set; } = null!;
+        public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
+        public virtual DbSet<FilesIo> FilesIos { get; set; } = null!;
+        public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -274,6 +277,136 @@ namespace ADO.Access.DataEep
                 entity.Property(e => e.Stationname)
                     .HasMaxLength(255)
                     .HasColumnName("stationname");
+            });
+
+            modelBuilder.Entity<StatusFile>(entity =>
+            {
+                entity.ToTable("StatusFile", "machine");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.FileName).HasMaxLength(20);
+
+                entity.Property(e => e.FileType).HasMaxLength(10);
+            });
+
+            modelBuilder.Entity<FilesIo>(entity =>
+            {
+                entity.HasKey(e => e.IdTb)
+                    .HasName("files_io_pkey");
+
+                entity.ToTable("files_io");
+
+                entity.Property(e => e.IdTb)
+                    .HasColumnName("id_tb")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Cause).HasColumnName("cause");
+
+                entity.Property(e => e.CodeSig)
+                    .HasMaxLength(50)
+                    .HasColumnName("code_sig");
+
+                entity.Property(e => e.Component)
+                    .HasMaxLength(200)
+                    .HasColumnName("component");
+
+                entity.Property(e => e.CregCause).HasColumnName("creg_cause");
+
+                entity.Property(e => e.DateIo).HasColumnName("date_io");
+
+                entity.Property(e => e.Dependence)
+                    .HasMaxLength(50)
+                    .HasColumnName("dependence");
+
+                entity.Property(e => e.DnaKwh).HasColumnName("dna_kwh");
+
+                entity.Property(e => e.Element)
+                    .HasMaxLength(200)
+                    .HasColumnName("element");
+
+                entity.Property(e => e.EventType)
+                    .HasMaxLength(50)
+                    .HasColumnName("event_type");
+
+                entity.Property(e => e.Failure).HasColumnName("failure");
+
+                entity.Property(e => e.FileIo)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_io");
+
+                entity.Property(e => e.FilesDate)
+                    .HasColumnName("files_date")
+                    .HasDefaultValueSql("CURRENT_DATE");
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(50)
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.HourIn)
+                    .HasColumnType("timestamp(6) without time zone")
+                    .HasColumnName("hour_in");
+
+                entity.Property(e => e.HourInterruption).HasColumnName("hour_interruption");
+
+                entity.Property(e => e.HourOut)
+                    .HasColumnType("timestamp(6) without time zone")
+                    .HasColumnName("hour_out");
+
+                entity.Property(e => e.Maneuver)
+                    .HasMaxLength(50)
+                    .HasColumnName("maneuver");
+
+                entity.Property(e => e.MinInterruption).HasColumnName("min_interruption");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.TypeAsset)
+                    .HasMaxLength(20)
+                    .HasColumnName("type_asset");
+
+                entity.Property(e => e.Users).HasColumnName("users");
+
+                entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<MpUtilityPole>(entity =>
+            {
+                entity.ToTable("mp_utility_pole", "maps");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(20)
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.IdRegion).HasColumnName("id_region");
+
+                entity.Property(e => e.InventaryCode)
+                    .HasMaxLength(50)
+                    .HasColumnName("inventary_code");
+
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+
+                entity.Property(e => e.NameRegion)
+                    .HasMaxLength(50)
+                    .HasColumnName("name_region");
+
+                entity.Property(e => e.PaintingCode)
+                    .HasMaxLength(50)
+                    .HasColumnName("painting_code");
+
+                entity.Property(e => e.TypePole).HasColumnName("type_pole");
+
+                entity.Property(e => e.X).HasColumnName("x");
+
+                entity.Property(e => e.Y).HasColumnName("y");
+
+                entity.Property(e => e.Z).HasColumnName("z");
             });
 
             modelBuilder.HasSequence("causalsimulationtypes_id_seq", "simulate").HasMax(2147483647);

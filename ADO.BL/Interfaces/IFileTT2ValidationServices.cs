@@ -6,7 +6,7 @@ namespace ADO.BL.Interfaces
     public interface IFileTT2ValidationServices
     {
 
-        public ResponseQuery<bool> ValidationTT2(IFormFile file, ResponseQuery<bool> response);
+        public Task<ResponseQuery<bool>> ValidationTT2(ResponseQuery<bool> response);
 
     }
 }

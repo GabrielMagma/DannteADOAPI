@@ -13,6 +13,7 @@ namespace ADO.Access
             CreateMap<IdeamDTO, Ideam>().ReverseMap();
             CreateMap<AllAssetDTO, AllAsset>().ReverseMap();
             CreateMap<AllAssetDTO, AllAssetNew>().ReverseMap();
+            CreateMap<StatusFileDTO, StatusFile>().ReverseMap();
 
         }
     }

@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ADO.BL.Responses;
+﻿using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
+using ADO.BL.Responses;
+using DannteADOAPI.Helper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DannteADOAPI.Controllers
 {
@@ -9,10 +12,17 @@ namespace DannteADOAPI.Controllers
     public class TC1Controller : Controller
     {
         readonly ITC1Services TC1Services;
-
-        public TC1Controller(ITC1Services _tc1Services)
+        private readonly IHubContext<NotificationHub> _hubContext;
+        
+        public TC1Controller(ITC1Services _tc1Services, IHubContext<NotificationHub> hubContext)
         {
             TC1Services = _tc1Services;
+            _hubContext = hubContext;
+        }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
         }
 
         /// <summary>
@@ -22,14 +32,16 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(TC1Controller.ReadAssets))]
-        public async Task<IActionResult> ReadAssets()
+        public async Task<IActionResult> ReadAssets(TC1ValidationDTO request)
         {
-            return await Task.Run(() =>
-            {
-                ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-                TC1Services.ReadAssets(response);
-                return Ok(response);
-            });
+
+            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
+            await TC1Services.ReadAssets(request, response);
+            await AddMessage(response.Success, response.Message);
+            return Ok(response);
+
         }
+
+        
     }
 }

@@ -23,6 +23,7 @@ namespace ADO.Access.DataEssa
         public virtual DbSet<FileIoTempDetail> FileIoTempDetails { get; set; } = null!;
         public virtual DbSet<Ideam> Ideams { get; set; } = null!;
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
+        public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -425,6 +426,17 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<StatusFile>(entity =>
+            {
+                entity.ToTable("StatusFile", "machine");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.FileName).HasMaxLength(20);
+
+                entity.Property(e => e.FileType).HasMaxLength(10);
             });
 
             OnModelCreatingPartial(modelBuilder);
