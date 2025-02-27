@@ -219,18 +219,7 @@ namespace ADO.BL.Services
         }
 
         private string ParseDate(string dateString)
-        {
-            //var _timeFormats = new List<string> {
-            //        "yyyy-MM-dd HH:mm:ss",
-            //        "yyyy-MM-dd HH:mm",
-            //        "dd-MM-yyyy HH:mm",
-            //        "yyyy/MM/dd HH:mm",
-            //        "dd/MM/yyyy HH:mm",
-            //        "dd/MM/yyyy HH:mm:ss",
-            //        "dd/MM/yyyy",
-            //        "d/MM/yyyy",
-            //        "dd-MM-yyyy",
-            //    };            
+        {         
             foreach (var format in _timeFormats)
             {
                 if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
@@ -238,8 +227,7 @@ namespace ADO.BL.Services
                     return parsedDate.ToString();
                 }
             }
-            return $"Error en el formato de fecha {dateString} no es válido.";
-            //throw new FormatException($"Error en el formato de fecha {dateString} no es válido.");
+            return $"Error en el formato de fecha {dateString} no es válido.";            
         }
     }
 }

@@ -24,6 +24,7 @@ namespace ADO.Access.DataEssa
         public virtual DbSet<Ideam> Ideams { get; set; } = null!;
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
+        public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -437,6 +438,45 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.FileName).HasMaxLength(20);
 
                 entity.Property(e => e.FileType).HasMaxLength(10);
+            });
+
+            modelBuilder.Entity<MpUtilityPole>(entity =>
+            {
+                entity.ToTable("mp_utility_pole", "maps");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(20)
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.IdRegion).HasColumnName("id_region");
+
+                entity.Property(e => e.InventaryCode)
+                    .HasMaxLength(50)
+                    .HasColumnName("inventary_code");
+
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+
+                entity.Property(e => e.NameRegion)
+                    .HasMaxLength(50)
+                    .HasColumnName("name_region");
+
+                entity.Property(e => e.PaintingCode)
+                    .HasMaxLength(50)
+                    .HasColumnName("painting_code");
+
+                entity.Property(e => e.TypePole).HasColumnName("type_pole");
+
+                entity.Property(e => e.X).HasColumnName("x");
+
+                entity.Property(e => e.Y).HasColumnName("y");
+
+                entity.Property(e => e.Z).HasColumnName("z");
             });
 
             OnModelCreatingPartial(modelBuilder);

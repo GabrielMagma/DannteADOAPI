@@ -12,8 +12,8 @@
         public float? Longitude { get; set; } = 0;
         public string? Poblation { get; set; } = "-1";
         public string? Group015 { get; set; } = "-1";
-        public DateTime? DateInst { get; set; }
-        public DateTime? DateUnin { get; set; }
+        public DateOnly? DateInst { get; set; }
+        public DateOnly? DateUnin { get; set; }
         public int? State { get; set; } = 2;
         public string? Uccap14 { get; set; } = "-1";
         public long? IdZone { get; set; } = -1;

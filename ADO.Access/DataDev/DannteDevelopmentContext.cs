@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using ADO.BL.DataEntities;
+﻿using ADO.BL.DataEntities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace ADO.Access.DataDev
 {
@@ -25,6 +22,7 @@ namespace ADO.Access.DataDev
         public virtual DbSet<FilesTt2> FilesTt2s { get; set; } = null!;
         public virtual DbSet<AllAsset> AllAssets { get; set; } = null!;
         public virtual DbSet<FilesIo> FilesIos { get; set; } = null!;
+        public virtual DbSet<Poda> Podas { get; set; } = null!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -536,6 +534,49 @@ namespace ADO.Access.DataDev
                 entity.Property(e => e.Users).HasColumnName("users");
 
                 entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<Poda>(entity =>
+            {
+                entity.ToTable("podas", "machine");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.BeginSup).HasMaxLength(100);
+
+                entity.Property(e => e.Circuit).HasMaxLength(100);
+
+                entity.Property(e => e.Consig).HasMaxLength(100);
+
+                entity.Property(e => e.Description).HasMaxLength(256);
+
+                entity.Property(e => e.EndSup).HasMaxLength(100);
+
+                entity.Property(e => e.Item).HasMaxLength(100);
+
+                entity.Property(e => e.NameLocation).HasMaxLength(100);
+
+                entity.Property(e => e.NameRegion).HasMaxLength(100);
+
+                entity.Property(e => e.NameZone).HasMaxLength(100);
+
+                entity.Property(e => e.NoOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("NoOT");
+
+                entity.Property(e => e.NoReport).HasMaxLength(100);
+
+                entity.Property(e => e.Pqr)
+                    .HasMaxLength(100)
+                    .HasColumnName("PQR");
+
+                entity.Property(e => e.Scheduled).HasMaxLength(100);
+
+                entity.Property(e => e.StateOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("StateOT");
+
+                entity.Property(e => e.Urban).HasMaxLength(2);
             });
 
             modelBuilder.HasSequence("activity_history_id_seq", "planner");

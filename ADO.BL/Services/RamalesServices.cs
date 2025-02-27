@@ -5,6 +5,7 @@ using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Data;
 using System.Globalization;
@@ -159,7 +160,7 @@ namespace ADO.BL.Services
                     }
                 }
 
-                var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteDevelopment";
+                var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
 
                 using (var connection = new NpgsqlConnection(_connectionString))
                 {
@@ -241,9 +242,11 @@ namespace ADO.BL.Services
 
                     var date = valueLines[fechaIni] != "" ? valueLines[fechaIni].Trim().ToString() : string.Empty;
                     //var date = dateTemp.ToString();                    
-                    if (valueLines[codEvento] == "" || valueLines[fechaIni] == "" || valueLines[fechaFin] == "" || valueLines[duracion] == "" ||
-                        valueLines[fparent] == "" || valueLines[codInter] == "" || valueLines[nombreInter] == "" || valueLines[apoyoApertura] == "" ||
-                        valueLines[apoyoFalla] == "" || valueLines[codCausaEvent] == "" || valueLines[totalTrafo] == "" || valueLines[totalCliente] == "" || valueLines[totalOpe] == "")
+                    if (string.IsNullOrEmpty(valueLines[codEvento]) || string.IsNullOrEmpty(valueLines[fechaIni]) || string.IsNullOrEmpty(valueLines[fechaFin]) || 
+                        string.IsNullOrEmpty(valueLines[duracion]) || string.IsNullOrEmpty(valueLines[fparent]) || string.IsNullOrEmpty(valueLines[codInter]) || 
+                        string.IsNullOrEmpty(valueLines[nombreInter]) || string.IsNullOrEmpty(valueLines[apoyoApertura]) || string.IsNullOrEmpty(valueLines[apoyoFalla]) || 
+                        string.IsNullOrEmpty(valueLines[codCausaEvent]) || string.IsNullOrEmpty(valueLines[totalTrafo]) || string.IsNullOrEmpty(valueLines[totalCliente]) || 
+                        string.IsNullOrEmpty(valueLines[totalOpe]))
                     {
                         var newRowError = dataTableError.NewRow();
                         newRowError[0] = $"Error en la data en la fila {count}, las columnas Codigo evento, Total Trafo y Total clientes son Requeridas";
@@ -274,8 +277,8 @@ namespace ADO.BL.Services
 
                             var newRow = dataTable.NewRow();
                             newRow[0] = date;
-                            newRow[1] = valueLines[codEvento];
-                            newRow[2] = valueLines[totalTrafo];
+                            newRow[1] = valueLines[codEvento].Trim();
+                            newRow[2] = valueLines[totalTrafo].Trim();
                             newRow[3] = countCodeSig.Count();
                             newRow[4] = int.Parse(valueLines[totalTrafo]) - countCodeSig.Count();
 
@@ -284,15 +287,15 @@ namespace ADO.BL.Services
                             var filesIOUnit = new FileIoTempDTO();
                             var dateOnlyIniPart = valueLines[fechaIni].Split(' ');
                             var dateOnlyFinPart = valueLines[fechaFin].Split(' ');
-                            filesIOUnit.CodigoEvento = valueLines[codEvento];
+                            filesIOUnit.CodigoEvento = valueLines[codEvento].Trim();
                             filesIOUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
                             filesIOUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
                             filesIOUnit.Duracion = float.Parse(valueLines[duracion]);
-                            filesIOUnit.CodigoCircuito = valueLines[fparent];
-                            filesIOUnit.CodInteruptor = valueLines[codInter];
-                            filesIOUnit.NombreTipoInteruptor = valueLines[nombreInter];
-                            filesIOUnit.ApoyoApertura = valueLines[apoyoApertura];
-                            filesIOUnit.ApoyoFalla = valueLines[apoyoFalla];
+                            filesIOUnit.CodigoCircuito = valueLines[fparent].Trim();
+                            filesIOUnit.CodInteruptor = valueLines[codInter].Trim();
+                            filesIOUnit.NombreTipoInteruptor = valueLines[nombreInter].Trim().ToUpper();
+                            filesIOUnit.ApoyoApertura = valueLines[apoyoApertura].Trim();
+                            filesIOUnit.ApoyoFalla = valueLines[apoyoFalla].Trim();
                             filesIOUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
                             filesIOUnit.TotalTafo = int.Parse(valueLines[totalTrafo]);
                             filesIOUnit.TotalClientes = int.Parse(valueLines[totalCliente]);
@@ -304,15 +307,15 @@ namespace ADO.BL.Services
                             {
                                 var filesIODetailUnit = new FileIoTempDetailDTO();
 
-                                filesIODetailUnit.CodigoEvento = valueLines[codEvento];
+                                filesIODetailUnit.CodigoEvento = valueLines[codEvento].Trim();
                                 filesIODetailUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
                                 filesIODetailUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
                                 filesIODetailUnit.Duracion = float.Parse(valueLines[duracion]);
                                 filesIODetailUnit.CodigoCircuito = valueLines[fparent].Trim().Replace(" ", "");
-                                filesIODetailUnit.CodInteruptor = valueLines[codInter];
-                                filesIODetailUnit.NombreTipoInteruptor = valueLines[nombreInter];
-                                filesIODetailUnit.ApoyoApertura = valueLines[apoyoApertura];
-                                filesIODetailUnit.ApoyoFalla = valueLines[apoyoFalla];
+                                filesIODetailUnit.CodInteruptor = valueLines[codInter].Trim();
+                                filesIODetailUnit.NombreTipoInteruptor = valueLines[nombreInter].Trim().ToUpper();
+                                filesIODetailUnit.ApoyoApertura = valueLines[apoyoApertura].Trim();
+                                filesIODetailUnit.ApoyoFalla = valueLines[apoyoFalla].Trim();
                                 filesIODetailUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
                                 filesIODetailUnit.TotalTafo = 1;
                                 filesIODetailUnit.UiaTrafo = item3.Uia;

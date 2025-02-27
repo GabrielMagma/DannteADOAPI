@@ -26,7 +26,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             _lacDirectoryPath = configuration["FilesLACPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             lACValidationServices = _lACValidationServices;

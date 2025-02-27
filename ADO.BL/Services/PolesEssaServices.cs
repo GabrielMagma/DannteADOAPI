@@ -4,22 +4,23 @@ using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
 
 namespace ADO.BL.Services
 {
-    public class PolesEepServices : IPolesEepServices
+    public class PolesEssaServices : IPolesEssaServices
     {
         private readonly IConfiguration _configuration;        
         private readonly string _PolesDirectoryPath;
-        private readonly IPolesEepDataAccess polesEepDataAccess;
+        private readonly IPolesEssaDataAccess polesEssaDataAccess;
         private readonly IMapper mapper;
-        public PolesEepServices(IConfiguration configuration,
-            IPolesEepDataAccess _polesEepDataAccess,
+        public PolesEssaServices(IConfiguration configuration,
+            IPolesEssaDataAccess _polesEssaDataAccess,
             IMapper _mapper)
         {
-            polesEepDataAccess = _polesEepDataAccess;
+            polesEssaDataAccess = _polesEssaDataAccess;
             _configuration = configuration;            
             _PolesDirectoryPath = configuration["PolesPath"];
             mapper = _mapper;
@@ -31,13 +32,13 @@ namespace ADO.BL.Services
             {
                 var inputFolder = _PolesDirectoryPath;
 
-                //Procesar cada archivo.xlsx en la carpeta
+                //Procesar cada archivo.csv en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
                     var listAssetsDTO = new List<AssetsDTO>();
                     var listUtilityPoleDTO = new List<MpUtilityPoleDTO>();
                     var listEntityPoleDTO = new List<MpUtilityPoleDTO>();
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEepTesting";
+                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
 
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
@@ -45,12 +46,15 @@ namespace ADO.BL.Services
                     foreach (var item in fileLines)
                     {
                         var valueLinesTemp = item.Split(',',';');
-                        if (valueLinesTemp[0] != "NODO_FISICO")
+                        if (valueLinesTemp[0] != "CODIGOINTERRUPTORDIS")
                         {
-                            if (!listFparent.Contains(valueLinesTemp[1]))
+                            var fparentTemp = valueLinesTemp[5].Trim().Replace(" ", "");
+                            if (!listFparent.Contains(fparentTemp))
                             {
-                                listDataString.Append($"'{valueLinesTemp[1]}',");
-                                listFparent.Add(valueLinesTemp[1]);
+                                if (fparentTemp.Length > 1) {
+                                    listDataString.Append($"'{fparentTemp}',");
+                                    listFparent.Add(fparentTemp);
+                                }
                             }
                         }
                     }
@@ -96,9 +100,9 @@ namespace ADO.BL.Services
                                 {
                                     while (result.Read())
                                     {
-                                        var temp = new MpUtilityPoleDTO();                                        
+                                        var temp = new MpUtilityPoleDTO();
                                         temp.PaintingCode = result[0].ToString();
-                                        temp.Fparent = result[1].ToString();                                        
+                                        temp.Fparent = result[1].ToString();
                                         listUtilityPoleDTO.Add(temp);
                                     }
                                 }
@@ -117,41 +121,42 @@ namespace ADO.BL.Services
                     foreach (var item in fileLines)
                     {
                         var valueLines = item.Split(';', ',');
-                        if (string.IsNullOrEmpty(valueLines[0]) || string.IsNullOrEmpty(valueLines[1]) || 
-                            string.IsNullOrEmpty(valueLines[2]) || string.IsNullOrEmpty(valueLines[3]) ||
-                            string.IsNullOrEmpty(valueLines[4]))
+                        if (string.IsNullOrEmpty(valueLines[5]) || string.IsNullOrEmpty(valueLines[14]) ||
+                            string.IsNullOrEmpty(valueLines[18]) || string.IsNullOrEmpty(valueLines[19]))
                         {
                             continue;
                         }
-                        if (valueLines[0] != "NODO_FISICO")
-                        {
-                            var assetTemp = listAssetsDTO.FirstOrDefault(x => x.Fparent == valueLines[1]);
-                            var poleTemp = listUtilityPoleDTO.FirstOrDefault(x => x.PaintingCode == valueLines[0]);
-
-                            if (poleTemp == null && assetTemp != null)
+                        else
+                        { 
+                            if (valueLines[0] != "CODIGOINTERRUPTORDIS")
                             {
-                            
+                                var assetTemp = listAssetsDTO.FirstOrDefault(x => x.Fparent == valueLines[5].Trim().Replace(" ", ""));
+                                var poleTemp = listUtilityPoleDTO.FirstOrDefault(x => x.PaintingCode == valueLines[14]);
+
+                                if (poleTemp == null && assetTemp != null)
+                                {
+
                                     var entityPole = new MpUtilityPoleDTO();
 
-                                    entityPole.InventaryCode = valueLines[0].Trim();
-                                    entityPole.PaintingCode = valueLines[0].Trim();
-                                    entityPole.Latitude = float.Parse(valueLines[3].ToString());
-                                    entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                                    entityPole.Fparent = valueLines[1].Trim();
+                                    entityPole.InventaryCode = valueLines[14].Trim();
+                                    entityPole.PaintingCode = valueLines[14].Trim();
+                                    entityPole.Latitude = float.Parse(valueLines[18].ToString());
+                                    entityPole.Longitude = float.Parse(valueLines[19].ToString());
+                                    entityPole.Fparent = valueLines[5].Trim().Replace(" ", "");
                                     entityPole.IdRegion = assetTemp.IdRegion;
                                     entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
-                                    entityPole.TypePole = int.Parse(valueLines[2].ToString());
+                                    entityPole.TypePole = 1;
 
                                     listEntityPoleDTO.Add(entityPole);
+                                }
                             }
-                        }                                                   
+                        }
                     }
 
                     if(listEntityPoleDTO.Count > 0)
                     {
-                        
                         var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
-                        var respCreate = CreateData(polesMapped);
+                        //var respCreate = CreateData(polesMapped);
                     }
                 }
 
@@ -184,7 +189,7 @@ namespace ADO.BL.Services
 
         public async Task<Boolean> CreateData(List<MpUtilityPole> request)
         {            
-            await polesEepDataAccess.CreateFile(request);
+            await polesEssaDataAccess.CreateFile(request);
             return true;
 
         }

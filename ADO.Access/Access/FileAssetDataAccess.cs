@@ -3,14 +3,15 @@ using ADO.Access.DataEep;
 using ADO.Access.DataEssa;
 using ADO.BL.DataEntities;
 using ADO.BL.Interfaces;
+using AutoMapper;
 
 namespace ADO.Access.Access
 {
     public class FileAssetDataAccess : IFileAssetDataAccess
     {
-        protected DannteDevelopmentContext context;        
+        protected DannteEssaTestingContext context;        
 
-        public FileAssetDataAccess(DannteDevelopmentContext _context)
+        public FileAssetDataAccess(DannteEssaTestingContext _context)
         {
             context = _context;            
         }
@@ -23,7 +24,7 @@ namespace ADO.Access.Access
             var result = true;
 
             return result;
-        }
+        }        
 
     }
 }

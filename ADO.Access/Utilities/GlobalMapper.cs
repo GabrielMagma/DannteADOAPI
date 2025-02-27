@@ -14,6 +14,8 @@ namespace ADO.Access
             CreateMap<AllAssetDTO, AllAsset>().ReverseMap();
             CreateMap<AllAssetDTO, AllAssetNew>().ReverseMap();
             CreateMap<StatusFileDTO, StatusFile>().ReverseMap();
+            CreateMap<MpLightningDTO, MpLightning>().ReverseMap();
+            CreateMap<PodaDTO, Poda>().ReverseMap();
 
         }
     }

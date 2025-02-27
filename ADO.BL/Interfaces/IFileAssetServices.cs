@@ -5,7 +5,7 @@ namespace ADO.BL.Interfaces
     public interface IFileAssetServices
     {
 
-        public Task<ResponseQuery<string>> CreateFile(string name, ResponseQuery<string> response);
+        public Task<ResponseQuery<string>> CreateFile(ResponseQuery<string> response);
 
     }
 }

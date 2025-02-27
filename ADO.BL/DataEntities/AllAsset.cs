@@ -16,8 +16,8 @@ namespace ADO.BL.DataEntities
         public string? Poblation { get; set; }
         public string? Group015 { get; set; }
         public string? Uccap14 { get; set; }
-        public DateTime? DateInst { get; set; }
-        public DateTime? DateUnin { get; set; }
+        public DateOnly? DateInst { get; set; }
+        public DateOnly? DateUnin { get; set; }
         public int? State { get; set; }
         public long? IdZone { get; set; }
         public string? NameZone { get; set; }

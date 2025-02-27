@@ -33,7 +33,7 @@ namespace ADO.BL.Services
                 var assetExistUnit = new AllAssetDTO();
                 var responseCreate = false;
                 var responseUpdate = false;
-                var dateToday = DateTime.Now;
+                var dateToday = DateOnly.FromDateTime(DateTime.Now);
 
                 int i = 0;
                 while ((i * 1000) < listAssetMap.Count())

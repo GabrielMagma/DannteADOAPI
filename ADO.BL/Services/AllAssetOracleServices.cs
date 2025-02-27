@@ -35,7 +35,7 @@ namespace ADO.BL.Services
                 var assetExistUnit = new AllAssetDTO();
                 var responseCreate = false;
                 var responseUpdate = false;
-                var dateToday = DateTime.Now;                
+                var dateToday = DateOnly.FromDateTime(DateTime.Now);                
 
                 int i = 0;
                 while ((i * 1000) < dataOracle.Count())
@@ -191,7 +191,7 @@ namespace ADO.BL.Services
                 var assetExistUnit = new AllAssetDTO();
                 var responseCreate = false;
                 var responseUpdate = false;
-                var dateToday = DateTime.Now;
+                var dateToday = DateOnly.FromDateTime(DateTime.Now);
 
                 int i = 0;
                 while ((i * 1000) < dataOracle.Count())
@@ -345,7 +345,7 @@ namespace ADO.BL.Services
                 var assetExistUnit = new AllAssetDTO();
                 var responseCreate = false;
                 var responseUpdate = false;
-                var dateToday = DateTime.Now;
+                var dateToday = DateOnly.FromDateTime(DateTime.Now);
 
                 int i = 0;
                 while ((i * 1000) < dataOracle.Count())
@@ -518,11 +518,11 @@ namespace ADO.BL.Services
                                     allAsset.Group015 = !reader.IsDBNull(7) ? reader.GetString(7) : string.Empty;
                                     allAsset.Latitude = !reader.IsDBNull(13) ? float.Parse(reader.GetString(13)) : null;
                                     allAsset.Longitude = !reader.IsDBNull(14) ? float.Parse(reader.GetString(14)) : null;
-                                    allAsset.DateInst = !reader.IsDBNull(15) ? DateTime.Parse(reader.GetString(15)) : null;
+                                    allAsset.DateInst = !reader.IsDBNull(15) ? DateOnly.Parse(reader.GetString(15)) : null;
                                     allAsset.Poblation = !reader.IsDBNull(16) ? reader.GetString(16) : string.Empty;
                                     allAsset.Address = !reader.IsDBNull(19) ? reader.GetString(19) : string.Empty;
                                     allAsset.TypeAsset = "TRANSFORMADOR";
-                                    allAsset.DateUnin = DateTime.Parse("2099-12-31");
+                                    allAsset.DateUnin = DateOnly.Parse("2099-12-31");
                                     allAsset.State = 2;
                                     allAsset.IdRegion = 1;
                                     allAsset.NameRegion = "GENERAL";
@@ -593,11 +593,11 @@ namespace ADO.BL.Services
                                     allAsset.Uccap14 = !reader.IsDBNull(7) ? reader.GetString(7) : string.Empty;
                                     allAsset.Latitude = !reader.IsDBNull(12) ? float.Parse(reader.GetString(12)) : null;
                                     allAsset.Longitude = !reader.IsDBNull(13) ? float.Parse(reader.GetString(13)) : null;
-                                    allAsset.DateInst = !reader.IsDBNull(14) ? DateTime.Parse(reader.GetString(14)) : null;
+                                    allAsset.DateInst = !reader.IsDBNull(14) ? DateOnly.Parse(reader.GetString(14)) : null;
                                     allAsset.Poblation = !reader.IsDBNull(15) ? reader.GetString(15) : string.Empty;
                                     allAsset.Address = !reader.IsDBNull(20) ? reader.GetString(20) : string.Empty;
                                     allAsset.TypeAsset = table == "SPARD_SWITCH" ? "SECCIONADOR" : "RECONECTADOR";
-                                    allAsset.DateUnin = DateTime.Parse("2099-12-31");
+                                    allAsset.DateUnin = DateOnly.Parse("2099-12-31");
                                     allAsset.State = 2;
                                     allAsset.IdRegion = 1;
                                     allAsset.NameRegion = "GENERAL";

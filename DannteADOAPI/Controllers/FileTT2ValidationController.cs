@@ -22,12 +22,11 @@ namespace DannteADOAPI.Controllers
         [Route(nameof(FileTT2ValidationController.ValidationTT2))]
         public async Task<IActionResult> ValidationTT2()
         {
-            return await Task.Run(() =>
-            {
-                ResponseQuery<bool> response = new ResponseQuery<bool>();
-                fileServices.ValidationTT2(response);
-                return Ok(response);
-            });
+            
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await fileServices.ValidationTT2(response);
+            return Ok(response);
+            
         }
     }
 }

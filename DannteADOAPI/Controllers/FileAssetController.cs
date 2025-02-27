@@ -20,10 +20,10 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(FileAssetController.CreateFile))]        
-        public async Task<IActionResult> CreateFile(string name)
+        public async Task<IActionResult> CreateFile()
         {            
                 ResponseQuery<string> response = new ResponseQuery<string>();
-                await fileServices.CreateFile(name, response);
+                await fileServices.CreateFile(response);
                 return Ok(response);            
         }
     }

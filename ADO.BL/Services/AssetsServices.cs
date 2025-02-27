@@ -17,7 +17,7 @@ namespace ADO.BL.Services
 
         public AssetsServices(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             _assetsDirectoryPath = configuration["AssetsDirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
         }

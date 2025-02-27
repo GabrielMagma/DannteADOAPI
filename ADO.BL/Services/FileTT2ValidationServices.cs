@@ -28,33 +28,31 @@ namespace ADO.BL.Services
             try
             {
 
-                string inputFolder = _TT2FixDirectoryPath;
-                                
-                var dataTable = new DataTable();
-                var dataTableError = new DataTable();
-
-
-                // columnas tabla datos correctos
-                dataTable.Columns.Add("COD_CREG");
-                dataTable.Columns.Add("CODIGO_UBICACION");
-                dataTable.Columns.Add("GRUPO_CALIDAD");
-                dataTable.Columns.Add("IDMERCADO");
-                dataTable.Columns.Add("CAPACIDAD");
-                dataTable.Columns.Add("PROPIEDAD");
-                dataTable.Columns.Add("TIPO_SUBESTACION");
-                dataTable.Columns.Add("LONGITUD");
-                dataTable.Columns.Add("LATITUD");
-                dataTable.Columns.Add("ALTITUD");
-                dataTable.Columns.Add("ESTADO");
-                dataTable.Columns.Add("FECHA_ESTADO");
-                dataTable.Columns.Add("RESOLUCION_METODOLOGIA");
-
-                dataTableError.Columns.Add("Error");
-                dataTableError.Columns.Add("Data");
-
+                string inputFolder = _TT2FixDirectoryPath;                                                
 
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
+                    var dataTable = new DataTable();
+                    var dataTableError = new DataTable();
+
+                    // columnas tabla datos correctos
+                    dataTable.Columns.Add("COD_CREG");
+                    dataTable.Columns.Add("CODIGO_UBICACION");
+                    dataTable.Columns.Add("GRUPO_CALIDAD");
+                    dataTable.Columns.Add("IDMERCADO");
+                    dataTable.Columns.Add("CAPACIDAD");
+                    dataTable.Columns.Add("PROPIEDAD");
+                    dataTable.Columns.Add("TIPO_SUBESTACION");
+                    dataTable.Columns.Add("LONGITUD");
+                    dataTable.Columns.Add("LATITUD");
+                    dataTable.Columns.Add("ALTITUD");
+                    dataTable.Columns.Add("ESTADO");
+                    dataTable.Columns.Add("FECHA_ESTADO");
+                    dataTable.Columns.Add("RESOLUCION_METODOLOGIA");
+
+                    dataTableError.Columns.Add("Error");
+                    dataTableError.Columns.Add("Data");
+
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
                     var listUIA = new StringBuilder();
@@ -68,7 +66,7 @@ namespace ADO.BL.Services
                         }
                     }
 
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteDevelopment";
+                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
 
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {

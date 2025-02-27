@@ -26,7 +26,7 @@ namespace ADO.BL.Services
             IStatusFileEepDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             _sspdDirectoryPath = configuration["SspdDirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             SSPDValidationServices = _SSPDValidationServices;

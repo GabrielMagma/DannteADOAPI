@@ -25,7 +25,7 @@ namespace ADO.BL.Services
             IStatusFileEepDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             _tt2DirectoryPath = configuration["TT2DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _Itt2ValidationServices = Itt2ValidationServices;
@@ -238,7 +238,7 @@ namespace ADO.BL.Services
 
                                 Group015 = values[3],
                                 State = int.Parse(values[11]),
-                                DateUnin = !string.IsNullOrEmpty(values[12]) ? ParseDate(values[12]) : (DateTime?)null
+                                DateUnin = !string.IsNullOrEmpty(values[12]) ? ParseDate(values[12]) : (DateOnly?)null
                             };
 
 
@@ -296,7 +296,7 @@ namespace ADO.BL.Services
                         updateCommand.Parameters.AddWithValue($"@longitude{i}", NpgsqlTypes.NpgsqlDbType.Real, updates[i].Longitude);
                         updateCommand.Parameters.AddWithValue($"@group015{i}", NpgsqlTypes.NpgsqlDbType.Varchar, updates[i].Group015);
                         updateCommand.Parameters.AddWithValue($"@state{i}", NpgsqlTypes.NpgsqlDbType.Integer, updates[i].State);
-                        updateCommand.Parameters.AddWithValue($"@dateUnin{i}", NpgsqlTypes.NpgsqlDbType.Timestamp, updates[i].DateUnin ?? (object)DBNull.Value);
+                        updateCommand.Parameters.AddWithValue($"@dateUnin{i}", NpgsqlTypes.NpgsqlDbType.Date, updates[i].DateUnin ?? (object)DBNull.Value);
                     }
 
                     await updateCommand.ExecuteNonQueryAsync();
@@ -561,8 +561,8 @@ namespace ADO.BL.Services
                                     Longitude = reader["longitude"] as float? ?? 0,
                                     Poblation = reader["poblation"]?.ToString() ?? "-1",
                                     Group015 = reader["group015"]?.ToString() ?? "-1",
-                                    DateInst = DateTime.TryParse(asset.DateInst, out DateTime parsedDateInst) ? parsedDateInst : null,
-                                    DateUnin = new DateTime(2099, 12, 31),
+                                    DateInst = DateOnly.TryParse(asset.DateInst, out DateOnly parsedDateInst) ? parsedDateInst : null,
+                                    DateUnin = new DateOnly(2099, 12, 31),
                                     State = int.TryParse(asset.State, out int parsedState) ? parsedState : 2,
                                     Uccap14 = reader["uccap14"]?.ToString() ?? "-1",
                                     IdZone = reader["id_zone"] as long? ?? -1,
@@ -773,11 +773,11 @@ namespace ADO.BL.Services
             }
         }
 
-        private DateTime ParseDate(string dateString)
+        private DateOnly ParseDate(string dateString)
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }

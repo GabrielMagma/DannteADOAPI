@@ -24,7 +24,7 @@ namespace ADO.BL.Services
             IStatusFileEepDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbDevConnection");
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             //_connectionString = configuration.GetConnectionString("PgDbEepConnection");
             _assetsDirectoryPath = configuration["Tc1DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();

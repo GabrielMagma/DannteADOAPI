@@ -41,9 +41,6 @@ builder.Services.AddSingleton(mapper);
 
 // interfaces
 
-//builder.Services.AddTransient<ILacsServices, LacsServices>();
-//builder.Services.AddTransient<ISSPDServices, SSPDServices>();
-//builder.Services.AddTransient<ITT2Services, TT2Services>();
 builder.Services.AddTransient<IAssetsServices, AssetsServices>();
 builder.Services.AddTransient<IFileAssetServices, FileAssetServices>();
 builder.Services.AddTransient<IFileAssetDataAccess, FileAssetDataAccess>();
@@ -56,8 +53,6 @@ builder.Services.AddTransient<IAllAssetsDataAccess, AllAssetDataAccess>();
 builder.Services.AddTransient<IAllAssetOracleServices, AllAssetOracleServices>();
 builder.Services.AddTransient<IAllAssetOracleDataAccess, AllAssetOracleDataAccess>();
 //builder.Services.AddTransient<IExcelCSVServices, ExcelCSVServices>();
-//builder.Services.AddTransient<IFileLACValidationServices, FileLACValidationServices>();
-//builder.Services.AddTransient<IFileTC1ValidationServices, FileTC1ValidationServices>();
 builder.Services.AddTransient<IFileTT2ValidationServices, FileTT2ValidationServices>();
 builder.Services.AddTransient<ITokenServices, TokenServices>();
 //builder.Services.AddTransient<IExcelCSVCompensacionesEEPServices, ExcelCSVCompensacionesEEPServices>();
@@ -66,10 +61,8 @@ builder.Services.AddTransient<IRayosCSVServices, RayosCSVServices>();
 builder.Services.AddTransient<IRayosCSVDataAccess, RayosCSVDataAccess>();
 builder.Services.AddTransient<IRamalesServices, RamalesServices>();
 builder.Services.AddTransient<IRamalesDataAccess, RamalesDataAccess>();
-//builder.Services.AddTransient<IFileIOServices, FileIOServices>();
+builder.Services.AddTransient<IFileIOServices, FileIOServices>();
 builder.Services.AddTransient<IFileIODataAccess, FileIODataAccess>();
-//builder.Services.AddTransient<ITestServices, TestServices>();
-//builder.Services.AddTransient<ITest2Services, Test2Services>();
 
 builder.Services.AddTransient<ITT2GlobalServices, TT2GlobalServices>();
 builder.Services.AddTransient<ILacsGlobalEssaServices, LacsGlobalEssaServices>();
@@ -87,6 +80,12 @@ builder.Services.AddTransient<IStatusFileEepDataAccess, StatusFileEepDataAccess>
 
 builder.Services.AddTransient<IPolesEepServices, PolesEepServices>();
 builder.Services.AddTransient<IPolesEepDataAccess, PolesEepDataAccess>();
+
+builder.Services.AddTransient<IPolesEssaServices, PolesEssaServices>();
+builder.Services.AddTransient<IPolesEssaDataAccess, PolesEssaDataAccess>();
+
+builder.Services.AddTransient<IPodasEssaServices, PodasEssaServices>();
+builder.Services.AddTransient<IPodasEssaDataAccess, PodasEssaDataAccess>();
 
 builder.Services.AddDbContext<DannteEssaTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbConnection")));

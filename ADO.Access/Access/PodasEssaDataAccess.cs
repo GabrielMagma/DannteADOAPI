@@ -6,21 +6,21 @@ using AutoMapper;
 
 namespace ADO.Access.Access
 {
-    public class RayosCSVDataAccess : IRayosCSVDataAccess
+    public class PodasEssaDataAccess : IPodasEssaDataAccess
     {
         protected DannteEssaTestingContext context;
         private readonly IMapper mapper;
 
-        public RayosCSVDataAccess(DannteEssaTestingContext _context, IMapper _mapper)
+        public PodasEssaDataAccess(DannteEssaTestingContext _context, IMapper _mapper)
         {
             context = _context;
             mapper = _mapper;
         }
 
-        public Boolean SaveData(List<MpLightning> request)
+        public Boolean SaveData(List<Poda> request)
         {
             
-            context.MpLightnings.AddRange(request);
+            context.Podas.AddRange(request);
             context.SaveChanges();
             var result = true;
 
