@@ -25,6 +25,7 @@ namespace ADO.Access.DataEssa
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
         public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
+        public virtual DbSet<Poda> Podas { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -477,6 +478,49 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.Y).HasColumnName("y");
 
                 entity.Property(e => e.Z).HasColumnName("z");
+            });
+
+            modelBuilder.Entity<Poda>(entity =>
+            {
+                entity.ToTable("podas", "machine");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.BeginSup).HasMaxLength(100);
+
+                entity.Property(e => e.Circuit).HasMaxLength(100);
+
+                entity.Property(e => e.Consig).HasMaxLength(100);
+
+                entity.Property(e => e.Description).HasMaxLength(256);
+
+                entity.Property(e => e.EndSup).HasMaxLength(100);
+
+                entity.Property(e => e.Item).HasMaxLength(100);
+
+                entity.Property(e => e.NameLocation).HasMaxLength(100);
+
+                entity.Property(e => e.NameRegion).HasMaxLength(100);
+
+                entity.Property(e => e.NameZone).HasMaxLength(100);
+
+                entity.Property(e => e.NoOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("NoOT");
+
+                entity.Property(e => e.NoReport).HasMaxLength(100);
+
+                entity.Property(e => e.Pqr)
+                    .HasMaxLength(100)
+                    .HasColumnName("PQR");
+
+                entity.Property(e => e.Scheduled).HasMaxLength(100);
+
+                entity.Property(e => e.StateOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("StateOT");
+
+                entity.Property(e => e.Urban).HasMaxLength(2);
             });
 
             OnModelCreatingPartial(modelBuilder);
