@@ -24,6 +24,12 @@ namespace ADO.Access.Access
             context.SaveChanges();
         }
 
+        public async Task SaveDataComplete(List<FilesIoComplete> request)
+        {
+            context.FilesIoCompletes.AddRange(request);
+            context.SaveChanges();
+        }
+
         public async Task DeleteData(string fileName)
         {
             var ioExist = context.FilesIos.FirstOrDefault(x => x.FileIo == fileName);

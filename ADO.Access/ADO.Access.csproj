@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="DataTemp2\" />
     <Folder Include="DataTemp\" />
   </ItemGroup>
 

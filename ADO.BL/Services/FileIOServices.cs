@@ -10,6 +10,7 @@ using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ADO.BL.Services
@@ -47,6 +48,7 @@ namespace ADO.BL.Services
                         var worksheet2 = package.Workbook.Worksheets[3];
                         var dataTableError = new DataTable();                        
                         var ioList = new List<FileIoDTO>();
+                        var ioCompleteList = new List<FileIoCompleteDTO>();
 
                         CultureInfo esCulture = new CultureInfo("es-CO");
                         string[] dateFormats = { "dd/MM/yyyy HH:mm:ss", "d/MM/yyyy hh:mm:ss tt" };
@@ -126,7 +128,9 @@ namespace ADO.BL.Services
                                                     if (!string.IsNullOrEmpty(cregCauseStr) && !cregCauseStr.Contains("N.A."))
                                                     {
                                                         var newEntity = new FileIoDTO();
+                                                        var newEntityComplete = new FileIoCompleteDTO();
 
+                                                        //tabla files_io
                                                         var aniomes = worksheet1.Cells[row, 1].Text.Split('/', ' ');
                                                         newEntity.CodeSig = codeSig;
                                                         newEntity.Element = element;
@@ -139,7 +143,7 @@ namespace ADO.BL.Services
                                                         newEntity.Year = int.Parse(aniomes[2]);
                                                         newEntity.Month = int.Parse(aniomes[1]);
                                                         newEntity.Failure = 1;
-                                                        newEntity.DateIo = ParseDate(worksheet1.Cells[row, 1].Text);
+                                                        newEntity.DateIo = ParseDate(worksheet1.Cells[row, 1].Text);                                                        
 
 
                                                         if (!float.TryParse(worksheet1.Cells[row, 10].Text, out float minInterruption))
@@ -188,7 +192,62 @@ namespace ADO.BL.Services
 
                                                         newEntity.HourIn = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 9].Text}");
 
+                                                        //tabla complete
+                                                        newEntityComplete.DateIo = ParseDate(worksheet1.Cells[row, 1].Text);
+                                                        newEntityComplete.CodeGis = codeSig;
+                                                        newEntityComplete.Location = worksheet1.Cells[row, 3].Text.Trim().ToUpper();
+                                                        newEntityComplete.Ubication = worksheet1.Cells[row, 4].Text.Trim().ToUpper();
+                                                        newEntityComplete.Element = element;
+                                                        newEntityComplete.Component = worksheet1.Cells[row, 6].Text.Trim().ToUpper();
+                                                        newEntityComplete.AffectedSector = worksheet1.Cells[row, 7].Text.Trim().ToUpper();
+                                                        newEntityComplete.HourOut = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 8].Text}");
+                                                        newEntityComplete.HourIn = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 9].Text}");
+                                                        if (!float.TryParse(worksheet1.Cells[row, 10].Text, out float minInterruptionComplete))
+                                                        {
+                                                            minInterruptionComplete = -1;
+                                                        }
+                                                        newEntityComplete.MinInterruption = minInterruptionComplete;
+                                                        newEntityComplete.DescCause = worksheet1.Cells[row, 11].Text.Trim().ToUpper();
+                                                        if (!int.TryParse(worksheet1.Cells[row, 12].Text, out int CodCauseEepComplete))
+                                                        {
+                                                            CodCauseEepComplete = -1;
+                                                        }
+                                                        newEntityComplete.CodCauseEvent = CodCauseEepComplete;
+                                                        if (!int.TryParse(worksheet1.Cells[row, 13].Text, out int CodCauseComplete))
+                                                        {
+                                                            CodCauseComplete = -1;
+                                                        }
+                                                        newEntityComplete.Cause = CodCauseComplete;
+                                                        newEntityComplete.Observation = worksheet1.Cells[row, 14].Text.Trim().ToUpper();
+                                                        newEntityComplete.Maneuver = worksheet1.Cells[row, 15].Text.Trim().ToUpper();
+                                                        newEntityComplete.FuseQuant = worksheet1.Cells[row, 16].Text.Trim().ToUpper();
+                                                        newEntityComplete.FuseCap = worksheet1.Cells[row, 17].Text.Trim().ToUpper();
+                                                        if (!int.TryParse(worksheet1.Cells[row, 18].Text, out int CodConsigComplete))
+                                                        {
+                                                            CodConsigComplete = -1;
+                                                        }
+                                                        newEntityComplete.CodeConsig = CodConsigComplete;
+                                                        newEntityComplete.TypeEvent = worksheet1.Cells[row, 19].Text.Trim().ToUpper();
+                                                        newEntityComplete.Dependency = worksheet1.Cells[row, 20].Text.Trim().ToUpper();
+                                                        if (!float.TryParse(worksheet1.Cells[row, 21].Text, out float outPowerComplete))
+                                                        {
+                                                            outPowerComplete = -1;
+                                                        }
+                                                        newEntityComplete.OutPower = outPowerComplete;
+                                                        if (!float.TryParse(worksheet1.Cells[row, 22].Text, out float DnaComplete))
+                                                        {
+                                                            DnaComplete = -1;
+                                                        }
+                                                        newEntityComplete.DnaKwh = DnaComplete;
+                                                        if (!int.TryParse(worksheet1.Cells[row, 23].Text, out int usersComplete))
+                                                        {
+                                                            usersComplete = -1;
+                                                        }
+                                                        newEntityComplete.Users = usersComplete;
+                                                        newEntityComplete.ApplicationId = worksheet1.Cells[row, 24].Text.Trim().ToUpper();
+
                                                         ioList.Add(newEntity);
+                                                        ioCompleteList.Add(newEntityComplete);
                                                     }
                                                 }
                                             }
@@ -316,6 +375,55 @@ namespace ADO.BL.Services
                                             newEntity.HourInterruption = (float)Math.Round(newEntity.MinInterruption / 60, 2);
                                         }
 
+                                        var newEntityComplete = new FileIoCompleteDTO();
+
+                                        newEntityComplete.DateIo = ParseDate(worksheet2.Cells[row, 1].Text);
+                                        newEntityComplete.CodeGis = ConvertString(worksheet2.Cells[row, 2].Text.Trim());
+                                        newEntityComplete.Ubication = worksheet2.Cells[row, 3].Text.Trim().ToUpper();
+                                        if (!float.TryParse(worksheet2.Cells[row, 4].Text, out float capacityKVAComplete))
+                                        {
+                                            capacityKVAComplete = -1;
+                                        }
+                                        newEntityComplete.CapacityKva = capacityKVAComplete;
+                                        newEntityComplete.Location = worksheet2.Cells[row, 5].Text.Trim().ToUpper();                                        
+                                        newEntityComplete.Type = worksheet2.Cells[row, 6].Text.Trim().ToUpper();
+                                        newEntityComplete.HourOut = DateTime.Parse($"{worksheet2.Cells[row, 1].Text} {worksheet2.Cells[row, 7].Text}");
+                                        newEntityComplete.HourIn = DateTime.Parse($"{worksheet2.Cells[row, 1].Text} {worksheet2.Cells[row, 8].Text}");
+                                        if (!float.TryParse(worksheet2.Cells[row, 10].Text, out float minInterruptionComplete))
+                                        {
+                                            minInterruptionComplete = -1;
+                                        }
+                                        newEntityComplete.MinInterruption = minInterruptionComplete;
+                                        newEntityComplete.Observation = worksheet2.Cells[row, 10].Text.Trim().ToUpper();
+                                        newEntityComplete.Ownership = worksheet2.Cells[row, 11].Text.Trim().ToUpper();
+                                        newEntityComplete.DescCause = worksheet2.Cells[row, 12].Text.Trim().ToUpper();
+                                        if (!int.TryParse(worksheet2.Cells[row, 13].Text, out int CodCauseEepComplete))
+                                        {
+                                            CodCauseEepComplete = -1;
+                                        }
+                                        newEntityComplete.CodCauseEvent = CodCauseEepComplete;
+                                        if (!int.TryParse(worksheet2.Cells[row, 14].Text, out int CodCauseComplete))
+                                        {
+                                            CodCauseComplete = -1;
+                                        }
+                                        newEntityComplete.Cause = CodCauseComplete;
+                                        if (!int.TryParse(worksheet2.Cells[row, 15].Text, out int CodConsigComplete))
+                                        {
+                                            CodConsigComplete = -1;
+                                        }
+                                        newEntityComplete.CodeConsig = CodConsigComplete;
+                                        newEntityComplete.TypeEvent = worksheet2.Cells[row, 16].Text.Trim().ToUpper();
+                                        newEntityComplete.Dependency = worksheet2.Cells[row, 17].Text.Trim().ToUpper();
+                                        newEntityComplete.Maneuver = worksheet2.Cells[row, 18].Text.Trim().ToUpper();
+                                        if (!int.TryParse(worksheet2.Cells[row, 19].Text, out int usersComplete))
+                                        {
+                                            usersComplete = -1;
+                                        }
+                                        newEntityComplete.Users = usersComplete;
+                                        newEntityComplete.ApplicationId = worksheet2.Cells[row, 20].Text.Trim().ToUpper();
+                                        
+
+                                        ioCompleteList.Add(newEntityComplete);
                                         ioList.Add(newEntity);
                                     }
 
@@ -344,6 +452,20 @@ namespace ADO.BL.Services
                             {
                                 var subgroup = ioList.Skip(i * 1000).Take(1000).ToList();
                                 var EntityResult = mapper.Map<List<FilesIo>>(subgroup);
+                                //SaveData(EntityResult);
+                                i++;
+                                Console.WriteLine(i * 1000);
+                            }
+
+                        }
+
+                        if (ioCompleteList.Count > 0 && errorFlag == false)
+                        {
+                            int i = 0;
+                            while ((i * 1000) < ioCompleteList.Count())
+                            {
+                                var subgroup = ioCompleteList.Skip(i * 1000).Take(1000).ToList();
+                                var EntityResult = mapper.Map<List<FilesIoComplete>>(subgroup);
                                 //SaveData(EntityResult);
                                 i++;
                                 Console.WriteLine(i * 1000);
@@ -438,6 +560,11 @@ namespace ADO.BL.Services
         private async Task SaveData(List<FilesIo> dataList)
         {
             await fileIODataAccess.SaveData(dataList);
+        }
+
+        private async Task SaveDataComplete(List<FilesIoComplete> dataList)
+        {
+            await fileIODataAccess.SaveDataComplete(dataList);
         }
 
         private async Task DeleteDuplicateIO(string fileName)

@@ -1,4 +1,6 @@
-﻿using ADO.BL.DataEntities;
+﻿
+
+using ADO.BL.DataEntities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ADO.Access.DataDev
@@ -15,8 +17,8 @@ namespace ADO.Access.DataDev
         }
 
         public virtual DbSet<FileIoTemp> FileIoTemps { get; set; } = null!;
-        public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<FileIoTempDetail> FileIoTempDetails { get; set; } = null!;
+        public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<FilesLac> FilesLacs { get; set; } = null!;
         public virtual DbSet<FilesTc1> FilesTc1s { get; set; } = null!;
         public virtual DbSet<FilesTt2> FilesTt2s { get; set; } = null!;
@@ -35,43 +37,94 @@ namespace ADO.Access.DataDev
                     .HasColumnName("id")
                     .UseIdentityAlwaysColumn();
 
-                entity.Property(e => e.ApoyoApertura)
+                entity.Property(e => e.BeginDate).HasColumnName("begin_date");
+
+                entity.Property(e => e.CodeCauseEvent).HasColumnName("code_cause_event");
+
+                entity.Property(e => e.CodeEvent)
                     .HasMaxLength(50)
-                    .HasColumnName("apoyo_apertura");
+                    .HasColumnName("code_event");
 
-                entity.Property(e => e.ApoyoFalla)
+                entity.Property(e => e.CodeSwitch)
                     .HasMaxLength(50)
-                    .HasColumnName("apoyo_falla");
+                    .HasColumnName("code_switch");
 
-                entity.Property(e => e.CodInterruptor)
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.EndDate).HasColumnName("end_date");
+
+                entity.Property(e => e.Fparent)
                     .HasMaxLength(50)
-                    .HasColumnName("cod_interruptor");
+                    .HasColumnName("fparent");
 
-                entity.Property(e => e.CodigoCausaEvento).HasColumnName("codigo_causa_evento");
-
-                entity.Property(e => e.CodigoCircuito)
+                entity.Property(e => e.NameTypeSwitch)
                     .HasMaxLength(50)
-                    .HasColumnName("codigo_circuito");
+                    .HasColumnName("name_type_switch");
 
-                entity.Property(e => e.CodigoEvento)
+                entity.Property(e => e.SupportFailure)
                     .HasMaxLength(50)
-                    .HasColumnName("codigo_evento");
+                    .HasColumnName("support_failure");
 
-                entity.Property(e => e.Duracion).HasColumnName("duracion");
-
-                entity.Property(e => e.FechaFinal).HasColumnName("fecha_final");
-
-                entity.Property(e => e.FechaInicio).HasColumnName("fecha_inicio");
-
-                entity.Property(e => e.NombreTipoInterruptor)
+                entity.Property(e => e.SupportOpen)
                     .HasMaxLength(50)
-                    .HasColumnName("nombre_tipo_interruptor");
+                    .HasColumnName("support_open");
 
-                entity.Property(e => e.TotalClientes).HasColumnName("total_clientes");
+                entity.Property(e => e.TotalClients).HasColumnName("total_clients");
 
-                entity.Property(e => e.TotalOperaciones).HasColumnName("total_operaciones");
+                entity.Property(e => e.TotalOperations).HasColumnName("total_operations");
 
                 entity.Property(e => e.TotalTrafo).HasColumnName("total_trafo");
+            });
+
+            modelBuilder.Entity<FileIoTempDetail>(entity =>
+            {
+                entity.ToTable("file_io_temp_detail");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.BeginDate).HasColumnName("begin_date");
+
+                entity.Property(e => e.CodeCauseEvent).HasColumnName("code_cause_event");
+
+                entity.Property(e => e.CodeEvent)
+                    .HasMaxLength(50)
+                    .HasColumnName("code_event");
+
+                entity.Property(e => e.CodeSwitch)
+                    .HasMaxLength(50)
+                    .HasColumnName("code_switch");
+
+                entity.Property(e => e.Duration).HasColumnName("duration");
+
+                entity.Property(e => e.EndDate).HasColumnName("end_date");
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(50)
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.NameTypeSwitch)
+                    .HasMaxLength(50)
+                    .HasColumnName("name_type_switch");
+
+                entity.Property(e => e.SupportFailure)
+                    .HasMaxLength(50)
+                    .HasColumnName("support_failure");
+
+                entity.Property(e => e.SupportOpen)
+                    .HasMaxLength(50)
+                    .HasColumnName("support_open");
+
+                entity.Property(e => e.TotalClients).HasColumnName("total_clients");
+
+                entity.Property(e => e.TotalOperations).HasColumnName("total_operations");
+
+                entity.Property(e => e.TotalTrafo).HasColumnName("total_trafo");
+
+                entity.Property(e => e.UiaTrafo)
+                    .HasMaxLength(50)
+                    .HasColumnName("uia_trafo");
             });
 
             modelBuilder.Entity<MpLightning>(entity =>
@@ -119,57 +172,6 @@ namespace ADO.Access.DataDev
                 entity.Property(e => e.Type).HasColumnName("type");
 
                 entity.Property(e => e.Year).HasColumnName("year");
-            });
-
-            modelBuilder.Entity<FileIoTempDetail>(entity =>
-            {
-                entity.ToTable("file_io_temp_detail");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .UseIdentityAlwaysColumn();
-
-                entity.Property(e => e.ApoyoApertura)
-                    .HasMaxLength(50)
-                    .HasColumnName("apoyo_apertura");
-
-                entity.Property(e => e.ApoyoFalla)
-                    .HasMaxLength(50)
-                    .HasColumnName("apoyo_falla");
-
-                entity.Property(e => e.CodInterruptor)
-                    .HasMaxLength(50)
-                    .HasColumnName("cod_interruptor");
-
-                entity.Property(e => e.CodigoCausaEvento).HasColumnName("codigo_causa_evento");
-
-                entity.Property(e => e.CodigoCircuito)
-                    .HasMaxLength(50)
-                    .HasColumnName("codigo_circuito");
-
-                entity.Property(e => e.CodigoEvento)
-                    .HasMaxLength(50)
-                    .HasColumnName("codigo_evento");
-
-                entity.Property(e => e.Duracion).HasColumnName("duracion");
-
-                entity.Property(e => e.FechaFinal).HasColumnName("fecha_final");
-
-                entity.Property(e => e.FechaInicio).HasColumnName("fecha_inicio");
-
-                entity.Property(e => e.NombreTipoInterruptor)
-                    .HasMaxLength(50)
-                    .HasColumnName("nombre_tipo_interruptor");
-
-                entity.Property(e => e.TotalClientes).HasColumnName("total_clientes");
-
-                entity.Property(e => e.TotalOperaciones).HasColumnName("total_operaciones");
-
-                entity.Property(e => e.TotalTrafo).HasColumnName("total_trafo");
-
-                entity.Property(e => e.UiaTrafo)
-                    .HasMaxLength(50)
-                    .HasColumnName("uia_trafo");
             });
 
             modelBuilder.Entity<FilesLac>(entity =>

@@ -287,19 +287,19 @@ namespace ADO.BL.Services
                             var filesIOUnit = new FileIoTempDTO();
                             var dateOnlyIniPart = valueLines[fechaIni].Split(' ');
                             var dateOnlyFinPart = valueLines[fechaFin].Split(' ');
-                            filesIOUnit.CodigoEvento = valueLines[codEvento].Trim();
-                            filesIOUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
-                            filesIOUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
-                            filesIOUnit.Duracion = float.Parse(valueLines[duracion]);
-                            filesIOUnit.CodigoCircuito = valueLines[fparent].Trim();
-                            filesIOUnit.CodInteruptor = valueLines[codInter].Trim();
-                            filesIOUnit.NombreTipoInteruptor = valueLines[nombreInter].Trim().ToUpper();
-                            filesIOUnit.ApoyoApertura = valueLines[apoyoApertura].Trim();
-                            filesIOUnit.ApoyoFalla = valueLines[apoyoFalla].Trim();
-                            filesIOUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
-                            filesIOUnit.TotalTafo = int.Parse(valueLines[totalTrafo]);
-                            filesIOUnit.TotalClientes = int.Parse(valueLines[totalCliente]);
-                            filesIOUnit.TotalOperaciones = int.Parse(valueLines[totalOpe]);
+                            filesIOUnit.CodeEvent = valueLines[codEvento].Trim();
+                            filesIOUnit.BeginDate = DateOnly.Parse(dateOnlyIniPart[0]);
+                            filesIOUnit.EndDate = DateOnly.Parse(dateOnlyFinPart[0]);
+                            filesIOUnit.Duration = float.Parse(valueLines[duracion]);
+                            filesIOUnit.Fparent = valueLines[fparent].Trim();
+                            filesIOUnit.CodeSwitch = valueLines[codInter].Trim();
+                            filesIOUnit.NameTypeSwitch = valueLines[nombreInter].Trim().ToUpper();
+                            filesIOUnit.SupportOpen = valueLines[apoyoApertura].Trim();
+                            filesIOUnit.SupportFailure = valueLines[apoyoFalla].Trim();
+                            filesIOUnit.CodeCauseEvent = int.Parse(valueLines[codCausaEvent]);
+                            filesIOUnit.TotalTrafo = int.Parse(valueLines[totalTrafo]);
+                            filesIOUnit.TotalClients = int.Parse(valueLines[totalCliente]);
+                            filesIOUnit.TotalOperations = int.Parse(valueLines[totalOpe]);
 
                             filesIOList.Add(filesIOUnit);
 
@@ -307,20 +307,20 @@ namespace ADO.BL.Services
                             {
                                 var filesIODetailUnit = new FileIoTempDetailDTO();
 
-                                filesIODetailUnit.CodigoEvento = valueLines[codEvento].Trim();
-                                filesIODetailUnit.FechaInicio = DateOnly.Parse(dateOnlyIniPart[0]);
-                                filesIODetailUnit.FechaFinal = DateOnly.Parse(dateOnlyFinPart[0]);
-                                filesIODetailUnit.Duracion = float.Parse(valueLines[duracion]);
-                                filesIODetailUnit.CodigoCircuito = valueLines[fparent].Trim().Replace(" ", "");
-                                filesIODetailUnit.CodInteruptor = valueLines[codInter].Trim();
-                                filesIODetailUnit.NombreTipoInteruptor = valueLines[nombreInter].Trim().ToUpper();
-                                filesIODetailUnit.ApoyoApertura = valueLines[apoyoApertura].Trim();
-                                filesIODetailUnit.ApoyoFalla = valueLines[apoyoFalla].Trim();
-                                filesIODetailUnit.CodigoCausaEvento = int.Parse(valueLines[codCausaEvent]);
-                                filesIODetailUnit.TotalTafo = 1;
+                                filesIODetailUnit.CodeEvent = valueLines[codEvento].Trim();
+                                filesIODetailUnit.BeginDate = DateOnly.Parse(dateOnlyIniPart[0]);
+                                filesIODetailUnit.EndDate = DateOnly.Parse(dateOnlyFinPart[0]);
+                                filesIODetailUnit.Duration = float.Parse(valueLines[duracion]);
+                                filesIODetailUnit.Fparent = valueLines[fparent].Trim().Replace(" ", "");
+                                filesIODetailUnit.CodeSwitch = valueLines[codInter].Trim();
+                                filesIODetailUnit.NameTypeSwitch = valueLines[nombreInter].Trim().ToUpper();
+                                filesIODetailUnit.SupportOpen = valueLines[apoyoApertura].Trim();
+                                filesIODetailUnit.SupportFailure = valueLines[apoyoFalla].Trim();
+                                filesIODetailUnit.CodeCauseEvent = int.Parse(valueLines[codCausaEvent]);
+                                filesIODetailUnit.TotalTrafo = 1;
                                 filesIODetailUnit.UiaTrafo = item3.Uia;
-                                filesIODetailUnit.TotalClientes = int.Parse(valueLines[totalCliente]);
-                                filesIODetailUnit.TotalOperaciones = int.Parse(valueLines[totalOpe]);
+                                filesIODetailUnit.TotalClients = int.Parse(valueLines[totalCliente]);
+                                filesIODetailUnit.TotalOperations = int.Parse(valueLines[totalOpe]);
 
                                 filesIODetailList.Add(filesIODetailUnit);
                             }

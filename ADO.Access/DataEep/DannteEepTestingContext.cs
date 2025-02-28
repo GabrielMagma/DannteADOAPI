@@ -20,6 +20,7 @@ namespace ADO.Access.DataEep
         public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
         public virtual DbSet<FilesIo> FilesIos { get; set; } = null!;
         public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
+        public virtual DbSet<FilesIoComplete> FilesIoCompletes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -407,6 +408,51 @@ namespace ADO.Access.DataEep
                 entity.Property(e => e.Y).HasColumnName("y");
 
                 entity.Property(e => e.Z).HasColumnName("z");
+            });
+
+            modelBuilder.Entity<FilesIoComplete>(entity =>
+            {
+                entity.ToTable("files_io_complete");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.AffectedSector).HasMaxLength(50);
+
+                entity.Property(e => e.ApplicationId).HasColumnType("character varying");
+
+                entity.Property(e => e.CapacityKva).HasColumnName("CapacityKVA");
+
+                entity.Property(e => e.CodeGis).HasMaxLength(50);
+
+                entity.Property(e => e.Component).HasMaxLength(50);
+
+                entity.Property(e => e.Dependency).HasColumnType("character varying");
+
+                entity.Property(e => e.DescCause).HasMaxLength(50);
+
+                entity.Property(e => e.Element).HasMaxLength(50);
+
+                entity.Property(e => e.FuseCap).HasColumnType("character varying");
+
+                entity.Property(e => e.FuseQuant).HasColumnType("character varying");
+
+                entity.Property(e => e.HourIn).HasColumnType("timestamp without time zone");
+
+                entity.Property(e => e.HourOut).HasColumnType("timestamp without time zone");
+
+                entity.Property(e => e.Location).HasMaxLength(50);
+
+                entity.Property(e => e.Maneuver).HasMaxLength(50);
+
+                entity.Property(e => e.Observation).HasMaxLength(50);
+
+                entity.Property(e => e.Ownership).HasMaxLength(50);
+
+                entity.Property(e => e.Type).HasMaxLength(50);
+
+                entity.Property(e => e.TypeEvent).HasColumnType("character varying");
+
+                entity.Property(e => e.Ubication).HasMaxLength(50);
             });
 
             modelBuilder.HasSequence("causalsimulationtypes_id_seq", "simulate").HasMax(2147483647);
