@@ -3,6 +3,7 @@ using ADO.Access.Access;
 using ADO.Access.DataDev;
 using ADO.Access.DataEep;
 using ADO.Access.DataEssa;
+using ADO.Access.DataTemp;
 using ADO.BL.Interfaces;
 using ADO.BL.Services;
 using AutoMapper;
@@ -59,6 +60,7 @@ builder.Services.AddTransient<ITokenServices, TokenServices>();
 //builder.Services.AddTransient<IExcelCSVCompensacionesESSAServices, ExcelCSVCompensacionesESSAServices>();
 builder.Services.AddTransient<IRayosCSVServices, RayosCSVServices>();
 builder.Services.AddTransient<IRayosCSVDataAccess, RayosCSVDataAccess>();
+builder.Services.AddTransient<IRayosEepCSVDataAccess, RayosEepCSVDataAccess>();
 builder.Services.AddTransient<IRamalesServices, RamalesServices>();
 builder.Services.AddTransient<IRamalesDataAccess, RamalesDataAccess>();
 builder.Services.AddTransient<IFileIOServices, FileIOServices>();
@@ -87,8 +89,17 @@ builder.Services.AddTransient<IPolesEssaDataAccess, PolesEssaDataAccess>();
 builder.Services.AddTransient<IPodasEssaServices, PodasEssaServices>();
 builder.Services.AddTransient<IPodasEssaDataAccess, PodasEssaDataAccess>();
 
+builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>();
+builder.Services.AddTransient<IFileAssetCierreDataAccess, FileAssetCierreDataAccess>();
+
+builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();
+builder.Services.AddTransient<IFileAssetModifiedDataAccess, FileAssetModifiedDataAccess>();
+
 builder.Services.AddDbContext<DannteEssaTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbConnection")));
+
+builder.Services.AddDbContext<DannteTestingContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbTestingConnection")));
 
 builder.Services.AddDbContext<DannteEepTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbEepConnection")));

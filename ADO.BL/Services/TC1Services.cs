@@ -5,6 +5,7 @@ using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using OfficeOpenXml.Drawing.Style.Fill;
 using System.Globalization;
 using System.Text;
 
@@ -12,31 +13,38 @@ namespace ADO.BL.Services
 {
     public class TC1Services : ITC1Services
     {
-        private readonly string _connectionString;
+        private string _connectionString;
+        private readonly string _connectionStringEssa;
+        private readonly string _connectionStringEep;
         private readonly string _assetsDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ITC1ValidationServices _ITC1ValidationServices;
         private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public TC1Services(IConfiguration configuration, 
             ITC1ValidationServices Itc1ValidationServices,
             IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statusFileEssaDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
-            //_connectionString = configuration.GetConnectionString("PgDbEepConnection");
+            _connectionStringEssa = configuration.GetConnectionString("PgDbTestingConnection");
+            _connectionStringEep = configuration.GetConnectionString("PgDbEepConnection");
             _assetsDirectoryPath = configuration["Tc1DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _ITC1ValidationServices = Itc1ValidationServices;
             statusFileDataAccess = _statuFileDataAccess;
+            statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
+            
         }
 
         public async Task<ResponseQuery<List<string>>> ReadAssets(TC1ValidationDTO request, ResponseQuery<List<string>> response)
         {
             try
             {
+                _connectionString = request.Empresa == "ESSA" ? _connectionStringEssa : _connectionStringEep;
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
                 var ErrorinFiles = await _ITC1ValidationServices.ValidationTC1(request, responseError);
                 if (ErrorinFiles.Success == false)
@@ -57,7 +65,14 @@ namespace ADO.BL.Services
                     }
 
                     //var subgroupMap = mapper.Map<List<StatusFile>>(ErrorinFiles.Data);
-                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    //if (request.Empresa == "EEP")
+                    //{
+                    //    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    //}
+                    //else
+                    //{
+                    //    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    //}
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

@@ -54,15 +54,7 @@ namespace ADO.BL.Services
                     var statusFilesingle = new StatusFileDTO();
 
                     // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);
-
-                    // Asumiendo que el formato del archivo es EEPDDDMM.csv
-
-                    //// Obtener los primeros 4 dígitos como el año
-                    //int month = int.Parse(fileName.Substring(6, 2));
-
-                    //// Obtener los siguientes 2 dígitos como el mes
-                    //int day = int.Parse(fileName.Substring(4, 2));
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
@@ -70,6 +62,7 @@ namespace ADO.BL.Services
                     statusFilesingle.FileType = "TT2";
                     statusFilesingle.Year = request.Year;
                     statusFilesingle.Month = request.Month;
+                    statusFilesingle.Day = -1;
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
@@ -214,7 +207,7 @@ namespace ADO.BL.Services
 
             for (int i = 0; i <= columns - 1; i++)
             {
-                newRow[i] = valueLines[i];
+                newRow[i] = valueLines[i].ToUpper().Trim();
             }
 
             dataTable.Rows.Add(newRow);

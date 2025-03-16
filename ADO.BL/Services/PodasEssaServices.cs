@@ -5,7 +5,6 @@ using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
-using Npgsql;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
@@ -85,10 +84,10 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var date = string.IsNullOrEmpty(worksheet.Cells[row, 5].Text) ? "01 / 01 / 1999"  : worksheet.Cells[row, 5].Text.ToString();
+                                var date = string.IsNullOrEmpty(worksheet.Cells[row, 5].Text) ? "31/12/2099"  : worksheet.Cells[row, 5].Text.ToString();
 
                                 var date2 = ParseDate(date);
-                                if (date2 == DateOnly.Parse("01 / 01 / 1999"))
+                                if (date2 == DateOnly.Parse("31/12/2099"))
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] =  $"Error en el dato de la fecha ejecución en la línea {row} y hoja {worksheet}";
@@ -195,7 +194,7 @@ namespace ADO.BL.Services
 
         private DateOnly ParseDate(string dateString)
         {
-            var value = DateOnly.Parse("01/01/1999");
+            var value = DateOnly.Parse("31/12/2099");
 
             foreach (var format in _timeFormats)
             {
@@ -205,9 +204,7 @@ namespace ADO.BL.Services
                     value =  parsedDate;
                 }                
             }
-            return value;
-
-            //throw new FormatException($"Error en el formato de fecha {dateString} no es válido.");
+            return value;            
         }
 
         // acciones en bd y mappeo

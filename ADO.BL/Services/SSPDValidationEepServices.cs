@@ -55,33 +55,26 @@ namespace ADO.BL.Services
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    string[] fileLines = File.ReadAllLines(filePath);
+                    /// Asumiendo que el formato del archivo es AAAAMM_SSPD.csv
 
-                    // Asumiendo que el formato del archivo es EEPDDDMM.csv
-
-                    //// Obtener los primeros 4 dígitos como el año
-                    //int month = int.Parse(fileName.Substring(6, 2));
-
-                    //// Obtener los siguientes 2 dígitos como el mes
-                    //int day = int.Parse(fileName.Substring(4, 2));
-
-                    //// Obtener los últimos 2 dígitos como el día
-                    //int day = int.Parse(fileName.Substring(20, 2));
+                    var resultYearMonth = getYearMonth(fileLines);
+                    int year = int.Parse(resultYearMonth[0]);
+                    int month = int.Parse(resultYearMonth[1]);
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
                     statusFilesingle.FileName = fileName;
                     statusFilesingle.FileType = "SSPD";
-                    statusFilesingle.Year = request.Year;
-                    statusFilesingle.Month = request.Month;
-                    //statusFilesingle.Day = day;
+                    statusFilesingle.Year = year;
+                    statusFilesingle.Month = month;
+                    statusFilesingle.Day = -1;
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
                     {
                         dataTable.Columns.Add($"C{i}");
-                    }                    
-
-                    string[] fileLines = File.ReadAllLines(filePath);                    
+                    }                                        
                     
                     foreach (var item in fileLines)
                     {
@@ -222,7 +215,7 @@ namespace ADO.BL.Services
 
             for (int i = 0; i < columns; i++)
             {
-                newRow[i] = valueLines[i];
+                newRow[i] = valueLines[i].ToUpper().Trim();
             }
 
             dataTable.Rows.Add(newRow);
@@ -290,6 +283,26 @@ namespace ADO.BL.Services
                 }
             }
             return DateTime.Parse("31/12/2099 00:00:00");            
+        }
+
+        private List<string> getYearMonth(string[] lines)
+        {
+            var yearMonth = new List<string>();
+            for (int i = 1; i < lines.Count(); i++)
+            {
+                var valueLines = lines[i].Split(',', ';');
+                var resultDate = ParseDate(valueLines[2]);
+                if (resultDate != DateTime.Parse("31/12/2099 00:00:00"))
+                {
+                    // formato fecha "dd/MM/YYYY"
+                    var dateTemp = resultDate.ToString().Split('/', ' ');
+                    yearMonth.Add(dateTemp[2]);
+                    yearMonth.Add(dateTemp[1]);
+                    break;
+                }
+
+            }
+            return yearMonth;
         }
     }
 }

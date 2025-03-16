@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ADO.BL.DTOs
 {
-    public partial class LacValidationDTO
+    public partial class PolesValidationDTO
     {
         public long UserId { get; set; }
         public DateTime? StartDate { get; set; }
@@ -14,6 +14,5 @@ namespace ADO.BL.DTOs
         public int? Year { get; set; }
         public int? Month { get; set; }
         public int? Day { get; set; }
-        public LacColumnsDTO? columns { get; set; }                
     }
 }

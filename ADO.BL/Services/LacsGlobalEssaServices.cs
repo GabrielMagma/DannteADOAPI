@@ -3,6 +3,7 @@ using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
@@ -26,7 +27,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _lacDirectoryPath = configuration["FilesLACPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             lACValidationServices = _lACValidationServices;
@@ -48,8 +49,10 @@ namespace ADO.BL.Services
                 }
                 else
                 {
+
                     var completed1 = await BeginProcess();
                     Console.WriteLine(completed1);
+                    // validate previous status 60 days 
                     var completed2 = await ReadSspdUnchanged();
                     Console.WriteLine(completed2);
                     var completed3 = await ReadSSpdContinues();
@@ -419,28 +422,23 @@ namespace ADO.BL.Services
                 {
                     using (var reader = new StreamReader(filePath, Encoding.UTF8, true))
                     {
-                        int lineNumber = 0;
+                        int lineNumber = 0;                        
                         while (!reader.EndOfStream)
                         {
                             var line = await reader.ReadLineAsync();
                             lineNumber++;
                             var values = line.Split(new char[] { ',', ';' });
-
+                            
                             try
                             {
                                 writer.StartRow();
                                 writer.Write(values[0], NpgsqlTypes.NpgsqlDbType.Varchar); // event_code
 
-                                var startDate = !string.IsNullOrEmpty(values[1])
-                                               ? ParseDate(values[1])
-                                               : (!string.IsNullOrEmpty(values[2]) ? ParseDate($"{values[2].Split(' ')[0]} 00:00:00") : (DateTime?)null);
-
-                                var endDate = !string.IsNullOrEmpty(values[2])
-                                             ? ParseDate(values[2])
-                                             : (!string.IsNullOrEmpty(values[1]) ? ParseDate($"{values[1].Split(' ')[0]} 23:59:59") : (DateTime?)null);
+                                
 
                                 var startDateDef = !string.IsNullOrEmpty(values[1]) ? DateTime.Parse(values[1]) : DateTime.Parse($"{values[2].Split(' ')[0]} 00:00:00");
                                 var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");
+                                
                                 writer.Write(startDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
                                 writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
                                 writer.Write(values[3], NpgsqlTypes.NpgsqlDbType.Varchar); // uia
@@ -450,8 +448,9 @@ namespace ADO.BL.Services
                                 writer.Write(int.Parse(values[7]), NpgsqlTypes.NpgsqlDbType.Integer); // event_excluid_zin
                                 writer.Write(int.Parse(values[8]), NpgsqlTypes.NpgsqlDbType.Integer); // affects_connection
                                 writer.Write(int.Parse(values[9]), NpgsqlTypes.NpgsqlDbType.Integer); // lighting_users
-                                writer.Write(startDate.Value.Year, NpgsqlTypes.NpgsqlDbType.Integer); // year
-                                writer.Write(startDate.Value.Month, NpgsqlTypes.NpgsqlDbType.Integer); // month
+                                writer.Write(startDateDef.Year, NpgsqlTypes.NpgsqlDbType.Integer); // year
+                                writer.Write(startDateDef.Month, NpgsqlTypes.NpgsqlDbType.Integer); // month
+                                
                             }
                             catch (Exception ex)
                             {
@@ -464,5 +463,6 @@ namespace ADO.BL.Services
                 }
             }
         }
+        
     }
 }

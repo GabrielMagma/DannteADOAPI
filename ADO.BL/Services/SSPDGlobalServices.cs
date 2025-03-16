@@ -14,23 +14,29 @@ namespace ADO.BL.Services
     public class SSPDGlobalServices : ISSPDGlobalServices
     {
         private readonly IConfiguration _configuration;
-        private readonly string _connectionString;
+        private string _connectionString;
+        private readonly string _connectionStringEssa;
+        private readonly string _connectionStringEep;
         private readonly string _sspdDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ISSPDValidationEepServices SSPDValidationServices;
         private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public SSPDGlobalServices(IConfiguration configuration, 
             ISSPDValidationEepServices _SSPDValidationServices,
             IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileEssaDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionStringEssa = configuration.GetConnectionString("PgDbTestingConnection");
+            _connectionStringEep = configuration.GetConnectionString("PgDbEepConnection");
             _sspdDirectoryPath = configuration["SspdDirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             SSPDValidationServices = _SSPDValidationServices;
             statusFileDataAccess = _statuFileDataAccess;
+            statusFileEssaDataAccess = _statuFileEssaDataAccess;
             mapper = _mapper;
 
         }
@@ -39,6 +45,7 @@ namespace ADO.BL.Services
         {
             try
             {
+                _connectionString = request.Empresa == "ESSA" ? _connectionStringEssa : _connectionStringEep;
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
                 var viewErrors = await SSPDValidationServices.ValidationSSPD(request, responseError);
                 if (viewErrors.Success == false)
@@ -64,7 +71,14 @@ namespace ADO.BL.Services
                     Console.WriteLine(completed6);
 
                     //var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
-                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    //if (request.Empresa == "EEP")
+                    //{
+                    //    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    //}
+                    //else
+                    //{
+                    //    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    //}
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;
@@ -655,29 +669,18 @@ namespace ADO.BL.Services
                             var line = await reader.ReadLineAsync();
                             lineNumber++;
                             var values = line.Split(new char[] { ',', ';' });
-
+                            
                             try
                             {
                                 writer.StartRow();
-                                writer.Write(values[0], NpgsqlTypes.NpgsqlDbType.Varchar); // event_code
-
-                                var startDate = !string.IsNullOrEmpty(values[1])
-                                               ? ParseDate(values[1])
-                                               : (!string.IsNullOrEmpty(values[2]) ? ParseDate($"{values[2].Split(' ')[0]} 00:00:00") : (DateTime?)null);
-
-                                var endDate = !string.IsNullOrEmpty(values[2])
-                                             ? ParseDate(values[2])
-                                             : (!string.IsNullOrEmpty(values[1]) ? ParseEndDate($"{values[1].Split(' ')[0]} 23:59:59") : (DateTime?)null);
+                                writer.Write(values[0], NpgsqlTypes.NpgsqlDbType.Varchar); // event_code                                
 
 
                                 var startDateDef = !string.IsNullOrEmpty(values[1]) ? DateTime.Parse(values[1]) : DateTime.Parse($"{values[2].Split(' ')[0]} 00:00:00");
-                                var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");
+                                var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");                                
 
                                 writer.Write(startDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
-                                writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
-
-                                //writer.Write(startDate, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
-                                //writer.Write(endDate, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
+                                writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date                                
                                 writer.Write(values[3], NpgsqlTypes.NpgsqlDbType.Varchar); // uia
                                 writer.Write(int.Parse(values[4]), NpgsqlTypes.NpgsqlDbType.Integer); // element_type
                                 writer.Write(int.Parse(values[5]), NpgsqlTypes.NpgsqlDbType.Integer); // event_cause
@@ -685,8 +688,8 @@ namespace ADO.BL.Services
                                 writer.Write(int.Parse(values[7]), NpgsqlTypes.NpgsqlDbType.Integer); // event_excluid_zin
                                 writer.Write(int.Parse(values[8]), NpgsqlTypes.NpgsqlDbType.Integer); // affects_connection
                                 writer.Write(int.Parse(values[9]), NpgsqlTypes.NpgsqlDbType.Integer); // lighting_users
-                                writer.Write(startDate.Value.Year, NpgsqlTypes.NpgsqlDbType.Integer); // year
-                                writer.Write(startDate.Value.Month, NpgsqlTypes.NpgsqlDbType.Integer); // month
+                                writer.Write(startDateDef.Year, NpgsqlTypes.NpgsqlDbType.Integer); // year
+                                writer.Write(startDateDef.Month, NpgsqlTypes.NpgsqlDbType.Integer); // month
                             }
                             catch (Exception ex)
                             {

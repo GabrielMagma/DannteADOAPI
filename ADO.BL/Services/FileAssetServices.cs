@@ -7,28 +7,38 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Globalization;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ADO.BL.Services
 {
     public class FileAssetServices : IFileAssetServices
     {
+        
         private readonly IFileAssetDataAccess fileDataAccess;
         private readonly IMapper mapper;
         private readonly string[] _timeFormats;
         private readonly string _AssetsDirectoryPath;
-        public FileAssetServices(IConfiguration configuration, IFileAssetDataAccess _fileDataAccess, IMapper _mapper)
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
+        public FileAssetServices(IConfiguration configuration, 
+            IFileAssetDataAccess _fileDataAccess,
+            IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileEssaDataAccess,
+            IMapper _mapper)
         {
+            
             fileDataAccess = _fileDataAccess;
+            statusFileDataAccess = _statuFileDataAccess;
+            statusFileEssaDataAccess = _statuFileEssaDataAccess;
             mapper = _mapper;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _AssetsDirectoryPath = configuration["AssetsDirectoryPath"];
         }
 
-        public async Task<ResponseQuery<string>> CreateFile(ResponseQuery<string> response)
+        public async Task<ResponseQuery<string>> CreateFile(AssetValidationDTO request, ResponseQuery<string> response)
         {
             try
             {
+                var _connectionStringDb = request.Empresa == "ESSA" ? "DannteEssaTesting" : "DannteEepTesting";
                 string inputFolder = _AssetsDirectoryPath;
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
@@ -37,9 +47,25 @@ namespace ADO.BL.Services
                     var keys = new List<string>();                    
                     var listUpdateDataString = new StringBuilder();
                     var listUIA = new StringBuilder();
-                    var allAssetList = new List<AssetDTO>();                    
+                    var allAssetList = new List<AssetDTO>();
 
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
+                    var statusFileList = new List<StatusFileDTO>();
+
+                    var statusFilesingle = new StatusFileDTO();
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+
+                    statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
+                    statusFilesingle.UserId = request.UserId;
+                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileType = "ASSET";
+                    statusFilesingle.Year = request.Year;
+                    statusFilesingle.Month = request.Month;
+                    statusFilesingle.Day = -1;
+
+                    statusFileList.Add(statusFilesingle);
+
+                    var _connectionString = $"Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database={_connectionStringDb}";
 
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
@@ -83,11 +109,7 @@ namespace ADO.BL.Services
                             Uia = valueLines[2],
                             Code_sig = valueLines[1]
 
-                        };
-                        if (false)
-                        {
-                            continue;
-                        }
+                        };                        
                         if (valueLines[10] != null)
                         {
                             if (!(keys.Contains(key)))
@@ -155,6 +177,20 @@ namespace ADO.BL.Services
                             }
                         }
                     }
+
+                    if (listUpdateDataString.Length > 1 || AssetsListData.Count > 1)
+                    {
+                        var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                        if (request.Empresa == "EEP")
+                        {
+                            var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                        }
+                        else
+                        {
+                            var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                        }
+                    }
+                    
 
                     response.SuccessData = await fileDataAccess.CreateFile(AssetsListData);
                     response.Message = "File created on the project root ./files";

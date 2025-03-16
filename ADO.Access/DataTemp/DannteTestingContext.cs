@@ -4,31 +4,30 @@ using ADO.BL.DataEntities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ADO.Access.DataEssa
+namespace ADO.Access.DataTemp
 {
-    public partial class DannteEssaTestingContext : DbContext
+    public partial class DannteTestingContext : DbContext
     {
-        public DannteEssaTestingContext()
+        public DannteTestingContext()
         {
         }
 
-        public DannteEssaTestingContext(DbContextOptions<DannteEssaTestingContext> options)
+        public DannteTestingContext(DbContextOptions<DannteTestingContext> options)
             : base(options)
         {
         }
 
         public virtual DbSet<AllAsset> AllAssets { get; set; } = null!;
-        public virtual DbSet<AllAssetNew> AllAssetNews { get; set; } = null!;
-        public virtual DbSet<FileIoTemp> FileIoTemps { get; set; } = null!;
-        public virtual DbSet<FileIoTempDetail> FileIoTempDetails { get; set; } = null!;
-        public virtual DbSet<Ideam> Ideams { get; set; } = null!;
+        public virtual DbSet<FilesIo> FilesIos { get; set; } = null!;
+        public virtual DbSet<IaIdeam> IaIdeams { get; set; } = null!;
+        public virtual DbSet<IaPoda> IaPodas { get; set; } = null!;
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
-        public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
-        public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
-        public virtual DbSet<Poda> Podas { get; set; } = null!;
+        public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasPostgresExtension("dblink");
+
             modelBuilder.Entity<AllAsset>(entity =>
             {
                 entity.ToTable("all_asset");
@@ -36,6 +35,8 @@ namespace ADO.Access.DataEssa
                 entity.HasIndex(e => new { e.Uia, e.IdRegion, e.IdLocality }, "idx_all_asset");
 
                 entity.HasIndex(e => new { e.CodeSig, e.Id }, "idx_all_asset_code_sig_id");
+
+                entity.HasIndex(e => new { e.IdLocality, e.IdRegion }, "idx_all_asset_id_locality_region");
 
                 entity.HasIndex(e => e.Uia, "idx_all_asset_uia");
 
@@ -148,205 +149,93 @@ namespace ADO.Access.DataEssa
                     .HasComment("Código de identificación del activo; está asociado al code_sig\nVaría si se reemplaza el activo");
             });
 
-            modelBuilder.Entity<AllAssetNew>(entity =>
+            modelBuilder.Entity<FilesIo>(entity =>
             {
-                entity.ToTable("all_asset_new", "machine");
+                entity.HasKey(e => e.IdTb)
+                    .HasName("files_io_pkey");
 
-                entity.Property(e => e.Id)
-                    .ValueGeneratedNever()
-                    .HasColumnName("id");
+                entity.ToTable("files_io");
 
-                entity.Property(e => e.Address)
-                    .HasMaxLength(200)
-                    .HasColumnName("address")
-                    .HasDefaultValueSql("'-1'::character varying");
+                entity.Property(e => e.IdTb)
+                    .HasColumnName("id_tb")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Cause).HasColumnName("cause");
 
                 entity.Property(e => e.CodeSig)
-                    .HasMaxLength(32)
-                    .HasColumnName("code_sig")
-                    .HasDefaultValueSql("'-1'::character varying");
+                    .HasMaxLength(50)
+                    .HasColumnName("code_sig");
 
-                entity.Property(e => e.Codetaxo)
-                    .HasMaxLength(32)
-                    .HasColumnName("codetaxo")
-                    .HasDefaultValueSql("'-1'::character varying");
+                entity.Property(e => e.Component)
+                    .HasMaxLength(200)
+                    .HasColumnName("component");
 
-                entity.Property(e => e.DateInst).HasColumnName("date_inst");
+                entity.Property(e => e.CregCause).HasColumnName("creg_cause");
 
-                entity.Property(e => e.DateUnin).HasColumnName("date_unin");
+                entity.Property(e => e.DateIo).HasColumnName("date_io");
+
+                entity.Property(e => e.Dependence)
+                    .HasMaxLength(50)
+                    .HasColumnName("dependence");
+
+                entity.Property(e => e.DnaKwh).HasColumnName("dna_kwh");
+
+                entity.Property(e => e.Element)
+                    .HasMaxLength(200)
+                    .HasColumnName("element");
+
+                entity.Property(e => e.EventType)
+                    .HasMaxLength(50)
+                    .HasColumnName("event_type");
+
+                entity.Property(e => e.Failure).HasColumnName("failure");
+
+                entity.Property(e => e.FileIo)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_io");
+
+                entity.Property(e => e.FilesDate)
+                    .HasColumnName("files_date")
+                    .HasDefaultValueSql("CURRENT_DATE");
 
                 entity.Property(e => e.Fparent)
-                    .HasMaxLength(16)
-                    .HasColumnName("fparent")
-                    .HasDefaultValueSql("'-1'::character varying");
+                    .HasMaxLength(50)
+                    .HasColumnName("fparent");
 
-                entity.Property(e => e.GeographicalCode).HasColumnName("geographical_code");
+                entity.Property(e => e.HourIn)
+                    .HasColumnType("timestamp(6) without time zone")
+                    .HasColumnName("hour_in");
 
-                entity.Property(e => e.Group015)
-                    .HasMaxLength(2)
-                    .HasColumnName("group015")
-                    .HasDefaultValueSql("'-1'::character varying");
+                entity.Property(e => e.HourInterruption).HasColumnName("hour_interruption");
 
-                entity.Property(e => e.IdLocality).HasColumnName("id_locality");
+                entity.Property(e => e.HourOut)
+                    .HasColumnType("timestamp(6) without time zone")
+                    .HasColumnName("hour_out");
 
-                entity.Property(e => e.IdRegion).HasColumnName("id_region");
+                entity.Property(e => e.Maneuver)
+                    .HasMaxLength(50)
+                    .HasColumnName("maneuver");
 
-                entity.Property(e => e.IdSector).HasColumnName("id_sector");
+                entity.Property(e => e.MinInterruption).HasColumnName("min_interruption");
 
-                entity.Property(e => e.IdZone).HasColumnName("id_zone");
-
-                entity.Property(e => e.Latitude)
-                    .HasColumnName("latitude")
-                    .HasDefaultValueSql("0");
-
-                entity.Property(e => e.Longitude)
-                    .HasColumnName("longitude")
-                    .HasDefaultValueSql("0");
-
-                entity.Property(e => e.NameLocality)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_locality");
-
-                entity.Property(e => e.NameRegion)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_region");
-
-                entity.Property(e => e.NameSector)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_sector");
-
-                entity.Property(e => e.NameZone)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_zone");
-
-                entity.Property(e => e.Poblation)
-                    .HasMaxLength(2)
-                    .HasColumnName("poblation")
-                    .HasDefaultValueSql("'-1'::character varying");
-
-                entity.Property(e => e.State)
-                    .HasColumnName("state")
-                    .HasDefaultValueSql("2");
+                entity.Property(e => e.Month).HasColumnName("month");
 
                 entity.Property(e => e.TypeAsset)
-                    .HasMaxLength(32)
-                    .HasColumnName("type_asset")
-                    .HasDefaultValueSql("'-1'::character varying");
+                    .HasMaxLength(20)
+                    .HasColumnName("type_asset");
 
-                entity.Property(e => e.Uccap14)
-                    .HasMaxLength(6)
-                    .HasColumnName("uccap14")
-                    .HasDefaultValueSql("'-1'::character varying");
+                entity.Property(e => e.Users).HasColumnName("users");
 
-                entity.Property(e => e.Uia)
-                    .HasMaxLength(50)
-                    .HasColumnName("uia")
-                    .HasDefaultValueSql("'-1'::character varying");
+                entity.Property(e => e.Year).HasColumnName("year");
             });
 
-            modelBuilder.Entity<FileIoTemp>(entity =>
+            modelBuilder.Entity<IaIdeam>(entity =>
             {
-                entity.ToTable("file_io_temp");
+                entity.ToTable("ia_ideam", "machine");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
-                    .UseIdentityAlwaysColumn();
-
-                entity.Property(e => e.BeginDate).HasColumnName("begin_date");
-
-                entity.Property(e => e.CodeCauseEvent).HasColumnName("code_cause_event");
-
-                entity.Property(e => e.CodeEvent)
-                    .HasMaxLength(50)
-                    .HasColumnName("code_event");
-
-                entity.Property(e => e.CodeSwitch)
-                    .HasMaxLength(50)
-                    .HasColumnName("code_switch");
-
-                entity.Property(e => e.Duration).HasColumnName("duration");
-
-                entity.Property(e => e.EndDate).HasColumnName("end_date");
-
-                entity.Property(e => e.Fparent)
-                    .HasMaxLength(50)
-                    .HasColumnName("fparent");
-
-                entity.Property(e => e.NameTypeSwitch)
-                    .HasMaxLength(50)
-                    .HasColumnName("name_type_switch");
-
-                entity.Property(e => e.SupportFailure)
-                    .HasMaxLength(50)
-                    .HasColumnName("support_failure");
-
-                entity.Property(e => e.SupportOpen)
-                    .HasMaxLength(50)
-                    .HasColumnName("support_open");
-
-                entity.Property(e => e.TotalClients).HasColumnName("total_clients");
-
-                entity.Property(e => e.TotalOperations).HasColumnName("total_operations");
-
-                entity.Property(e => e.TotalTrafo).HasColumnName("total_trafo");
-            });
-
-            modelBuilder.Entity<FileIoTempDetail>(entity =>
-            {
-                entity.ToTable("file_io_temp_detail");
-
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .UseIdentityAlwaysColumn();
-
-                entity.Property(e => e.BeginDate).HasColumnName("begin_date");
-
-                entity.Property(e => e.CodeCauseEvent).HasColumnName("code_cause_event");
-
-                entity.Property(e => e.CodeEvent)
-                    .HasMaxLength(50)
-                    .HasColumnName("code_event");
-
-                entity.Property(e => e.CodeSwitch)
-                    .HasMaxLength(50)
-                    .HasColumnName("code_switch");
-
-                entity.Property(e => e.Duration).HasColumnName("duration");
-
-                entity.Property(e => e.EndDate).HasColumnName("end_date");
-
-                entity.Property(e => e.Fparent)
-                    .HasMaxLength(50)
-                    .HasColumnName("fparent");
-
-                entity.Property(e => e.NameTypeSwitch)
-                    .HasMaxLength(50)
-                    .HasColumnName("name_type_switch");
-
-                entity.Property(e => e.SupportFailure)
-                    .HasMaxLength(50)
-                    .HasColumnName("support_failure");
-
-                entity.Property(e => e.SupportOpen)
-                    .HasMaxLength(50)
-                    .HasColumnName("support_open");
-
-                entity.Property(e => e.TotalClients).HasColumnName("total_clients");
-
-                entity.Property(e => e.TotalOperations).HasColumnName("total_operations");
-
-                entity.Property(e => e.TotalTrafo).HasColumnName("total_trafo");
-
-                entity.Property(e => e.UiaTrafo)
-                    .HasMaxLength(50)
-                    .HasColumnName("uia_trafo");
-            });
-
-            modelBuilder.Entity<Ideam>(entity =>
-            {
-                entity.ToTable("ideam", "machine");
-
-                entity.Property(e => e.Id).HasColumnName("id");
+                    .HasDefaultValueSql("nextval('machine.ideam_id_seq'::regclass)");
 
                 entity.Property(e => e.Altitude).HasColumnName("altitude");
 
@@ -381,6 +270,49 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.Stationname)
                     .HasMaxLength(255)
                     .HasColumnName("stationname");
+            });
+
+            modelBuilder.Entity<IaPoda>(entity =>
+            {
+                entity.ToTable("ia_podas", "machine");
+
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.BeginSup).HasMaxLength(100);
+
+                entity.Property(e => e.Circuit).HasMaxLength(100);
+
+                entity.Property(e => e.Consig).HasMaxLength(100);
+
+                entity.Property(e => e.Description).HasMaxLength(256);
+
+                entity.Property(e => e.EndSup).HasMaxLength(100);
+
+                entity.Property(e => e.Item).HasMaxLength(100);
+
+                entity.Property(e => e.NameLocation).HasMaxLength(100);
+
+                entity.Property(e => e.NameRegion).HasMaxLength(100);
+
+                entity.Property(e => e.NameZone).HasMaxLength(100);
+
+                entity.Property(e => e.NoOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("NoOT");
+
+                entity.Property(e => e.NoReport).HasMaxLength(100);
+
+                entity.Property(e => e.Pqr)
+                    .HasMaxLength(100)
+                    .HasColumnName("PQR");
+
+                entity.Property(e => e.Scheduled).HasMaxLength(100);
+
+                entity.Property(e => e.StateOt)
+                    .HasMaxLength(100)
+                    .HasColumnName("StateOT");
+
+                entity.Property(e => e.Urban).HasMaxLength(2);
             });
 
             modelBuilder.Entity<MpLightning>(entity =>
@@ -430,15 +362,6 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.Year).HasColumnName("year");
             });
 
-            modelBuilder.Entity<StatusFile>(entity =>
-            {
-                entity.ToTable("StatusFile", "machine");
-
-                entity.Property(e => e.FileName).HasMaxLength(20);
-
-                entity.Property(e => e.FileType).HasMaxLength(10);
-            });
-
             modelBuilder.Entity<MpUtilityPole>(entity =>
             {
                 entity.ToTable("mp_utility_pole", "maps");
@@ -469,8 +392,6 @@ namespace ADO.Access.DataEssa
                     .HasMaxLength(50)
                     .HasColumnName("painting_code");
 
-                entity.Property(e => e.TypePole).HasColumnName("type_pole");
-
                 entity.Property(e => e.X).HasColumnName("x");
 
                 entity.Property(e => e.Y).HasColumnName("y");
@@ -478,48 +399,37 @@ namespace ADO.Access.DataEssa
                 entity.Property(e => e.Z).HasColumnName("z");
             });
 
-            modelBuilder.Entity<Poda>(entity =>
-            {
-                entity.ToTable("podas", "machine");
+            modelBuilder.HasSequence("consequence_by_circuit_id_seq", "criticality");
 
-                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+            modelBuilder.HasSequence("consequence_parameter_id_seq", "criticality");
 
-                entity.Property(e => e.BeginSup).HasMaxLength(100);
+            modelBuilder.HasSequence("consequence_principal_id_seq", "criticality");
 
-                entity.Property(e => e.Circuit).HasMaxLength(100);
+            modelBuilder.HasSequence("constructive_unit_id_tb_seq", "criticality");
 
-                entity.Property(e => e.Consig).HasMaxLength(100);
+            modelBuilder.HasSequence("criticality_all_asset_id_seq", "criticality");
 
-                entity.Property(e => e.Description).HasMaxLength(256);
+            modelBuilder.HasSequence("criticality_all_asset_ind_id_seq", "criticality");
 
-                entity.Property(e => e.EndSup).HasMaxLength(100);
+            modelBuilder.HasSequence("criticality_category_id_tb_seq", "criticality");
 
-                entity.Property(e => e.Item).HasMaxLength(100);
+            modelBuilder.HasSequence("failure_io_exc_id_seq", "criticality");
 
-                entity.Property(e => e.NameLocation).HasMaxLength(100);
+            modelBuilder.HasSequence("failure_io_id_seq", "criticality");
 
-                entity.Property(e => e.NameRegion).HasMaxLength(100);
+            modelBuilder.HasSequence("failure_io_monthly_id_seq", "criticality");
 
-                entity.Property(e => e.NameZone).HasMaxLength(100);
+            modelBuilder.HasSequence("failure_io_noexc_id_seq", "criticality");
 
-                entity.Property(e => e.NoOt)
-                    .HasMaxLength(100)
-                    .HasColumnName("NoOT");
+            modelBuilder.HasSequence("failure_io_yearly_id_seq", "criticality");
 
-                entity.Property(e => e.NoReport).HasMaxLength(100);
+            modelBuilder.HasSequence("health_all_asset_id_seq", "criticality");
 
-                entity.Property(e => e.Pqr)
-                    .HasMaxLength(100)
-                    .HasColumnName("PQR");
+            modelBuilder.HasSequence("historical_failure_id_seq", "criticality");
 
-                entity.Property(e => e.Scheduled).HasMaxLength(100);
+            modelBuilder.HasSequence("resume_current_frequency_by_cause_id_seq", "criticality");
 
-                entity.Property(e => e.StateOt)
-                    .HasMaxLength(100)
-                    .HasColumnName("StateOT");
-
-                entity.Property(e => e.Urban).HasMaxLength(2);
-            });
+            modelBuilder.HasSequence("resume_frequency_map_id_seq", "criticality");
 
             OnModelCreatingPartial(modelBuilder);
         }

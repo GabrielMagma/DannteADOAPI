@@ -6,6 +6,6 @@ namespace ADO.BL.Interfaces
 {
     public interface IPolesEssaServices
     {
-        public Task<ResponseQuery<bool>> ValidationFile(ResponseQuery<bool> response);
+        public Task<ResponseQuery<bool>> ValidationFile(PolesValidationDTO request, ResponseQuery<bool> response);
     }
 }

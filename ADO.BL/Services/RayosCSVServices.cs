@@ -5,7 +5,6 @@ using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OfficeOpenXml;
 using System.Data;
@@ -15,21 +14,26 @@ namespace ADO.BL.Services
 {
     public class RayosCSVServices : IRayosCSVServices
     {
-        private readonly IRayosCSVDataAccess rayosCSVDataAccess;        
+        private readonly IRayosCSVDataAccess rayosCSVDataAccess;
+        private readonly IRayosEepCSVDataAccess rayosEepCSVDataAccess;
         private readonly string _RayosDirectoryPath;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
+        private readonly string _connectionString;
 
         public RayosCSVServices(IConfiguration configuration, 
             IRayosCSVDataAccess _rayosCSVDataAccess,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IRayosEepCSVDataAccess _rayosEepCSVDataAccess,
+            IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             rayosCSVDataAccess = _rayosCSVDataAccess;
+            rayosEepCSVDataAccess = _rayosEepCSVDataAccess;
             mapper = _mapper;
             _RayosDirectoryPath = configuration["RayosPath"];
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
         }
 
         public async Task<ResponseEntity<List<string>>> SearchDataCSV(RayosValidationDTO request, ResponseEntity<List<string>> response)
@@ -48,7 +52,7 @@ namespace ADO.BL.Services
                 int error = 6;
                 int municipio = 7;
 
-                var statusFileList = new List<StatusFileDTO>();
+                
                 if (request.Encabezado == false)
                 {
                     fecha = request.columns.Fecha - 1;
@@ -61,10 +65,11 @@ namespace ADO.BL.Services
                     municipio = request.columns.Municipio - 1;
                 }
 
+                var statusFileList = new List<StatusFileDTO>();
+
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
-                    var rayosInfoList = new List<RayoInfoDTO>();
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
+                    var rayosInfoList = new List<RayoInfoDTO>();                    
 
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
@@ -116,7 +121,10 @@ namespace ADO.BL.Services
                     statusFilesingle.FileName = fileName;
                     statusFilesingle.FileType = "RAYOS";
                     statusFilesingle.Year = request.Year;
-                    statusFilesingle.Month = request.Month;                    
+                    statusFilesingle.Month = -1;
+                    statusFilesingle.Day = -1;
+
+                    statusFileList.Add(statusFilesingle);
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= 12; i++)
@@ -142,9 +150,10 @@ namespace ADO.BL.Services
                             dataTableError.Rows.Add(newRowError);
                             count++;
                         }
-                        else if (valueLines[fecha] == "" || valueLines[region] == "" ||
-                                valueLines[circuito] == "" || valueLines[latitud] == "" || valueLines[longitud] == "" ||
-                                valueLines[municipio] == "" || valueLines[error] == "" || valueLines[corriente] == "")                            
+                        else if (string.IsNullOrEmpty(valueLines[fecha]) || string.IsNullOrEmpty(valueLines[region]) ||
+                                string.IsNullOrEmpty(valueLines[circuito]) || string.IsNullOrEmpty(valueLines[latitud]) || 
+                                string.IsNullOrEmpty(valueLines[longitud]) || string.IsNullOrEmpty(valueLines[municipio]) || 
+                                string.IsNullOrEmpty(valueLines[error]) || string.IsNullOrEmpty(valueLines[corriente]))                            
                         {
                             message = $"Error de la data en la línea {count}, las columnas Fecha, Región, Circuito, Latitud, Longitud, Corriente, Error y Municipio son Requeridas";
                             var newRowError = dataTableError.NewRow();
@@ -246,14 +255,14 @@ namespace ADO.BL.Services
                         {
                             var subgroup = listDTOMpLightning.Skip(i * 1000).Take(1000).ToList();
                             var EntityResult = mapper.Map<List<MpLightning>>(subgroup);
-                            SaveData(EntityResult);
+                            //SaveData(EntityResult);
                             i++;
                             Console.WriteLine(i * 1000);
                         }
-
+                        statusFileList.Add(statusFilesingle);
                     }
 
-                    statusFileList.Add(statusFilesingle);
+                    
 
                     Console.WriteLine("Proceso completado.");
                 }                
@@ -551,7 +560,7 @@ namespace ADO.BL.Services
 
                 return result;            
 
-        }        
+        }
 
     }
 }

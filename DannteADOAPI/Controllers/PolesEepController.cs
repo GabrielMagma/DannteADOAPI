@@ -1,4 +1,5 @@
-﻿using ADO.BL.Interfaces;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,11 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(PolesEepController.ValidationFile))]        
-        public async Task<IActionResult> ValidationFile()
+        public async Task<IActionResult> ValidationFile(PolesValidationDTO request)
         {
 
             ResponseQuery<bool> response = new ResponseQuery<bool>();
-            await polesEepServices.ValidationFile(response);
+            await polesEepServices.ValidationFile(request, response);
             return Ok(response);
             
         }

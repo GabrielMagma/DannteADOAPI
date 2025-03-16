@@ -1,4 +1,5 @@
-﻿using ADO.BL.Interfaces;
+﻿using ADO.BL.DTOs;
+using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,10 +21,10 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(FileAssetController.CreateFile))]        
-        public async Task<IActionResult> CreateFile()
+        public async Task<IActionResult> CreateFile(AssetValidationDTO request)
         {            
                 ResponseQuery<string> response = new ResponseQuery<string>();
-                await fileServices.CreateFile(response);
+                await fileServices.CreateFile(request, response);
                 return Ok(response);            
         }
     }

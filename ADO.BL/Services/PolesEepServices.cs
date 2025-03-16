@@ -14,30 +14,52 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;        
         private readonly string _PolesDirectoryPath;
         private readonly IPolesEepDataAccess polesEepDataAccess;
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
+        private readonly string _connectionString;
         public PolesEepServices(IConfiguration configuration,
             IPolesEepDataAccess _polesEepDataAccess,
+            IStatusFileEepDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
+            _connectionString = configuration.GetConnectionString("PgDbEepConnection");
             polesEepDataAccess = _polesEepDataAccess;
             _configuration = configuration;            
             _PolesDirectoryPath = configuration["PolesPath"];
             mapper = _mapper;
+            statusFileDataAccess = _statuFileDataAccess;
         }
 
-        public async Task<ResponseQuery<bool>> ValidationFile(ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ValidationFile(PolesValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {
                 var inputFolder = _PolesDirectoryPath;
+                
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
                     var listAssetsDTO = new List<AssetsDTO>();
                     var listUtilityPoleDTO = new List<MpUtilityPoleDTO>();
-                    var listEntityPoleDTO = new List<MpUtilityPoleDTO>();
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEepTesting";
+                    var listEntityPoleDTO = new List<MpUtilityPoleDTO>();                    
+                    
+                    var statusFileList = new List<StatusFileDTO>();
+                    var statusFilesingle = new StatusFileDTO();
+
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+
+                    statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
+                    statusFilesingle.UserId = request.UserId;
+                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileType = "POLES";
+                    statusFilesingle.Year = request.Year;
+                    statusFilesingle.Month = request.Month;
+                    statusFilesingle.Day = -1;
+                    statusFilesingle.Status = 1;
+
+                    statusFileList.Add(statusFilesingle);
 
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
@@ -152,6 +174,8 @@ namespace ADO.BL.Services
                         
                         var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
                         var respCreate = CreateData(polesMapped);
+                        var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                        var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
                     }
                 }
 

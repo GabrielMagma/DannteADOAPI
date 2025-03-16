@@ -17,14 +17,16 @@ namespace ADO.BL.Services
     {
         private readonly IRamalesDataAccess ramalesDataAccess;        
         private readonly string _RamalesDirectoryPath;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
+        private readonly string _connectionString;
 
         public RamalesServices(IConfiguration configuration, 
             IRamalesDataAccess _ramalesDataAccess,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
+            _connectionString = configuration.GetConnectionString("PgDbConnection");
             ramalesDataAccess = _ramalesDataAccess;            
             _RamalesDirectoryPath = configuration["RamalesPath"];
             statusFileDataAccess = _statuFileDataAccess;
@@ -105,13 +107,16 @@ namespace ADO.BL.Services
             var statusFilesingle = new StatusFileDTO();
             // Extraer el nombre del archivo sin la extensión
             var fileName = Path.GetFileNameWithoutExtension(filePath);
+            var resultYearMonth = getYearMonth(fileLines);
+            int year = int.Parse(resultYearMonth);
 
             statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
             statusFilesingle.UserId = request.UserId;
             statusFilesingle.FileName = fileName;
-            statusFilesingle.FileType = "RAYOS";
-            statusFilesingle.Year = request.Year;
-            statusFilesingle.Month = request.Month;
+            statusFilesingle.FileType = "RAMALES";
+            statusFilesingle.Year = year;
+            statusFilesingle.Month = -1;
+            statusFilesingle.Day = -1;
 
             if (request.Encabezado == false)
             {
@@ -158,9 +163,7 @@ namespace ADO.BL.Services
                     {
                         listDataString.Append($"'{valueLines[0]}',");
                     }
-                }
-
-                var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
+                }                
 
                 using (var connection = new NpgsqlConnection(_connectionString))
                 {
@@ -483,5 +486,23 @@ namespace ADO.BL.Services
 
         }
 
+        private string getYearMonth(string[] lines)
+        {
+            var year = string.Empty;
+            for (int i = 1; i < lines.Count(); i++)
+            {
+                var valueLines = lines[i].Split(',', ';');
+                var resultDate = ParseDate(valueLines[1]);
+                if (!resultDate.Contains("Error"))
+                {
+                    // formato fecha "dd/MM/YYYY"
+                    var dateTemp = resultDate.Split('/');
+                    year = dateTemp[2];
+                    break;
+                }
+
+            }
+            return year;
+        }
     }
 }

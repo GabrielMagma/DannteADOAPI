@@ -12,17 +12,21 @@ namespace ADO.BL.Services
 {
     public class TT2GlobalServices : ITT2GlobalServices
     {
-        private readonly string _connectionString;
+        private string _connectionString;
+        private readonly string _connectionStringEssa;
+        private readonly string _connectionStringEep;
         private readonly string _tt2DirectoryPath;
         private readonly string[] _timeFormats;
         private const int _batchSize = 10000;
         private readonly ITT2ValidationServices _Itt2ValidationServices;
         private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public TT2GlobalServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,
             IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statusFileEssaDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbConnection");
@@ -30,6 +34,7 @@ namespace ADO.BL.Services
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _Itt2ValidationServices = Itt2ValidationServices;
             statusFileDataAccess = _statuFileDataAccess;
+            statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
         }
 
@@ -37,6 +42,7 @@ namespace ADO.BL.Services
         {
             try
             {
+                _connectionString = request.Empresa == "ESSA" ? _connectionStringEssa : _connectionStringEep;
                 var errorResponse = new ResponseEntity<List<StatusFileDTO>>();
                 var errorFile = await _Itt2ValidationServices.ValidationTT2(request, errorResponse);
                 if (errorFile.Success == false)
@@ -57,8 +63,15 @@ namespace ADO.BL.Services
                     var completed4 = await ReadTt2Update();
                     Console.WriteLine(completed4);
 
-                    //var subgroupMap = mapper.Map<List<StatusFile>>(errorFile.Data);
-                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    var subgroupMap = mapper.Map<List<StatusFile>>(errorFile.Data);
+                    if (request.Empresa == "EEP")
+                    {
+                        var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    }
+                    else
+                    {
+                        var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    }
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

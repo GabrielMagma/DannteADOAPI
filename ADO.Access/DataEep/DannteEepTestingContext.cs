@@ -20,6 +20,7 @@ namespace ADO.Access.DataEep
         public virtual DbSet<StatusFile> StatusFiles { get; set; } = null!;
         public virtual DbSet<FilesIo> FilesIos { get; set; } = null!;
         public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
+        public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<FilesIoComplete> FilesIoCompletes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -284,8 +285,6 @@ namespace ADO.Access.DataEep
             {
                 entity.ToTable("StatusFile", "machine");
 
-                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
-
                 entity.Property(e => e.FileName).HasMaxLength(20);
 
                 entity.Property(e => e.FileType).HasMaxLength(10);
@@ -453,6 +452,53 @@ namespace ADO.Access.DataEep
                 entity.Property(e => e.TypeEvent).HasColumnType("character varying");
 
                 entity.Property(e => e.Ubication).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<MpLightning>(entity =>
+            {
+                entity.ToTable("mp_lightning", "maps");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.Amperage).HasColumnName("amperage");
+
+                entity.Property(e => e.DateEvent)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("date_event");
+
+                entity.Property(e => e.Error).HasColumnName("error");
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(50)
+                    .HasColumnName("fparent")
+                    .HasDefaultValueSql("'NO DATA'::character varying");
+
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.NameLocality)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_locality")
+                    .HasDefaultValueSql("'NO DATA'::character varying");
+
+                entity.Property(e => e.NameRegion)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_region")
+                    .HasDefaultValueSql("'NO DATA'::character varying");
+
+                entity.Property(e => e.NameZone)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_zone")
+                    .HasDefaultValueSql("'NO DATA'::character varying");
+
+                entity.Property(e => e.Type).HasColumnName("type");
+
+                entity.Property(e => e.Year).HasColumnName("year");
             });
 
             modelBuilder.HasSequence("causalsimulationtypes_id_seq", "simulate").HasMax(2147483647);

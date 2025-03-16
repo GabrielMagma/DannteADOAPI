@@ -5,12 +5,10 @@ using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ADO.BL.Services
@@ -21,14 +19,17 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private readonly string _IOsDirectoryPath;
         private readonly IFileIODataAccess fileIODataAccess;
+        private readonly IStatusFileEepDataAccess statusFileDataAccess;
         public FileIOServices(IConfiguration configuration,
             IMapper _mapper,
+            IStatusFileEepDataAccess _statuFileDataAccess,
             IFileIODataAccess _fileIODataAccess)
         {
             mapper = _mapper;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _IOsDirectoryPath = configuration["IOsPath"];
             fileIODataAccess = _fileIODataAccess;
+            statusFileDataAccess = _statuFileDataAccess;
         }
 
         public async Task<ResponseQuery<string>> UploadIO(IOsValidationDTO iosValidation, ResponseQuery<string> response)
@@ -37,6 +38,7 @@ namespace ADO.BL.Services
             {
                 string inputFolder = _IOsDirectoryPath;
                 var errorFlag = false;
+                var statusFileList = new List<StatusFileDTO>();
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx"))
@@ -50,6 +52,25 @@ namespace ADO.BL.Services
                         var ioList = new List<FileIoDTO>();
                         var ioCompleteList = new List<FileIoCompleteDTO>();
 
+                        var statusFilesingle = new StatusFileDTO();
+
+                        // Extraer el nombre del archivo sin la extensión
+                        var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                        var resultYearMonth = getYearMonth(worksheet1);
+                        int year = int.Parse(resultYearMonth[0]);
+                        int month = int.Parse(resultYearMonth[1]);
+
+                        statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
+                        statusFilesingle.UserId = iosValidation.UserId;
+                        statusFilesingle.FileName = fileName;
+                        statusFilesingle.FileType = "IO";
+                        statusFilesingle.Year = year;
+                        statusFilesingle.Month = month;
+                        statusFilesingle.Status = 1;
+
+                        statusFileList.Add(statusFilesingle);
+
                         CultureInfo esCulture = new CultureInfo("es-CO");
                         string[] dateFormats = { "dd/MM/yyyy HH:mm:ss", "d/MM/yyyy hh:mm:ss tt" };
                         string[] timeFormats = {
@@ -61,8 +82,7 @@ namespace ADO.BL.Services
                             "d/MM/yyyy HH:mm:ss", "d/MM/yyyy H:mm:ss",
                             "d/M/yyyy HH:mm:ss", "d/M/yyyy H:mm:ss"
                         };
-
-                        var fileName = Path.GetFileNameWithoutExtension(filePath);
+                        
                         await DeleteDuplicateIO(fileName);
 
                         // columnas tabla error
@@ -131,6 +151,7 @@ namespace ADO.BL.Services
                                                         var newEntityComplete = new FileIoCompleteDTO();
 
                                                         //tabla files_io
+                                                        #region tabla io
                                                         var aniomes = worksheet1.Cells[row, 1].Text.Split('/', ' ');
                                                         newEntity.CodeSig = codeSig;
                                                         newEntity.Element = element;
@@ -192,14 +213,16 @@ namespace ADO.BL.Services
 
                                                         newEntity.HourIn = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 9].Text}");
 
+                                                        #endregion
+
                                                         //tabla complete
                                                         newEntityComplete.DateIo = ParseDate(worksheet1.Cells[row, 1].Text);
                                                         newEntityComplete.CodeGis = codeSig;
-                                                        newEntityComplete.Location = worksheet1.Cells[row, 3].Text.Trim().ToUpper();
+                                                        newEntityComplete.Location = string.IsNullOrEmpty(worksheet1.Cells[row, 3].Text) ? "-1" : worksheet1.Cells[row, 3].Text.Trim().ToUpper();
                                                         newEntityComplete.Ubication = worksheet1.Cells[row, 4].Text.Trim().ToUpper();
                                                         newEntityComplete.Element = element;
                                                         newEntityComplete.Component = worksheet1.Cells[row, 6].Text.Trim().ToUpper();
-                                                        newEntityComplete.AffectedSector = worksheet1.Cells[row, 7].Text.Trim().ToUpper();
+                                                        newEntityComplete.AffectedSector = string.IsNullOrEmpty(worksheet1.Cells[row, 7].Text) ? "-1" : worksheet1.Cells[row, 7].Text.Trim().ToUpper();
                                                         newEntityComplete.HourOut = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 8].Text}");
                                                         newEntityComplete.HourIn = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 9].Text}");
                                                         if (!float.TryParse(worksheet1.Cells[row, 10].Text, out float minInterruptionComplete))
@@ -218,10 +241,10 @@ namespace ADO.BL.Services
                                                             CodCauseComplete = -1;
                                                         }
                                                         newEntityComplete.Cause = CodCauseComplete;
-                                                        newEntityComplete.Observation = worksheet1.Cells[row, 14].Text.Trim().ToUpper();
+                                                        newEntityComplete.Observation = string.IsNullOrEmpty(worksheet1.Cells[row, 14].Text) ? "-1" : worksheet1.Cells[row, 14].Text.Trim().ToUpper();
                                                         newEntityComplete.Maneuver = worksheet1.Cells[row, 15].Text.Trim().ToUpper();
-                                                        newEntityComplete.FuseQuant = worksheet1.Cells[row, 16].Text.Trim().ToUpper();
-                                                        newEntityComplete.FuseCap = worksheet1.Cells[row, 17].Text.Trim().ToUpper();
+                                                        newEntityComplete.FuseQuant = string.IsNullOrEmpty(worksheet1.Cells[row, 16].Text) ? "-1" : worksheet1.Cells[row, 16].Text.Trim().ToUpper();
+                                                        newEntityComplete.FuseCap = string.IsNullOrEmpty(worksheet1.Cells[row, 17].Text) ? "-1" : worksheet1.Cells[row, 17].Text.Trim().ToUpper();
                                                         if (!int.TryParse(worksheet1.Cells[row, 18].Text, out int CodConsigComplete))
                                                         {
                                                             CodConsigComplete = -1;
@@ -244,7 +267,7 @@ namespace ADO.BL.Services
                                                             usersComplete = -1;
                                                         }
                                                         newEntityComplete.Users = usersComplete;
-                                                        newEntityComplete.ApplicationId = worksheet1.Cells[row, 24].Text.Trim().ToUpper();
+                                                        newEntityComplete.ApplicationId = string.IsNullOrEmpty(worksheet1.Cells[row, 24].Text) ? "-1" : worksheet1.Cells[row, 24].Text.Trim().ToUpper();
 
                                                         ioList.Add(newEntity);
                                                         ioCompleteList.Add(newEntityComplete);
@@ -452,10 +475,13 @@ namespace ADO.BL.Services
                             {
                                 var subgroup = ioList.Skip(i * 1000).Take(1000).ToList();
                                 var EntityResult = mapper.Map<List<FilesIo>>(subgroup);
-                                //SaveData(EntityResult);
+                                SaveData(EntityResult);
                                 i++;
                                 Console.WriteLine(i * 1000);
                             }
+                            
+                            var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                            var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
 
                         }
 
@@ -466,7 +492,7 @@ namespace ADO.BL.Services
                             {
                                 var subgroup = ioCompleteList.Skip(i * 1000).Take(1000).ToList();
                                 var EntityResult = mapper.Map<List<FilesIoComplete>>(subgroup);
-                                //SaveData(EntityResult);
+                                SaveDataComplete(EntityResult);
                                 i++;
                                 Console.WriteLine(i * 1000);
                             }
@@ -586,5 +612,25 @@ namespace ADO.BL.Services
             return DateOnly.Parse("31/12/2099");
         }
 
+        private List<string> getYearMonth(ExcelWorksheet worksheet1)
+        {
+            var yearMonth = new List<string>();
+            for (int i = 6; i < worksheet1.Dimension.End.Row; i++)
+            {
+                if(!string.IsNullOrEmpty(worksheet1.Cells[i, 1].Text))
+                {
+                    var resultDate = ParseDate(worksheet1.Cells[i, 1].Text);
+                    if (resultDate != DateOnly.Parse("31/12/2099"))
+                    {
+                        // formato fecha "dd/MM/YYYY"
+                        var dateTemp = resultDate.ToString().Split('/', ' ');
+                        yearMonth.Add(dateTemp[2]);
+                        yearMonth.Add(dateTemp[1]);
+                        break;
+                    }
+                }
+            }
+            return yearMonth;
+        }
     }
 }
