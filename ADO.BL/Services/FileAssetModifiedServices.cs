@@ -84,7 +84,8 @@ namespace ADO.BL.Services
                         {
                             if (worksheet1.Cells[row, 1].Text != "")
                             {
-                                var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                                //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                                var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
                                 listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "")}',");
 
                             }
@@ -201,7 +202,8 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                                //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                                var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
                                 var assetTemp = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc);
 
                                 if (assetTemp == null)
@@ -211,7 +213,7 @@ namespace ADO.BL.Services
                                     {
                                         rowText.Append($"{worksheet1.Cells[row, i].Text};");
                                     }                                    
-                                    await CreateAsset(rowText, assetListCreate, dataTableError, fparentRegionList, row);
+                                    await CreateAsset(rowText, assetListCreate, dataTableError, fparentRegionList, row, assetList);
                                     continue;
                                 }
 
@@ -291,10 +293,10 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                if (assetTemp.CodeSig == codeSigDoc && assetTemp.Uia != worksheet1.Cells[row, 3].Text.Trim())
-                                {
-                                    listDataStringUpdate.Append($"'{assetTemp.CodeSig}',");
-                                }
+                                //if (assetTemp.CodeSig == codeSigDoc && assetTemp.Uia != worksheet1.Cells[row, 3].Text.Trim())
+                                //{
+                                //    listDataStringUpdate.Append($"'{assetTemp.CodeSig}',");
+                                //}
 
                                 var newEntity = new AllAssetDTO();
 
@@ -310,7 +312,8 @@ namespace ADO.BL.Services
                                 newEntity.Group015 = worksheet1.Cells[row, 9].Text.Trim();
                                 newEntity.DateInst = date;
                                 newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-                                newEntity.State = 2;
+                                //newEntity.State = 2;
+                                newEntity.State = 3;
                                 newEntity.Uccap14 = string.IsNullOrEmpty(worksheet1.Cells[row, 12].Text) ? "-1" : worksheet1.Cells[row, 12].Text.Trim();
                                 newEntity.IdZone = -1;
                                 newEntity.NameZone = "-1";
@@ -445,7 +448,7 @@ namespace ADO.BL.Services
             return DateOnly.Parse("31/12/2099");
         }
 
-        private async Task CreateAsset(StringBuilder data, List<AllAssetDTO> assetListCreate, DataTable dataTableError, List<FparenRegionDTO> fparentRegionList, int row)
+        private async Task CreateAsset(StringBuilder data, List<AllAssetDTO> assetListCreate, DataTable dataTableError, List<FparenRegionDTO> fparentRegionList, int row, List<AllAssetDTO> assetList)
         {
             var dataUnit = data.ToString().Split(';');
 
@@ -481,38 +484,52 @@ namespace ADO.BL.Services
                 return;
             }
 
-            var codeSigDoc = dataUnit[1].ToString()[0] == '0' ? dataUnit[1].ToString().Trim() : $"0{dataUnit[1].ToString().Trim()}";
+
+
+            //var codeSigDoc = dataUnit[1].ToString()[0] == '0' ? dataUnit[1].ToString().Trim() : $"0{dataUnit[1].ToString().Trim()}";
+            var codeSigDoc = dataUnit[1].ToString().Trim();
 
             var uiaTemp = dataUnit[1] == dataUnit[2] ? codeSigDoc : dataUnit[2];
 
-            var newEntity = new AllAssetDTO();
+            var existEntity = assetListCreate.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == uiaTemp.Trim());
+            var existEntity2 = assetList.Where(x => x.CodeSig == codeSigDoc && x.Uia == uiaTemp.Trim());
+            if (existEntity != null || existEntity2.Count() > 0)
+            {
+                return;
+            }
+            else
+            {
 
-            newEntity.Id = 0;
-            newEntity.TypeAsset = dataUnit[0].Trim().ToUpper();
-            newEntity.CodeSig = codeSigDoc;
-            newEntity.Uia = uiaTemp.Trim();
-            newEntity.Codetaxo = string.IsNullOrEmpty(dataUnit[3]) ? "-1" : dataUnit[3].Trim();
-            newEntity.Fparent = dataUnit[4].Trim().Replace(" ", "");
-            newEntity.Latitude = float.Parse(dataUnit[5].Trim());
-            newEntity.Longitude = float.Parse(dataUnit[6].Trim());
-            newEntity.Poblation = string.IsNullOrEmpty(dataUnit[7]) ? "-1" : dataUnit[7].Trim();
-            newEntity.Group015 = dataUnit[8].Trim();
-            newEntity.DateInst = date;
-            newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-            newEntity.State = 2;
-            newEntity.Uccap14 = string.IsNullOrEmpty(dataUnit[11]) ? "-1" : dataUnit[11].Trim();
-            newEntity.IdZone = -1;
-            newEntity.NameZone = "-1";
-            newEntity.IdRegion = regionTemp.id_region;
-            newEntity.NameRegion = regionTemp.name_region;
-            newEntity.IdLocality = -1;
-            newEntity.NameLocality = "-1";
-            newEntity.IdSector = -1;
-            newEntity.NameSector = "-1";
-            newEntity.GeographicalCode = -1;
-            newEntity.Address = string.IsNullOrEmpty(dataUnit[9]) ? "-1" : dataUnit[9].Trim();
+                var newEntity = new AllAssetDTO();
 
-            assetListCreate.Add(newEntity);
+                newEntity.Id = 0;
+                newEntity.TypeAsset = dataUnit[0].Trim().ToUpper();
+                newEntity.CodeSig = codeSigDoc;
+                newEntity.Uia = uiaTemp.Trim();
+                newEntity.Codetaxo = string.IsNullOrEmpty(dataUnit[3]) ? "-1" : dataUnit[3].Trim();
+                newEntity.Fparent = dataUnit[4].Trim().Replace(" ", "");
+                newEntity.Latitude = float.Parse(dataUnit[5].Trim());
+                newEntity.Longitude = float.Parse(dataUnit[6].Trim());
+                newEntity.Poblation = string.IsNullOrEmpty(dataUnit[7]) ? "-1" : dataUnit[7].Trim();
+                newEntity.Group015 = dataUnit[8].Trim();
+                newEntity.DateInst = date;
+                newEntity.DateUnin = DateOnly.Parse("31/12/2099");
+                //newEntity.State = 2;
+                newEntity.State = 3;
+                newEntity.Uccap14 = string.IsNullOrEmpty(dataUnit[11]) ? "-1" : dataUnit[11].Trim();
+                newEntity.IdZone = -1;
+                newEntity.NameZone = "-1";
+                newEntity.IdRegion = regionTemp.id_region;
+                newEntity.NameRegion = regionTemp.name_region;
+                newEntity.IdLocality = -1;
+                newEntity.NameLocality = "-1";
+                newEntity.IdSector = -1;
+                newEntity.NameSector = "-1";
+                newEntity.GeographicalCode = -1;
+                newEntity.Address = string.IsNullOrEmpty(dataUnit[9]) ? "-1" : dataUnit[9].Trim();
+
+                assetListCreate.Add(newEntity);
+            }
 
         }
     }
