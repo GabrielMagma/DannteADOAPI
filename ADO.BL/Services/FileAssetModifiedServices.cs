@@ -86,7 +86,19 @@ namespace ADO.BL.Services
                             {
                                 //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
                                 var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
+                                if(codeSigDoc == "0")
+                                {
+                                    continue;
+                                }
                                 listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "")}',");
+                                if (codeSigDoc[0] == '0')
+                                {                                    
+                                    listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0,1)}',");
+                                }
+                                else
+                                {                                    
+                                    listDataString.Append($"'0{codeSigDoc.Trim().Replace(" ", "")}',");
+                                }
 
                             }
 
@@ -96,7 +108,7 @@ namespace ADO.BL.Services
                         {
                             connection.Open();
                             var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);
-                            var SelectQuery = $@"SELECT id, code_sig, uia, fparent FROM public.all_asset where code_sig in ({listDef})";
+                            var SelectQuery = $@"SELECT id, code_sig, uia, fparent, date_inst FROM public.all_asset where code_sig in ({listDef})";
                             using (var reader = new NpgsqlCommand(SelectQuery, connection))
                             {
                                 try
@@ -111,7 +123,12 @@ namespace ADO.BL.Services
                                             temp.Id = long.Parse(result[0].ToString());
                                             temp.CodeSig = result[1].ToString();
                                             temp.Uia = result[2].ToString();                                            
-                                            temp.Fparent = result[3].ToString();                                            
+                                            temp.Fparent = result[3].ToString();
+                                            if (!string.IsNullOrEmpty(result[4].ToString()))
+                                            {
+                                                temp.DateInst = DateOnly.FromDateTime(DateTime.Parse(result[4].ToString()));
+                                            }
+                                            
 
                                             assetList.Add(temp);
                                         }
@@ -191,10 +208,7 @@ namespace ADO.BL.Services
                                 dataTableError.Rows.Add(newRowError);
                             }
                             else
-                            {
-
-                                
-
+                            {                               
                                 #region llenado de campos                                
 
                                 if (worksheet1.Cells[row, 2].Text == "0")
@@ -204,7 +218,8 @@ namespace ADO.BL.Services
 
                                 //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
                                 var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
-                                var assetTemp = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc);
+                                var assetTempList = assetList.Where(x => x.CodeSig == codeSigDoc).ToList();
+                                var assetTemp = assetTempList.OrderByDescending( x => x.DateInst).FirstOrDefault();                                
 
                                 if (assetTemp == null)
                                 {                                    
@@ -236,12 +251,7 @@ namespace ADO.BL.Services
                                 if (assetTemp.CodeSig == codeSigDoc && assetTemp.Uia == worksheet1.Cells[row, 3].Text.Trim())
                                 {
                                     continue;
-                                }
-
-                                if(worksheet1.Cells[row, 2].Text == worksheet1.Cells[row, 3].Text)
-                                {
-                                    continue ;
-                                }                                
+                                }                                                              
 
                                 if (assetTemp.Fparent != worksheet1.Cells[row, 5].Text.Trim())
                                 {
@@ -287,16 +297,36 @@ namespace ADO.BL.Services
                                 }
 
                                 var existEntity = assetListCreate.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
-                                var existEntity2 = assetList.Where(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
-                                if (existEntity != null || existEntity2.Count() > 0)
+                                var existEntity2 = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
+                                if (existEntity != null || existEntity2 != null)
                                 {
                                     continue;
                                 }
 
-                                //if (assetTemp.CodeSig == codeSigDoc && assetTemp.Uia != worksheet1.Cells[row, 3].Text.Trim())
-                                //{
-                                //    listDataStringUpdate.Append($"'{assetTemp.CodeSig}',");
-                                //}
+
+                                var stateTemp = 2;
+                                if(assetTemp.DateInst > date)
+                                {
+                                    stateTemp = 3;
+                                }
+                                else
+                                {
+                                    var existEntity3 = assetList.Where(x => x.CodeSig == codeSigDoc).ToList();
+
+                                    foreach (var item in existEntity3)
+                                    {
+                                        listDataStringUpdate.Append($"'{item.CodeSig}',");
+                                        if (item.CodeSig[0] == '0')
+                                        {                                            
+                                            listDataStringUpdate.Append($"'{item.CodeSig.Remove(0,1)}',");
+                                        }
+                                        else
+                                        {                                            
+                                            listDataStringUpdate.Append($"'0{item.CodeSig}',");
+                                        }
+                                    }
+                                }                              
+                                
 
                                 var newEntity = new AllAssetDTO();
 
@@ -313,7 +343,7 @@ namespace ADO.BL.Services
                                 newEntity.DateInst = date;
                                 newEntity.DateUnin = DateOnly.Parse("31/12/2099");
                                 //newEntity.State = 2;
-                                newEntity.State = 3;
+                                newEntity.State = stateTemp;
                                 newEntity.Uccap14 = string.IsNullOrEmpty(worksheet1.Cells[row, 12].Text) ? "-1" : worksheet1.Cells[row, 12].Text.Trim();
                                 newEntity.IdZone = -1;
                                 newEntity.NameZone = "-1";
@@ -492,8 +522,8 @@ namespace ADO.BL.Services
             var uiaTemp = dataUnit[1] == dataUnit[2] ? codeSigDoc : dataUnit[2];
 
             var existEntity = assetListCreate.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == uiaTemp.Trim());
-            var existEntity2 = assetList.Where(x => x.CodeSig == codeSigDoc && x.Uia == uiaTemp.Trim());
-            if (existEntity != null || existEntity2.Count() > 0)
+            var existEntity2 = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == uiaTemp.Trim());
+            if (existEntity != null || existEntity2 != null)
             {
                 return;
             }
@@ -514,8 +544,7 @@ namespace ADO.BL.Services
                 newEntity.Group015 = dataUnit[8].Trim();
                 newEntity.DateInst = date;
                 newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-                //newEntity.State = 2;
-                newEntity.State = 3;
+                newEntity.State = 2;
                 newEntity.Uccap14 = string.IsNullOrEmpty(dataUnit[11]) ? "-1" : dataUnit[11].Trim();
                 newEntity.IdZone = -1;
                 newEntity.NameZone = "-1";
