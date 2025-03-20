@@ -5,9 +5,9 @@ namespace ADO.BL.Interfaces
     public interface IRamalesDataAccess
     {
 
-        public Boolean SaveData(List<FileIoTemp> request);
+        public Boolean SaveData(List<FilesIo> request);
 
-        public Boolean SaveDataList(List<FileIoTempDetail> request);
+        //public Boolean SaveDataList(List<FileIoTempDetail> request);
 
     }
 }

@@ -19,20 +19,17 @@ namespace ADO.BL.Services
     {
         private readonly IMapper mapper;
         private readonly string[] _timeFormats;
-        private readonly string _AssetsDirectoryPath;
-        private readonly IFileAssetCierreDataAccess fileAssetCierreDataAccess;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly string _AssetsDirectoryPath;        
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly string _connectionString;
         public FileAssetCierreServices(IConfiguration configuration,
             IMapper _mapper,
-            IStatusFileEepDataAccess _statuFileDataAccess,
-            IFileAssetCierreDataAccess _fileAssetCierreDataAccess)
+            IStatusFileEssaDataAccess _statuFileDataAccess)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             mapper = _mapper;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
-            _AssetsDirectoryPath = configuration["FilesAssetsPath"];
-            fileAssetCierreDataAccess = _fileAssetCierreDataAccess;
+            _AssetsDirectoryPath = configuration["FilesAssetsPath"];            
             statusFileDataAccess = _statuFileDataAccess;
         }
 
@@ -419,7 +416,7 @@ namespace ADO.BL.Services
 
         private async Task SaveData(List<AllAsset> dataList)
         {
-            await fileAssetCierreDataAccess.SaveData(dataList);
+            
         }        
     }
 }

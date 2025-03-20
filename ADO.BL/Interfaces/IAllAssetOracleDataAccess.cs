@@ -5,12 +5,8 @@ namespace ADO.BL.Interfaces
 {
     public interface IAllAssetOracleDataAccess
     {
-        public Boolean SearchData(List<AllAsset> request);
+        public Task<Boolean> SaveData(List<AllAssetEep> request);
 
-        public Boolean UpdateData(List<AllAssetDTO> request);
-
-        public List<AllAsset> GetListAllAsset();
-
-        public List<AllAsset> GetListAllAssetNews();
+        public Task<Boolean> UpdateData(List<AllAssetDTO> request);        
     }
 }

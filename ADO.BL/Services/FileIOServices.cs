@@ -19,10 +19,10 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private readonly string _IOsDirectoryPath;
         private readonly IFileIODataAccess fileIODataAccess;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         public FileIOServices(IConfiguration configuration,
             IMapper _mapper,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileDataAccess,
             IFileIODataAccess _fileIODataAccess)
         {
             mapper = _mapper;
@@ -57,9 +57,14 @@ namespace ADO.BL.Services
                         // Extraer el nombre del archivo sin la extensión
                         var fileName = Path.GetFileNameWithoutExtension(filePath);
 
-                        var resultYearMonth = getYearMonth(worksheet1);
-                        int year = int.Parse(resultYearMonth[0]);
-                        int month = int.Parse(resultYearMonth[1]);
+                        var resultYearMonth = getYearMonth(worksheet1);                        
+                        int year = 2099;
+                        int month = 12;                        
+                        if (resultYearMonth.Count > 0)
+                        {
+                            year = int.Parse(resultYearMonth[0]);
+                            month = int.Parse(resultYearMonth[1]);                            
+                        }
 
                         statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                         statusFilesingle.UserId = iosValidation.UserId;
@@ -216,6 +221,7 @@ namespace ADO.BL.Services
                                                         #endregion
 
                                                         //tabla complete
+                                                        #region complete
                                                         newEntityComplete.DateIo = ParseDate(worksheet1.Cells[row, 1].Text);
                                                         newEntityComplete.CodeGis = codeSig;
                                                         newEntityComplete.Location = string.IsNullOrEmpty(worksheet1.Cells[row, 3].Text) ? "-1" : worksheet1.Cells[row, 3].Text.Trim().ToUpper();
@@ -269,6 +275,8 @@ namespace ADO.BL.Services
                                                         newEntityComplete.Users = usersComplete;
                                                         newEntityComplete.ApplicationId = string.IsNullOrEmpty(worksheet1.Cells[row, 24].Text) ? "-1" : worksheet1.Cells[row, 24].Text.Trim().ToUpper();
 
+
+                                                        #endregion
                                                         ioList.Add(newEntity);
                                                         ioCompleteList.Add(newEntityComplete);
                                                     }
@@ -331,6 +339,8 @@ namespace ADO.BL.Services
 
                                     if (IsValidTime(hourOutStr2, timeFormats) && IsValidTime(hourInStr2, timeFormats))
                                     {
+                                        // tablas io
+                                        #region tabla io
                                         var newEntity = new FileIoDTO();
                                         
                                         var aniomes2 = worksheet2.Cells[row, 1].Text.Split('/', ' ');
@@ -398,6 +408,9 @@ namespace ADO.BL.Services
                                             newEntity.HourInterruption = (float)Math.Round(newEntity.MinInterruption / 60, 2);
                                         }
 
+                                        #endregion
+
+                                        #region complete
                                         var newEntityComplete = new FileIoCompleteDTO();
 
                                         newEntityComplete.DateIo = ParseDate(worksheet2.Cells[row, 1].Text);
@@ -444,7 +457,9 @@ namespace ADO.BL.Services
                                         }
                                         newEntityComplete.Users = usersComplete;
                                         newEntityComplete.ApplicationId = worksheet2.Cells[row, 20].Text.Trim().ToUpper();
-                                        
+
+
+                                        #endregion
 
                                         ioCompleteList.Add(newEntityComplete);
                                         ioList.Add(newEntity);
@@ -471,13 +486,13 @@ namespace ADO.BL.Services
                         if (ioList.Count > 0 && errorFlag == false)
                         {
                             int i = 0;
-                            while ((i * 1000) < ioList.Count())
+                            while ((i * 10000) < ioList.Count())
                             {
-                                var subgroup = ioList.Skip(i * 1000).Take(1000).ToList();
+                                var subgroup = ioList.Skip(i * 10000).Take(10000).ToList();
                                 var EntityResult = mapper.Map<List<FilesIo>>(subgroup);
                                 SaveData(EntityResult);
                                 i++;
-                                Console.WriteLine(i * 1000);
+                                Console.WriteLine(i * 10000);
                             }
                             
                             var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
@@ -619,6 +634,10 @@ namespace ADO.BL.Services
             {
                 if(!string.IsNullOrEmpty(worksheet1.Cells[i, 1].Text))
                 {
+                    if (string.IsNullOrEmpty(worksheet1.Cells[i, 1].Text))
+                    {
+                        continue;
+                    }
                     var resultDate = ParseDate(worksheet1.Cells[i, 1].Text);
                     if (resultDate != DateOnly.Parse("31/12/2099"))
                     {

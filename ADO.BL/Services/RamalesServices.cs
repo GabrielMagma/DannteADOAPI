@@ -379,7 +379,7 @@ namespace ADO.BL.Services
                 while ((i * 1000) < filesIOList.Count())
                 {
                     var subgroup = filesIOList.Skip(i * 1000).Take(1000).ToList();
-                    var subgroupMap = mapper.Map<List<FileIoTemp>>(subgroup);
+                    var subgroupMap = mapper.Map<List<FilesIo>>(subgroup);
                     SaveData(subgroupMap);
                     i++;
                     Console.WriteLine(i * 1000);
@@ -387,22 +387,22 @@ namespace ADO.BL.Services
 
             }
 
-            if (filesIODetailList.Count > 0 && errorFlag == false)
-            {
-                var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
-                var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
+            //if (filesIODetailList.Count > 0 && errorFlag == false)
+            //{
+            //    var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
+            //    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
 
-                int i = 0;
-                while ((i * 1000) < filesIODetailList.Count())
-                {
-                    var subgroup = filesIODetailList.Skip(i * 1000).Take(1000).ToList();
-                    var subgroupMap = mapper.Map<List<FileIoTempDetail>>(subgroup);
-                    SaveDataDetail(subgroupMap);
-                    i++;
-                    Console.WriteLine(i * 1000);
-                }
+            //    int i = 0;
+            //    while ((i * 1000) < filesIODetailList.Count())
+            //    {
+            //        var subgroup = filesIODetailList.Skip(i * 1000).Take(1000).ToList();
+            //        var subgroupMap = mapper.Map<List<FileIoTempDetail>>(subgroup);
+            //        SaveDataDetail(subgroupMap);
+            //        i++;
+            //        Console.WriteLine(i * 1000);
+            //    }
 
-            }
+            //}
 
             
 
@@ -470,7 +470,7 @@ namespace ADO.BL.Services
 
         // acciones en bd y mappeo
 
-        public Boolean SaveData(List<FileIoTemp> request)
+        public Boolean SaveData(List<FilesIo> request)
         {
             
             var result = ramalesDataAccess.SaveData(request);
@@ -479,12 +479,12 @@ namespace ADO.BL.Services
 
         }
 
-        public Boolean SaveDataDetail(List<FileIoTempDetail> request)
-        {
-            var result = ramalesDataAccess.SaveDataList(request);
-            return result;
+        //public Boolean SaveDataDetail(List<FileIoTempDetail> request)
+        //{
+        //    var result = ramalesDataAccess.SaveDataList(request);
+        //    return result;
 
-        }
+        //}
 
         private string getYearMonth(string[] lines)
         {

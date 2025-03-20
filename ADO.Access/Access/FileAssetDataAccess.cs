@@ -1,17 +1,14 @@
-﻿using ADO.Access.DataDev;
-using ADO.Access.DataEep;
-using ADO.Access.DataEssa;
+﻿using ADO.Access.DataTest;
 using ADO.BL.DataEntities;
 using ADO.BL.Interfaces;
-using AutoMapper;
 
 namespace ADO.Access.Access
 {
     public class FileAssetDataAccess : IFileAssetDataAccess
     {
-        protected DannteEssaTestingContext context;        
+        protected DannteTestingContext context;        
 
-        public FileAssetDataAccess(DannteEssaTestingContext _context)
+        public FileAssetDataAccess(DannteTestingContext _context)
         {
             context = _context;            
         }

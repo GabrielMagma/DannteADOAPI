@@ -18,14 +18,12 @@ namespace ADO.BL.Services
         private readonly string _connectionStringEep;
         private readonly string _assetsDirectoryPath;
         private readonly string[] _timeFormats;
-        private readonly ITC1ValidationServices _ITC1ValidationServices;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly ITC1ValidationServices _ITC1ValidationServices;        
         private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public TC1Services(IConfiguration configuration, 
-            ITC1ValidationServices Itc1ValidationServices,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            ITC1ValidationServices Itc1ValidationServices,            
             IStatusFileEssaDataAccess _statusFileEssaDataAccess,
             IMapper _mapper)
         {
@@ -33,8 +31,7 @@ namespace ADO.BL.Services
             _connectionStringEep = configuration.GetConnectionString("PgDbEepConnection");
             _assetsDirectoryPath = configuration["Tc1DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
-            _ITC1ValidationServices = Itc1ValidationServices;
-            statusFileDataAccess = _statuFileDataAccess;
+            _ITC1ValidationServices = Itc1ValidationServices;            
             statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
             
@@ -65,14 +62,9 @@ namespace ADO.BL.Services
                     }
 
                     //var subgroupMap = mapper.Map<List<StatusFile>>(ErrorinFiles.Data);
-                    //if (request.Empresa == "EEP")
-                    //{
-                    //    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
-                    //}
-                    //else
-                    //{
-                    //    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
-                    //}
+                    
+                    //var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

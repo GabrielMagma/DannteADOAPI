@@ -4,7 +4,6 @@ using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
 

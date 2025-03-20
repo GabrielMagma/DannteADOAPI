@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ADO.BL.DataEntities
 {
-    public partial class Ideam
+    public partial class IaIdeam
     {
         public int Id { get; set; }
         public string? Stationcode { get; set; }

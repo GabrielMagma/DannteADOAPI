@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ADO.BL.DataEntities
 {
-    public partial class Poda
+    public partial class IaPoda
     {
         public long Id { get; set; }
         public string? NameRegion { get; set; }

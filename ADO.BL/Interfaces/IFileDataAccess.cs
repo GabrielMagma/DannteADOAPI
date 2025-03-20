@@ -6,7 +6,7 @@ namespace ADO.BL.Interfaces
     public interface IFileDataAccess
     {
 
-        public Boolean CreateFile(List<Ideam> request);
+        public Boolean CreateFile(List<IaIdeam> request);
 
     }
 }

@@ -59,8 +59,13 @@ namespace ADO.BL.Services
                     /// Asumiendo que el formato del archivo es AAAAMM_SSPD.csv
 
                     var resultYearMonth = getYearMonth(fileLines);
-                    int year = int.Parse(resultYearMonth[0]);
-                    int month = int.Parse(resultYearMonth[1]);
+                    int year = 2099;
+                    int month = 12;                    
+                    if (resultYearMonth.Count > 0)
+                    {
+                        year = int.Parse(resultYearMonth[0]);
+                        month = int.Parse(resultYearMonth[1]);                        
+                    }
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
@@ -291,6 +296,10 @@ namespace ADO.BL.Services
             for (int i = 1; i < lines.Count(); i++)
             {
                 var valueLines = lines[i].Split(',', ';');
+                if (string.IsNullOrEmpty(valueLines[2]))
+                {
+                    continue;
+                }
                 var resultDate = ParseDate(valueLines[2]);
                 if (resultDate != DateTime.Parse("31/12/2099 00:00:00"))
                 {

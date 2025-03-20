@@ -14,12 +14,12 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;        
         private readonly string _PolesDirectoryPath;
         private readonly IPolesEepDataAccess polesEepDataAccess;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
         public PolesEepServices(IConfiguration configuration,
             IPolesEepDataAccess _polesEepDataAccess,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbEepConnection");

@@ -21,11 +21,11 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private readonly string _AssetsDirectoryPath;
         private readonly IFileAssetModifiedDataAccess fileAssetModifiedDataAccess;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly string _connectionString;
         public FileAssetModifiedServices(IConfiguration configuration,
             IMapper _mapper,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IStatusFileEssaDataAccess _statuFileDataAccess,
             IFileAssetModifiedDataAccess _fileAssetModifiedDataAccess)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");

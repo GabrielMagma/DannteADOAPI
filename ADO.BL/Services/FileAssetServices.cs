@@ -17,17 +17,15 @@ namespace ADO.BL.Services
         private readonly IMapper mapper;
         private readonly string[] _timeFormats;
         private readonly string _AssetsDirectoryPath;
-        private readonly IStatusFileEepDataAccess statusFileDataAccess;
+        private readonly string _connectionString;
         private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
         public FileAssetServices(IConfiguration configuration, 
-            IFileAssetDataAccess _fileDataAccess,
-            IStatusFileEepDataAccess _statuFileDataAccess,
+            IFileAssetDataAccess _fileDataAccess,            
             IStatusFileEssaDataAccess _statuFileEssaDataAccess,
             IMapper _mapper)
         {
-            
-            fileDataAccess = _fileDataAccess;
-            statusFileDataAccess = _statuFileDataAccess;
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
+            fileDataAccess = _fileDataAccess;            
             statusFileEssaDataAccess = _statuFileEssaDataAccess;
             mapper = _mapper;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
@@ -37,8 +35,7 @@ namespace ADO.BL.Services
         public async Task<ResponseQuery<string>> CreateFile(AssetValidationDTO request, ResponseQuery<string> response)
         {
             try
-            {
-                var _connectionStringDb = request.Empresa == "ESSA" ? "DannteEssaTesting" : "DannteEepTesting";
+            {                
                 string inputFolder = _AssetsDirectoryPath;
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
@@ -63,9 +60,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Month = request.Month;
                     statusFilesingle.Day = -1;
 
-                    statusFileList.Add(statusFilesingle);
-
-                    var _connectionString = $"Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database={_connectionStringDb}";
+                    statusFileList.Add(statusFilesingle);                    
 
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
@@ -181,14 +176,7 @@ namespace ADO.BL.Services
                     if (listUpdateDataString.Length > 1 || AssetsListData.Count > 1)
                     {
                         var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                        if (request.Empresa == "EEP")
-                        {
-                            var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
-                        }
-                        else
-                        {
-                            var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
-                        }
+                        var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
                     }
                     
 

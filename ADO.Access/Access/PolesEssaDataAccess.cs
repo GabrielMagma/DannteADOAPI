@@ -1,5 +1,4 @@
-﻿using ADO.Access.DataEep;
-using ADO.Access.DataEssa;
+﻿using ADO.Access.DataTest;
 using ADO.BL.DataEntities;
 using ADO.BL.Interfaces;
 
@@ -7,9 +6,9 @@ namespace ADO.Access.Access
 {
     public class PolesEssaDataAccess : IPolesEssaDataAccess
     {
-        protected DannteEssaTestingContext context;        
+        protected DannteTestingContext context;        
 
-        public PolesEssaDataAccess(DannteEssaTestingContext _context)
+        public PolesEssaDataAccess(DannteTestingContext _context)
         {
             context = _context;            
         }

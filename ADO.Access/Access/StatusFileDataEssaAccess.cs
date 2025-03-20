@@ -1,4 +1,4 @@
-﻿using ADO.Access.DataEssa;
+﻿using ADO.Access.DataTest;
 using ADO.BL.DataEntities;
 using ADO.BL.Interfaces;
 using AutoMapper;
@@ -7,10 +7,10 @@ namespace ADO.Access.Access
 {
     public class StatusFileDataEssaAccess : IStatusFileEssaDataAccess
     {
-        protected DannteEssaTestingContext context;
+        protected DannteTestingContext context;
         private readonly IMapper mapper;
 
-        public StatusFileDataEssaAccess(DannteEssaTestingContext _context, IMapper _mapper)
+        public StatusFileDataEssaAccess(DannteTestingContext _context, IMapper _mapper)
         {
             context = _context;
             mapper = _mapper;

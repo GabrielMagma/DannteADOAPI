@@ -10,12 +10,12 @@ namespace ADO.Access
 
         public GlobalMapper()
         {
-            CreateMap<IdeamDTO, Ideam>().ReverseMap();
+            CreateMap<IdeamDTO, IaIdeam>().ReverseMap();
             CreateMap<AllAssetDTO, AllAsset>().ReverseMap();
             CreateMap<AllAssetDTO, AllAssetNew>().ReverseMap();
             CreateMap<StatusFileDTO, StatusFile>().ReverseMap();
             CreateMap<MpLightningDTO, MpLightning>().ReverseMap();
-            CreateMap<PodaDTO, Poda>().ReverseMap();
+            CreateMap<PodaDTO, IaPoda>().ReverseMap();
             CreateMap<FileIoCompleteDTO, FilesIoComplete>().ReverseMap();
 
         }

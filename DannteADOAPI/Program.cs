@@ -1,15 +1,11 @@
 using ADO.Access;
 using ADO.Access.Access;
-using ADO.Access.DataDev;
-using ADO.Access.DataEep;
-using ADO.Access.DataEssa;
-using ADO.Access.DataTemp;
+using ADO.Access.DataTest;
 using ADO.BL.Interfaces;
 using ADO.BL.Services;
 using AutoMapper;
 using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -41,26 +37,17 @@ IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 // interfaces
-
-builder.Services.AddTransient<IAssetsServices, AssetsServices>();
 builder.Services.AddTransient<IFileAssetServices, FileAssetServices>();
 builder.Services.AddTransient<IFileAssetDataAccess, FileAssetDataAccess>();
 builder.Services.AddTransient<ITC1Services, TC1Services>();
-
 builder.Services.AddTransient<IFileServices, FileServices>();
 builder.Services.AddTransient<IFileDataAccess, FileDataAccess>();
-builder.Services.AddTransient<IAllAssetsServices, AllAssetServices>();
-builder.Services.AddTransient<IAllAssetsDataAccess, AllAssetDataAccess>();
 builder.Services.AddTransient<IAllAssetOracleServices, AllAssetOracleServices>();
 builder.Services.AddTransient<IAllAssetOracleDataAccess, AllAssetOracleDataAccess>();
-//builder.Services.AddTransient<IExcelCSVServices, ExcelCSVServices>();
 builder.Services.AddTransient<IFileTT2ValidationServices, FileTT2ValidationServices>();
 builder.Services.AddTransient<ITokenServices, TokenServices>();
-//builder.Services.AddTransient<IExcelCSVCompensacionesEEPServices, ExcelCSVCompensacionesEEPServices>();
-//builder.Services.AddTransient<IExcelCSVCompensacionesESSAServices, ExcelCSVCompensacionesESSAServices>();
 builder.Services.AddTransient<IRayosCSVServices, RayosCSVServices>();
 builder.Services.AddTransient<IRayosCSVDataAccess, RayosCSVDataAccess>();
-builder.Services.AddTransient<IRayosEepCSVDataAccess, RayosEepCSVDataAccess>();
 builder.Services.AddTransient<IRamalesServices, RamalesServices>();
 builder.Services.AddTransient<IRamalesDataAccess, RamalesDataAccess>();
 builder.Services.AddTransient<IFileIOServices, FileIOServices>();
@@ -68,17 +55,14 @@ builder.Services.AddTransient<IFileIODataAccess, FileIODataAccess>();
 
 builder.Services.AddTransient<ITT2GlobalServices, TT2GlobalServices>();
 builder.Services.AddTransient<ILacsGlobalEssaServices, LacsGlobalEssaServices>();
-builder.Services.AddTransient<ILacsGlobalEepServices, LacsGlobalEepServices>();
 builder.Services.AddTransient<ISSPDGlobalServices, SSPDGlobalServices>();
 
 builder.Services.AddTransient<ILACValidationEssaServices, LACValidationEssaServices>();
-builder.Services.AddTransient<ILACValidationEepServices, LACValidationEepServices>();
 builder.Services.AddTransient<ISSPDValidationEepServices, SSPDValidationEepServices>();
 builder.Services.AddTransient<ITC1ValidationServices, TC1ValidationServices>();
 builder.Services.AddTransient<ITT2ValidationServices, TT2ValidationServices>();
 
 builder.Services.AddTransient<IStatusFileEssaDataAccess, StatusFileDataEssaAccess>();
-builder.Services.AddTransient<IStatusFileEepDataAccess, StatusFileEepDataAccess>();
 
 builder.Services.AddTransient<IPolesEepServices, PolesEepServices>();
 builder.Services.AddTransient<IPolesEepDataAccess, PolesEepDataAccess>();
@@ -90,22 +74,12 @@ builder.Services.AddTransient<IPodasEssaServices, PodasEssaServices>();
 builder.Services.AddTransient<IPodasEssaDataAccess, PodasEssaDataAccess>();
 
 builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>();
-builder.Services.AddTransient<IFileAssetCierreDataAccess, FileAssetCierreDataAccess>();
 
 builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();
 builder.Services.AddTransient<IFileAssetModifiedDataAccess, FileAssetModifiedDataAccess>();
 
-builder.Services.AddDbContext<DannteEssaTestingContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbConnection")));
-
 builder.Services.AddDbContext<DannteTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbTestingConnection")));
-
-builder.Services.AddDbContext<DannteEepTestingContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbEepConnection")));
-
-builder.Services.AddDbContext<DannteDevelopmentContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbDevConnection")));
 
 builder.Services.AddSwaggerGen(c =>
 {

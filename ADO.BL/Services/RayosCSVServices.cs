@@ -14,26 +14,23 @@ namespace ADO.BL.Services
 {
     public class RayosCSVServices : IRayosCSVServices
     {
-        private readonly IRayosCSVDataAccess rayosCSVDataAccess;
-        private readonly IRayosEepCSVDataAccess rayosEepCSVDataAccess;
+        private readonly IRayosCSVDataAccess rayosCSVDataAccess;        
         private readonly string _RayosDirectoryPath;
         private readonly IStatusFileEssaDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
 
         public RayosCSVServices(IConfiguration configuration, 
-            IRayosCSVDataAccess _rayosCSVDataAccess,
-            IRayosEepCSVDataAccess _rayosEepCSVDataAccess,
+            IRayosCSVDataAccess _rayosCSVDataAccess,            
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            rayosCSVDataAccess = _rayosCSVDataAccess;
-            rayosEepCSVDataAccess = _rayosEepCSVDataAccess;
+            rayosCSVDataAccess = _rayosCSVDataAccess;            
             mapper = _mapper;
             _RayosDirectoryPath = configuration["RayosPath"];
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
         }
 
         public async Task<ResponseEntity<List<string>>> SearchDataCSV(RayosValidationDTO request, ResponseEntity<List<string>> response)

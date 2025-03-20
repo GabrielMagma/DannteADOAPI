@@ -129,7 +129,7 @@ namespace ADO.BL.Services
                                 while ((i * 1000) < listDTOPodas.Count())
                                 {
                                     var subgroup = listDTOPodas.Skip(i * 1000).Take(1000).ToList();
-                                    var EntityResult = mapper.Map<List<Poda>>(subgroup);
+                                    var EntityResult = mapper.Map<List<IaPoda>>(subgroup);
                                     SaveData(EntityResult);
                                     i++;
                                     Console.WriteLine(i * 1000);
@@ -209,7 +209,7 @@ namespace ADO.BL.Services
 
         // acciones en bd y mappeo
 
-        public Boolean SaveData(List<Poda> request)
+        public Boolean SaveData(List<IaPoda> request)
         {
             
                 var result = podasEssaDataAccess.SaveData(request);

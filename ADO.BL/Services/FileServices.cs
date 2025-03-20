@@ -28,7 +28,7 @@ namespace ADO.BL.Services
             try
             {   
                                 
-                List<Ideam> ideamListData = new List<Ideam>();            
+                List<IaIdeam> ideamListData = new List<IaIdeam>();            
                 string[] fileLines = File.ReadAllLines($"C:\\Users\\ingen\\source\\repos\\DannteADOAPI\\files\\Ideam\\{name}.csv");
                 List<Register> valueFinal = new List<Register>();
                 Register register = new Register();
@@ -102,7 +102,7 @@ namespace ADO.BL.Services
                                 ideam.Precipitation = double.Parse(valueLines[6]);
 
                                 valueFinal.Add(register);
-                                var ideamMapped = mapper.Map<Ideam>(ideam);
+                                var ideamMapped = mapper.Map<IaIdeam>(ideam);
                                 ideamListData.Add(ideamMapped);
 
 
