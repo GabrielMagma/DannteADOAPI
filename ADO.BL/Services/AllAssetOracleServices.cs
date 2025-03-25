@@ -38,9 +38,9 @@ namespace ADO.BL.Services
                 var dateToday = DateOnly.FromDateTime(DateTime.Now);
 
                 int i = 0;
-                while ((i * 1000) < dataOracle.Count())
+                while ((i * 10000) < dataOracle.Count())
                 {
-                    var subgroup = dataOracle.Skip(i * 1000).Take(1000);
+                    var subgroup = dataOracle.Skip(i * 10000).Take(10000);
 
                     List<AllAssetDTO> newListAsset = new List<AllAssetDTO>();
                     List<AllAssetEep> newListAssetCreate = new List<AllAssetEep>();

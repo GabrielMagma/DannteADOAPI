@@ -1,7 +1,9 @@
 ﻿using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DannteADOAPI.Controllers
 {
@@ -10,15 +12,24 @@ namespace DannteADOAPI.Controllers
     public class AllAssetOracleController : ControllerBase
     {
         readonly IAllAssetOracleServices allAssetOracleServices;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public AllAssetOracleController(IAllAssetOracleServices _AllAssetOracleServices)
+        public AllAssetOracleController(IAllAssetOracleServices _AllAssetOracleServices, IHubContext<NotificationHub> hubContext)
         {
             allAssetOracleServices = _AllAssetOracleServices;
+            _hubContext = hubContext;
         }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
+        }
+
         /// <summary>
-        /// Servicio que toma los datos de la tabla Spard_Transfor, los filtra y los almacena en la tabla All_Asset de la base de datos de Pereira
+        /// Servicio que toma los datos de las tablas Spard_Transfor, Spard_Switch y Spard_Recloser, los filtra y los almacena en 
+        /// la tabla all_asset_eep de la base de datos, importante revisar las opciones de entrada
         /// </summary>
-        /// <param></param>
+        /// <param name = "table">TRANSFORMADOR-INTERRUPTOR-RECONECTADOR</param>
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(AllAssetOracleController.SearchData))]
@@ -27,6 +38,7 @@ namespace DannteADOAPI.Controllers
             
             ResponseEntity<List<AllAssetDTO>> response = new ResponseEntity<List<AllAssetDTO>>();
             await allAssetOracleServices.SearchData(table, response);
+            await AddMessage(response.Success, response.Message);
             return Ok(response);
             
         }        

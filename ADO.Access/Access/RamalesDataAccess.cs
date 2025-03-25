@@ -16,10 +16,10 @@ namespace ADO.Access.Access
             mapper = _mapper;
         }
 
-        public Boolean SaveData(List<FilesIo> request)
+        public Boolean SaveData(List<FileIoTemp> request)
         {
             
-            context.FilesIos.AddRange(request);
+            context.FileIoTemps.AddRange(request);
             context.SaveChanges();
             var result = true;
 

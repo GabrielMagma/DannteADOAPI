@@ -126,13 +126,13 @@ namespace ADO.BL.Services
                             if (listDTOPodas.Count > 0)
                             {
                                 int i = 0;
-                                while ((i * 1000) < listDTOPodas.Count())
+                                while ((i * 10000) < listDTOPodas.Count())
                                 {
-                                    var subgroup = listDTOPodas.Skip(i * 1000).Take(1000).ToList();
+                                    var subgroup = listDTOPodas.Skip(i * 10000).Take(10000).ToList();
                                     var EntityResult = mapper.Map<List<IaPoda>>(subgroup);
                                     SaveData(EntityResult);
                                     i++;
-                                    Console.WriteLine(i * 1000);
+                                    Console.WriteLine(i * 10000);
                                 }
 
                             }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ADO.BL.DataEntities
+﻿namespace ADO.BL.DataEntities
 {
     public partial class MpUtilityPole
     {
@@ -16,5 +13,6 @@ namespace ADO.BL.DataEntities
         public string Fparent { get; set; } = null!;
         public long IdRegion { get; set; }
         public string NameRegion { get; set; } = null!;
+        public int? TypePole { get; set; }
     }
 }

@@ -17,6 +17,9 @@ namespace ADO.Access
             CreateMap<MpLightningDTO, MpLightning>().ReverseMap();
             CreateMap<PodaDTO, IaPoda>().ReverseMap();
             CreateMap<FileIoCompleteDTO, FilesIoComplete>().ReverseMap();
+            CreateMap<FileIoDTO, FilesIo>().ReverseMap();
+            CreateMap<FileIoTempDTO, FileIoTemp>().ReverseMap();
+            CreateMap<MpUtilityPoleDTO, MpUtilityPole>().ReverseMap();
 
         }
     }

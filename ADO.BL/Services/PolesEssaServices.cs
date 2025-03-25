@@ -22,7 +22,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             polesEssaDataAccess = _polesEssaDataAccess;
             _configuration = configuration;            
             _PolesDirectoryPath = configuration["PolesPath"];
@@ -164,7 +164,7 @@ namespace ADO.BL.Services
                                     entityPole.Latitude = float.Parse(valueLines[18].ToString());
                                     entityPole.Longitude = float.Parse(valueLines[19].ToString());
                                     entityPole.Fparent = valueLines[5].Trim().Replace(" ", "");
-                                    entityPole.IdRegion = assetTemp.IdRegion;
+                                    entityPole.IdRegion = (long)assetTemp.IdRegion;
                                     entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
                                     entityPole.TypePole = 1;
 
@@ -212,7 +212,7 @@ namespace ADO.BL.Services
 
         public async Task<Boolean> CreateData(List<MpUtilityPole> request)
         {            
-            //await polesEssaDataAccess.CreateFile(request);
+            await polesEssaDataAccess.CreateFile(request);
             return true;
 
         }

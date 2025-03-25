@@ -5,7 +5,6 @@ using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Data;
 using System.Globalization;
@@ -26,7 +25,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             ramalesDataAccess = _ramalesDataAccess;            
             _RamalesDirectoryPath = configuration["RamalesPath"];
             statusFileDataAccess = _statuFileDataAccess;
@@ -42,8 +41,8 @@ namespace ADO.BL.Services
                 var responseTotal = false;
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
-                  var responseProcess = ProcessFile(request, filePath, inputFolder);
-                  Console.WriteLine(responseProcess);
+                  responseTotal = await ProcessFile(request, filePath, inputFolder);
+                  Console.WriteLine(responseTotal);
                 }
                 if (responseTotal)
                 {
@@ -147,9 +146,9 @@ namespace ADO.BL.Services
             dataTableError.Columns.Add("C2");
 
             int j = 0;
-            while ((j * 1000) < fileLines.Count())
+            while ((j * 10000) < fileLines.Count())
             {
-                var subgroup = fileLines.Skip(j * 1000).Take(1000).ToList();
+                var subgroup = fileLines.Skip(j * 10000).Take(10000).ToList();
 
                 var listDataString = new StringBuilder();
                 var listUIA = new StringBuilder();
@@ -243,6 +242,11 @@ namespace ADO.BL.Services
                         break;                    
                     }
 
+                    if (valueLines[fechaIni] == "FECHA_INICIO")
+                    {
+                        continue;
+                    }
+
                     var date = valueLines[fechaIni] != "" ? valueLines[fechaIni].Trim().ToString() : string.Empty;
                     //var date = dateTemp.ToString();                    
                     if (string.IsNullOrEmpty(valueLines[codEvento]) || string.IsNullOrEmpty(valueLines[fechaIni]) || string.IsNullOrEmpty(valueLines[fechaFin]) || 
@@ -302,7 +306,7 @@ namespace ADO.BL.Services
                             filesIOUnit.CodeCauseEvent = int.Parse(valueLines[codCausaEvent]);
                             filesIOUnit.TotalTrafo = int.Parse(valueLines[totalTrafo]);
                             filesIOUnit.TotalClients = int.Parse(valueLines[totalCliente]);
-                            filesIOUnit.TotalOperations = int.Parse(valueLines[totalOpe]);
+                            filesIOUnit.TotalOperations = int.Parse(valueLines[totalOpe]);                            
 
                             filesIOList.Add(filesIOUnit);
 
@@ -373,38 +377,38 @@ namespace ADO.BL.Services
 
             statusFileList.Add(statusFilesingle);
 
-            if (filesIOList.Count > 0 && errorFlag == false)
+            if (filesIOList.Count > 0)
             {
+                var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
+                var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
+
+
                 int i = 0;
-                while ((i * 1000) < filesIOList.Count())
+                while ((i * 10000) < filesIOList.Count())
                 {
-                    var subgroup = filesIOList.Skip(i * 1000).Take(1000).ToList();
-                    var subgroupMap = mapper.Map<List<FilesIo>>(subgroup);
+                    var subgroup = filesIOList.Skip(i * 10000).Take(10000).ToList();
+                    var subgroupMap = mapper.Map<List<FileIoTemp>>(subgroup);
                     SaveData(subgroupMap);
                     i++;
-                    Console.WriteLine(i * 1000);
+                    Console.WriteLine(i * 10000);
                 }
 
             }
 
-            //if (filesIODetailList.Count > 0 && errorFlag == false)
-            //{
-            //    var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
-            //    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
+            if (filesIODetailList.Count > 0)
+            {                
 
-            //    int i = 0;
-            //    while ((i * 1000) < filesIODetailList.Count())
-            //    {
-            //        var subgroup = filesIODetailList.Skip(i * 1000).Take(1000).ToList();
-            //        var subgroupMap = mapper.Map<List<FileIoTempDetail>>(subgroup);
-            //        SaveDataDetail(subgroupMap);
-            //        i++;
-            //        Console.WriteLine(i * 1000);
-            //    }
+                int i = 0;
+                while ((i * 10000) < filesIODetailList.Count())
+                {
+                    var subgroup = filesIODetailList.Skip(i * 10000).Take(10000).ToList();
+                    var subgroupMap = mapper.Map<List<FileIoTempDetail>>(subgroup);
+                    SaveDataDetail(subgroupMap);
+                    i++;
+                    Console.WriteLine(i * 10000);
+                }
 
-            //}
-
-            
+            }
 
             Console.WriteLine("Proceso terminado");
 
@@ -470,7 +474,7 @@ namespace ADO.BL.Services
 
         // acciones en bd y mappeo
 
-        public Boolean SaveData(List<FilesIo> request)
+        public Boolean SaveData(List<FileIoTemp> request)
         {
             
             var result = ramalesDataAccess.SaveData(request);
@@ -479,12 +483,12 @@ namespace ADO.BL.Services
 
         }
 
-        //public Boolean SaveDataDetail(List<FileIoTempDetail> request)
-        //{
-        //    var result = ramalesDataAccess.SaveDataList(request);
-        //    return result;
+        public Boolean SaveDataDetail(List<FileIoTempDetail> request)
+        {
+            var result = ramalesDataAccess.SaveDataList(request);
+            return result;
 
-        //}
+        }
 
         private string getYearMonth(string[] lines)
         {
@@ -496,7 +500,7 @@ namespace ADO.BL.Services
                 if (!resultDate.Contains("Error"))
                 {
                     // formato fecha "dd/MM/YYYY"
-                    var dateTemp = resultDate.Split('/');
+                    var dateTemp = resultDate.Split('/', ' ');
                     year = dateTemp[2];
                     break;
                 }

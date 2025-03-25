@@ -72,6 +72,7 @@ namespace ADO.BL.Services
                         statusFilesingle.FileType = "IO";
                         statusFilesingle.Year = year;
                         statusFilesingle.Month = month;
+                        statusFilesingle.Day = -1;
                         statusFilesingle.Status = 1;
 
                         statusFileList.Add(statusFilesingle);
@@ -161,6 +162,7 @@ namespace ADO.BL.Services
                                                         newEntity.CodeSig = codeSig;
                                                         newEntity.Element = element;
                                                         newEntity.Fparent = worksheet1.Cells[row, 4].Text.Trim().Replace(" ", "");
+                                                        newEntity.TypeAsset = element;
                                                         newEntity.Component = worksheet1.Cells[row, 6].Text.Trim();
                                                         newEntity.EventType = worksheet1.Cells[row, 19].Text.Trim();
                                                         newEntity.Dependence = worksheet1.Cells[row, 20].Text.Trim();
@@ -229,6 +231,11 @@ namespace ADO.BL.Services
                                                         newEntityComplete.Element = element;
                                                         newEntityComplete.Component = worksheet1.Cells[row, 6].Text.Trim().ToUpper();
                                                         newEntityComplete.AffectedSector = string.IsNullOrEmpty(worksheet1.Cells[row, 7].Text) ? "-1" : worksheet1.Cells[row, 7].Text.Trim().ToUpper();
+
+                                                        string texto = worksheet1.Cells[row, 7].Text.Trim().ToUpper();
+                                                        int longitud = Math.Min(2048, texto.Length);                                                        
+                                                        newEntityComplete.AffectedSector = string.IsNullOrEmpty(texto) ? "-1" : texto.Substring(0, longitud);
+
                                                         newEntityComplete.HourOut = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 8].Text}");
                                                         newEntityComplete.HourIn = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 9].Text}");
                                                         if (!float.TryParse(worksheet1.Cells[row, 10].Text, out float minInterruptionComplete))
@@ -246,8 +253,12 @@ namespace ADO.BL.Services
                                                         {
                                                             CodCauseComplete = -1;
                                                         }
-                                                        newEntityComplete.Cause = CodCauseComplete;
-                                                        newEntityComplete.Observation = string.IsNullOrEmpty(worksheet1.Cells[row, 14].Text) ? "-1" : worksheet1.Cells[row, 14].Text.Trim().ToUpper();
+                                                        newEntityComplete.Cause = CodCauseComplete;                                                        
+
+                                                        string texto2 = worksheet1.Cells[row, 14].Text.Trim().ToUpper();
+                                                        int longitud2 = Math.Min(2048, texto2.Length);
+                                                        newEntityComplete.Observation = string.IsNullOrEmpty(texto2) ? "-1" : texto2.Substring(0, longitud2);
+
                                                         newEntityComplete.Maneuver = worksheet1.Cells[row, 15].Text.Trim().ToUpper();
                                                         newEntityComplete.FuseQuant = string.IsNullOrEmpty(worksheet1.Cells[row, 16].Text) ? "-1" : worksheet1.Cells[row, 16].Text.Trim().ToUpper();
                                                         newEntityComplete.FuseCap = string.IsNullOrEmpty(worksheet1.Cells[row, 17].Text) ? "-1" : worksheet1.Cells[row, 17].Text.Trim().ToUpper();
@@ -333,7 +344,7 @@ namespace ADO.BL.Services
                                 }
                                 else
                                 {
-                                    string hourOutStr2 = worksheet2.Cells[row, 7].Text.Trim();
+                                    string hourOutStr2 = worksheet2.Cells[row, 8].Text.Trim();
                                     string hourInStr2 = worksheet2.Cells[row, 9].Text.Trim();
 
 
@@ -430,7 +441,12 @@ namespace ADO.BL.Services
                                             minInterruptionComplete = -1;
                                         }
                                         newEntityComplete.MinInterruption = minInterruptionComplete;
-                                        newEntityComplete.Observation = worksheet2.Cells[row, 10].Text.Trim().ToUpper();
+                                        //newEntityComplete.Observation = worksheet2.Cells[row, 10].Text.Trim().ToUpper();
+
+                                        string texto2 = worksheet2.Cells[row, 10].Text.Trim().ToUpper();
+                                        int longitud2 = Math.Min(2048, texto2.Length);
+                                        newEntityComplete.Observation = string.IsNullOrEmpty(texto2) ? "-1" : texto2.Substring(0, longitud2);
+
                                         newEntityComplete.Ownership = worksheet2.Cells[row, 11].Text.Trim().ToUpper();
                                         newEntityComplete.DescCause = worksheet2.Cells[row, 12].Text.Trim().ToUpper();
                                         if (!int.TryParse(worksheet2.Cells[row, 13].Text, out int CodCauseEepComplete))
@@ -483,7 +499,7 @@ namespace ADO.BL.Services
                             RegisterError(dataTableError, inputFolder, filePath);
                         }
 
-                        if (ioList.Count > 0 && errorFlag == false)
+                        if (ioList.Count > 0)
                         {
                             int i = 0;
                             while ((i * 10000) < ioList.Count())
@@ -500,16 +516,16 @@ namespace ADO.BL.Services
 
                         }
 
-                        if (ioCompleteList.Count > 0 && errorFlag == false)
+                        if (ioCompleteList.Count > 0)
                         {
                             int i = 0;
-                            while ((i * 1000) < ioCompleteList.Count())
+                            while ((i * 10000) < ioCompleteList.Count())
                             {
-                                var subgroup = ioCompleteList.Skip(i * 1000).Take(1000).ToList();
+                                var subgroup = ioCompleteList.Skip(i * 10000).Take(10000).ToList();
                                 var EntityResult = mapper.Map<List<FilesIoComplete>>(subgroup);
                                 SaveDataComplete(EntityResult);
                                 i++;
-                                Console.WriteLine(i * 1000);
+                                Console.WriteLine(i * 10000);
                             }
 
                         }

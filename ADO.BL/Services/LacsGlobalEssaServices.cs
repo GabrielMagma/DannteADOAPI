@@ -1,4 +1,5 @@
-﻿using ADO.BL.DTOs;
+﻿using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
@@ -58,8 +59,8 @@ namespace ADO.BL.Services
                     var completed4 = await ReadSspdUpdate();
                     Console.WriteLine(completed4);
 
-                    //var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
-                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
+                    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

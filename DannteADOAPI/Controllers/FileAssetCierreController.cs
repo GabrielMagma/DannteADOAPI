@@ -16,8 +16,7 @@ namespace DannteADOAPI.Controllers
             fileAssetCierreServices = _fileAssetCierreServices;
         }
         /// <summary>
-        /// Servicio que toma el nombre de un archivo de datos CSV guardado en una ruta específica del programa, lo convierte al formato de datos requerido
-        /// y lo guarda en Base de datos
+        /// Servicio de pruebas para el archivo antiguo de assets, no usar
         /// </summary>        
         /// <returns></returns> 
         /// 

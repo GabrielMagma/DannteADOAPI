@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ADO.BL.DataEntities
+﻿namespace ADO.BL.DataEntities
 {
     public partial class FilesIo
     {
@@ -27,6 +24,6 @@ namespace ADO.BL.DataEntities
         public string FileIo { get; set; } = null!;
         public int Year { get; set; }
         public int Month { get; set; }
-        public DateOnly FilesDate { get; set; }
+        public DateOnly FilesDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     }
 }

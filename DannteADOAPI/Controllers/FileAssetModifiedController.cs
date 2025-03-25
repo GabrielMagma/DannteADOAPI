@@ -1,7 +1,9 @@
 ﻿using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DannteADOAPI.Controllers
 {
@@ -10,14 +12,22 @@ namespace DannteADOAPI.Controllers
     public class FileAssetModifiedController : ControllerBase
     {
         readonly IFileAssetModifiedServices fileAssetModifiedServices;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public FileAssetModifiedController(IFileAssetModifiedServices _fileAssetModifiedServices)
+        public FileAssetModifiedController(IFileAssetModifiedServices _fileAssetModifiedServices, IHubContext<NotificationHub> hubContext)
         {
             fileAssetModifiedServices = _fileAssetModifiedServices;
+            _hubContext = hubContext;
         }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
+        }
+
         /// <summary>
-        /// Servicio que toma el nombre de un archivo de datos CSV guardado en una ruta específica del programa, lo convierte al formato de datos requerido
-        /// y lo guarda en Base de datos
+        /// Servicio que toma un archivo de datos CSV guardado en una ruta específica del programa y lo guarda en Base de datos essa en la 
+        /// tabla all_asset, importante llenar los campos userId, year, month para el sistema de colas
         /// </summary>        
         /// <returns></returns> 
         /// 
@@ -27,6 +37,7 @@ namespace DannteADOAPI.Controllers
         {
             ResponseQuery<string> response = new ResponseQuery<string>();
             await fileAssetModifiedServices.UploadFile(request, response);
+            await AddMessage(response.Success, response.Message);
             return Ok(response);            
         }
     }

@@ -26,7 +26,7 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Servicio que toma los datos desde un archivo csv, los filtra, guarda en un csv y los almacena en la tabla file_io_temp y file_io_temp_detail de la base de datos
+        /// Servicio que toma los datos desde un archivo csv, los filtra y los almacena en la tabla file_io_temp y file_io_temp_detail de la base de datos
         /// </summary>
         /// <param></param>
         /// <returns></returns>  

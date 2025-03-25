@@ -22,7 +22,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
-            _connectionString = configuration.GetConnectionString("PgDbEepConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             polesEepDataAccess = _polesEepDataAccess;
             _configuration = configuration;            
             _PolesDirectoryPath = configuration["PolesPath"];
@@ -81,7 +81,7 @@ namespace ADO.BL.Services
                     {
                         connection.Open();
                         var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);                        
-                        var SelectQueryAssets = $@"SELECT distinct fparent, name_region, id_region from public.all_asset where fparent in ({listDef})";
+                        var SelectQueryAssets = $@"SELECT distinct fparent, name_region, id_region from public.all_asset_eep where fparent in ({listDef})";
                         using (var reader = new NpgsqlCommand(SelectQueryAssets, connection))
                         {
                             try
@@ -160,7 +160,7 @@ namespace ADO.BL.Services
                                     entityPole.Latitude = float.Parse(valueLines[3].ToString());
                                     entityPole.Longitude = float.Parse(valueLines[4].ToString());
                                     entityPole.Fparent = valueLines[1].Trim();
-                                    entityPole.IdRegion = assetTemp.IdRegion;
+                                    entityPole.IdRegion = (long)assetTemp.IdRegion;
                                     entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
                                     entityPole.TypePole = int.Parse(valueLines[2].ToString());
 

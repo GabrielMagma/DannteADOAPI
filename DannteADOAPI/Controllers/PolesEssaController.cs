@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DannteADOAPI.Controllers
 {
@@ -11,13 +13,22 @@ namespace DannteADOAPI.Controllers
     public class PolesEssaController : ControllerBase
     {
         readonly IPolesEssaServices polesEssaServices;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public PolesEssaController(IPolesEssaServices _polesEssaServices)
+        public PolesEssaController(IPolesEssaServices _polesEssaServices, IHubContext<NotificationHub> hubContext)
         {
             polesEssaServices = _polesEssaServices;
+            _hubContext = hubContext;
         }
+
+        private async Task AddMessage(bool success, string message)
+        {
+            await _hubContext.Clients.All.SendAsync("Receive", success, message);
+        }
+
         /// <summary>
-        /// Servicio que toma el archivo de datos CSV LAC y lo valida, generando archivo de registros correctos y archivo de errores
+        /// Servicio que toma el archivo de postes o apoyos eep, los valida y guarda en la base de datos en la tabla correspondiente,
+        /// importante llenar el valor de userId, year y month para el sistema de colas
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]
@@ -27,6 +38,7 @@ namespace DannteADOAPI.Controllers
 
             ResponseQuery<bool> response = new ResponseQuery<bool>();
             await polesEssaServices.ValidationFile(request, response);
+            await AddMessage(response.Success, response.Message);
             return Ok(response);
             
         }

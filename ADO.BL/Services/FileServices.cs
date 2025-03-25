@@ -23,7 +23,7 @@ namespace ADO.BL.Services
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
         }
 
-        public ResponseQuery<string> CreateFileCSV(string name, ResponseQuery<string> response)
+        public async Task<ResponseQuery<string>> CreateFileCSV(string name, ResponseQuery<string> response)
         {
             try
             {   
@@ -58,7 +58,7 @@ namespace ADO.BL.Services
                         foreach (var item in fileLines)
                         {
                             IdeamDTO ideam = new IdeamDTO();
-                            var valueLines = item.Split(",");
+                            var valueLines = item.Split(',',';');
 
                             if (valueLines[0] != "CodigoEstacion")
                             {

@@ -248,13 +248,13 @@ namespace ADO.BL.Services
                     if (listDTOMpLightning.Count > 0)
                     {
                         int i = 0;
-                        while ((i * 1000) < listDTOMpLightning.Count())
+                        while ((i * 10000) < listDTOMpLightning.Count())
                         {
-                            var subgroup = listDTOMpLightning.Skip(i * 1000).Take(1000).ToList();
+                            var subgroup = listDTOMpLightning.Skip(i * 10000).Take(10000).ToList();
                             var EntityResult = mapper.Map<List<MpLightning>>(subgroup);
                             //SaveData(EntityResult);
                             i++;
-                            Console.WriteLine(i * 1000);
+                            Console.WriteLine(i * 10000);
                         }
                         statusFileList.Add(statusFilesingle);
                     }
@@ -449,13 +449,13 @@ namespace ADO.BL.Services
                         if (listDTOMpLightning.Count > 0 && errorFlag == false)
                         {
                             int i = 0;
-                            while ((i * 1000) < listDTOMpLightning.Count())
+                            while ((i * 10000) < listDTOMpLightning.Count())
                             {
-                                var subgroup = listDTOMpLightning.Skip(i * 1000).Take(1000).ToList();
+                                var subgroup = listDTOMpLightning.Skip(i * 10000).Take(10000).ToList();
                                 var EntityResult = mapper.Map<List<MpLightning>>(subgroup);
                                 SaveData(EntityResult);
                                 i++;
-                                Console.WriteLine(i * 1000);
+                                Console.WriteLine(i * 10000);
                             }
 
                         }
