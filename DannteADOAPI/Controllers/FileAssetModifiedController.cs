@@ -27,7 +27,7 @@ namespace DannteADOAPI.Controllers
 
         /// <summary>
         /// Servicio que toma un archivo de datos CSV guardado en una ruta específica del programa y lo guarda en Base de datos essa en la 
-        /// tabla all_asset, importante llenar los campos userId, year, month para el sistema de colas
+        /// tabla all_asset, importante llenar los campos userId, year, month para el sistema de colas y para la asignación de fecha de ingreso del asset
         /// </summary>        
         /// <returns></returns> 
         /// 

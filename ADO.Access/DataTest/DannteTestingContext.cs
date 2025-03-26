@@ -34,11 +34,7 @@ namespace ADO.Access.DataTest
             {
                 entity.ToTable("all_asset");
 
-                entity.HasIndex(e => new { e.Uia, e.IdRegion, e.IdLocality }, "idx_all_asset");
-
                 entity.HasIndex(e => new { e.CodeSig, e.Id }, "idx_all_asset_code_sig_id");
-
-                entity.HasIndex(e => new { e.IdLocality, e.IdRegion }, "idx_all_asset_id_locality_region");
 
                 entity.HasIndex(e => e.Uia, "idx_all_asset_uia");
 
@@ -81,21 +77,15 @@ namespace ADO.Access.DataTest
                     .HasDefaultValueSql("'-1'::character varying")
                     .HasComment("Código del circuito al cual pertenece el activo");
 
-                entity.Property(e => e.GeographicalCode).HasColumnName("geographical_code");
-
                 entity.Property(e => e.Group015)
                     .HasMaxLength(2)
                     .HasColumnName("group015")
                     .HasDefaultValueSql("'-1'::character varying")
                     .HasComment("Grupo de calidad del activo; de acuerdo a la CREG 015\n\nPrimer Dígito: Criticidad del Activo\n1: Alta Criticidad\n2: Media Criticidad\n3: Baja Criticidad\n\nSegundo Dígito: Nivel de Tensión\n1: Alta Tensión (AT)\n2: Media Tensión (MT)\n3: Baja Tensión (BT)");
 
-                entity.Property(e => e.IdLocality).HasColumnName("id_locality");
-
-                entity.Property(e => e.IdRegion).HasColumnName("id_region");
-
-                entity.Property(e => e.IdSector).HasColumnName("id_sector");
-
-                entity.Property(e => e.IdZone).HasColumnName("id_zone");
+                entity.Property(e => e.IdRegion)
+                    .HasColumnName("id_region")
+                    .HasDefaultValueSql("0");
 
                 entity.Property(e => e.Latitude)
                     .HasColumnName("latitude")
@@ -107,21 +97,14 @@ namespace ADO.Access.DataTest
                     .HasDefaultValueSql("0")
                     .HasComment("Longitud; ubicación geográfica del activo");
 
-                entity.Property(e => e.NameLocality)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_locality");
+                entity.Property(e => e.Month)
+                    .HasColumnName("month")
+                    .HasDefaultValueSql("0");
 
                 entity.Property(e => e.NameRegion)
                     .HasMaxLength(100)
-                    .HasColumnName("name_region");
-
-                entity.Property(e => e.NameSector)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_sector");
-
-                entity.Property(e => e.NameZone)
-                    .HasMaxLength(100)
-                    .HasColumnName("name_zone");
+                    .HasColumnName("name_region")
+                    .HasDefaultValueSql("'GENERAL'::character varying");
 
                 entity.Property(e => e.Poblation)
                     .HasMaxLength(2)
@@ -149,6 +132,10 @@ namespace ADO.Access.DataTest
                     .HasColumnName("uia")
                     .HasDefaultValueSql("'-1'::character varying")
                     .HasComment("Código de identificación del activo; está asociado al code_sig\nVaría si se reemplaza el activo");
+
+                entity.Property(e => e.Year)
+                    .HasColumnName("year")
+                    .HasDefaultValueSql("0");
             });
 
             modelBuilder.Entity<FilesIo>(entity =>

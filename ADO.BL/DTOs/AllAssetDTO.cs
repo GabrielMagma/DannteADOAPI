@@ -25,8 +25,9 @@
         public long? IdSector { get; set; } = -1;
         public string? NameSector { get; set; } = "NO DATA";
         public long? GeographicalCode { get; set; } = -1;
-
         public string? Address { get; set; } = "-1";
+        public int? Year { get; set; }
+        public int? Month { get; set; }
     }
 
 }

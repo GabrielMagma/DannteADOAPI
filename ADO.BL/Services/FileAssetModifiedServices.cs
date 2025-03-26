@@ -83,8 +83,7 @@ namespace ADO.BL.Services
                         for (int row = 3; row <= worksheet1.Dimension.End.Row; row++)
                         {
                             if (worksheet1.Cells[row, 1].Text != "")
-                            {
-                                //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                            {                                
                                 var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
                                 if(codeSigDoc == "0")
                                 {
@@ -108,7 +107,7 @@ namespace ADO.BL.Services
                         {
                             connection.Open();
                             var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);
-                            var SelectQuery = $@"SELECT id, code_sig, uia, fparent, date_inst FROM public.all_asset where code_sig in ({listDef})";
+                            var SelectQuery = $@"SELECT id, code_sig, uia, fparent, date_inst, latitude, longitude, poblation, group015, year, month FROM public.all_asset where code_sig in ({listDef})";
                             using (var reader = new NpgsqlCommand(SelectQuery, connection))
                             {
                                 try
@@ -128,7 +127,12 @@ namespace ADO.BL.Services
                                             {
                                                 temp.DateInst = DateOnly.FromDateTime(DateTime.Parse(result[4].ToString()));
                                             }
-                                            
+                                            temp.Latitude = float.Parse(result[5].ToString());
+                                            temp.Longitude = float.Parse(result[6].ToString());
+                                            temp.Poblation = result[7].ToString();
+                                            temp.Group015 = result[8].ToString();
+                                            temp.Year = int.Parse(result[9].ToString());
+                                            temp.Month = int.Parse(result[10].ToString());
 
                                             assetList.Add(temp);
                                         }
@@ -144,6 +148,7 @@ namespace ADO.BL.Services
                                 }
                             }
 
+                            
                             var fparentQuery = $@"SELECT a.fparent, a.id_region, b.name_region FROM maps.mp_fparent as a
                                                 inner join maps.mp_region as b
                                                 on a.id_region = b.id";
@@ -215,11 +220,10 @@ namespace ADO.BL.Services
                                 {
                                     continue;
                                 }
-
-                                //var codeSigDoc = worksheet1.Cells[row, 2].Text[0] == '0' ? worksheet1.Cells[row, 2].Text.Trim() : $"0{worksheet1.Cells[row, 2].Text.Trim()}";
+                                
                                 var codeSigDoc = worksheet1.Cells[row, 2].Text.Trim();
-                                var assetTempList = assetList.Where(x => x.CodeSig == codeSigDoc).ToList();
-                                var assetTemp = assetTempList.OrderByDescending( x => x.DateInst).FirstOrDefault();                                
+                                var assetTempList = assetList.Where(x => x.CodeSig == codeSigDoc).ToList();                                
+                                var assetTemp = assetTempList.FirstOrDefault(x => x.State == 2);
 
                                 if (assetTemp == null)
                                 {                                    
@@ -228,7 +232,13 @@ namespace ADO.BL.Services
                                     {
                                         rowText.Append($"{worksheet1.Cells[row, i].Text};");
                                     }                                    
-                                    await CreateAsset(rowText, assetListCreate, dataTableError, fparentRegionList, row, assetList);
+                                    await CreateAsset(rowText, assetListCreate, dataTableError, fparentRegionList, row, assetList, request);
+                                    continue;
+                                }
+
+                                var existEntity2 = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
+                                if (existEntity2 != null)
+                                {
                                     continue;
                                 }
 
@@ -247,11 +257,7 @@ namespace ADO.BL.Services
                                     dataTableError.Rows.Add(newRowError);
                                     continue;
                                 }
-
-                                if (assetTemp.CodeSig == codeSigDoc && assetTemp.Uia == worksheet1.Cells[row, 3].Text.Trim())
-                                {
-                                    continue;
-                                }                                                              
+                                
 
                                 if (assetTemp.Fparent != worksheet1.Cells[row, 5].Text.Trim())
                                 {
@@ -267,19 +273,61 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                //if (assetTemp.Group015 != worksheet1.Cells[row, 9].Text.Trim())
-                                //{
-                                //    var newRowError = dataTableError.NewRow();
-                                //    newRowError[0] = $"Error en la data en la línea {row}, el grupo de calidad es incorrecto";
-                                //    var rowText = new StringBuilder();
-                                //    for (int i = 1; i < 13; i++)
-                                //    {
-                                //        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
-                                //    }
-                                //    newRowError[1] = rowText;
-                                //    dataTableError.Rows.Add(newRowError);
-                                //    continue;
-                                //}
+                                if (assetTemp.Group015 != worksheet1.Cells[row, 9].Text.Trim())
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, el grupo de calidad es incorrecto";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }                                 
+
+                                if (assetTemp.Latitude != float.Parse(worksheet1.Cells[row, 6].Text.Trim()))
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, la latitud no corresponde para esta localización";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
+
+                                if (assetTemp.Longitude != float.Parse(worksheet1.Cells[row, 7].Text.Trim()))
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, la longitud no corresponde para esta localización";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
+
+                                if (assetTemp.Poblation != worksheet1.Cells[row, 8].Text.Trim())
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, el tipo de población es incorrecto";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
 
                                 var date = ParseDate(worksheet1.Cells[row, 11].Text);
                                 if (date == DateOnly.Parse("31/12/2099"))
@@ -296,35 +344,36 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var existEntity = assetListCreate.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
-                                var existEntity2 = assetList.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());
-                                if (existEntity != null || existEntity2 != null)
+                                var existEntity = assetListCreate.FirstOrDefault(x => x.CodeSig == codeSigDoc && x.Uia == worksheet1.Cells[row, 3].Text.Trim());                                
+                                if (existEntity != null)
                                 {
                                     continue;
                                 }
 
-
                                 var stateTemp = 2;
-                                if(assetTemp.DateInst > date)
+                                if(assetTemp.Year > request.Year)
                                 {
                                     stateTemp = 3;
                                 }
-                                else
-                                {
-                                    var existEntity3 = assetList.Where(x => x.CodeSig == codeSigDoc).ToList();
 
-                                    foreach (var item in existEntity3)
-                                    {
-                                        listDataStringUpdate.Append($"'{item.CodeSig}',");
-                                        if (item.CodeSig[0] == '0')
-                                        {                                            
-                                            listDataStringUpdate.Append($"'{item.CodeSig.Remove(0,1)}',");
-                                        }
-                                        else
-                                        {                                            
-                                            listDataStringUpdate.Append($"'0{item.CodeSig}',");
-                                        }
+                                else if ((assetTemp.Year == request.Year) && (assetTemp.Month > request.Month))
+                                {
+                                    stateTemp = 3;
+                                }
+
+                                else
+                                {                                    
+                                    
+                                    listDataStringUpdate.Append($"'{codeSigDoc}',");
+                                    if (codeSigDoc[0] == '0')
+                                    {                                            
+                                        listDataStringUpdate.Append($"'{codeSigDoc.Remove(0,1)}',");
                                     }
+                                    else
+                                    {                                            
+                                        listDataStringUpdate.Append($"'0{codeSigDoc}',");
+                                    }
+                                    
                                 }                              
                                 
 
@@ -341,8 +390,7 @@ namespace ADO.BL.Services
                                 newEntity.Poblation = string.IsNullOrEmpty(worksheet1.Cells[row, 8].Text) ? "-1" : worksheet1.Cells[row, 8].Text.Trim();
                                 newEntity.Group015 = worksheet1.Cells[row, 9].Text.Trim();
                                 newEntity.DateInst = date;
-                                newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-                                //newEntity.State = 2;
+                                newEntity.DateUnin = DateOnly.Parse("31/12/2099");                                
                                 newEntity.State = stateTemp;
                                 newEntity.Uccap14 = string.IsNullOrEmpty(worksheet1.Cells[row, 12].Text) ? "-1" : worksheet1.Cells[row, 12].Text.Trim();
                                 newEntity.IdZone = -1;
@@ -355,6 +403,8 @@ namespace ADO.BL.Services
                                 newEntity.NameSector = "-1";
                                 newEntity.GeographicalCode = -1;
                                 newEntity.Address = string.IsNullOrEmpty(worksheet1.Cells[row, 10].Text) ? "-1" : worksheet1.Cells[row, 10].Text.Trim();
+                                newEntity.Year = request.Year;
+                                newEntity.Month = request.Month;
 
                                 assetListCreate.Add(newEntity);
                                 #endregion
@@ -406,8 +456,8 @@ namespace ADO.BL.Services
                                 Console.WriteLine(i * 10000);
                             }
 
-                            //var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                            //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                            var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                            var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
 
                         }
                     }
@@ -478,7 +528,7 @@ namespace ADO.BL.Services
             return DateOnly.Parse("31/12/2099");
         }
 
-        private async Task CreateAsset(StringBuilder data, List<AllAssetDTO> assetListCreate, DataTable dataTableError, List<FparenRegionDTO> fparentRegionList, int row, List<AllAssetDTO> assetList)
+        private async Task CreateAsset(StringBuilder data, List<AllAssetDTO> assetListCreate, DataTable dataTableError, List<FparenRegionDTO> fparentRegionList, int row, List<AllAssetDTO> assetList, FileAssetsValidationDTO request)
         {
             var dataUnit = data.ToString().Split(';');
 
@@ -556,6 +606,8 @@ namespace ADO.BL.Services
                 newEntity.NameSector = "-1";
                 newEntity.GeographicalCode = -1;
                 newEntity.Address = string.IsNullOrEmpty(dataUnit[9]) ? "-1" : dataUnit[9].Trim();
+                newEntity.Year = request.Year;
+                newEntity.Month = request.Month;
 
                 assetListCreate.Add(newEntity);
             }

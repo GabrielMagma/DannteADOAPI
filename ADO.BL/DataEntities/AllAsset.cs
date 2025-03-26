@@ -29,6 +29,8 @@ namespace ADO.BL.DataEntities
         public string? NameSector { get; set; }
         public string? Address { get; set; }
         public long? GeographicalCode { get; set; }
+        public int? Year { get; set; }
+        public int? Month { get; set; }
         //public long Id { get; set; }
         //public string? TypeAsset { get; set; } = "-1";
         //public string? CodeSig { get; set; } = "-1";
