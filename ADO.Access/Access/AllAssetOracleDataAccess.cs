@@ -17,10 +17,10 @@ namespace ADO.Access.Access
             mapper = _mapper;
         }
 
-        public async Task<Boolean> SaveData(List<AllAssetEep> request)
+        public async Task<Boolean> SaveData(List<AllAsset> request)
         {
 
-            context.AllAssetEeps.AddRange(request);
+            context.AllAssets.AddRange(request);
             context.SaveChanges();
             var result = true;
 
@@ -33,7 +33,7 @@ namespace ADO.Access.Access
             List<long> idListToFind = request.Select(x => x.Id).ToList();
 
             // bring database data from related Ids
-            var entities = context.AllAssetEeps.Where(x => idListToFind.Contains(x.Id)).ToList();
+            var entities = context.AllAssets.Where(x => idListToFind.Contains(x.Id)).ToList();
 
             foreach (var item in entities)
             {

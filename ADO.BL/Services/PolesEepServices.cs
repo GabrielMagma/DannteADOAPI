@@ -81,7 +81,7 @@ namespace ADO.BL.Services
                     {
                         connection.Open();
                         var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);                        
-                        var SelectQueryAssets = $@"SELECT distinct fparent, name_region, id_region from public.all_asset_eep where fparent in ({listDef})";
+                        var SelectQueryAssets = $@"SELECT distinct fparent, name_region, id_region from public.all_asset where fparent in ({listDef})";
                         using (var reader = new NpgsqlCommand(SelectQueryAssets, connection))
                         {
                             try

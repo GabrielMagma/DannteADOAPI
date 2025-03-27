@@ -43,7 +43,7 @@ namespace ADO.BL.Services
                     var subgroup = dataOracle.Skip(i * 10000).Take(10000);
 
                     List<AllAssetDTO> newListAsset = new List<AllAssetDTO>();
-                    List<AllAssetEep> newListAssetCreate = new List<AllAssetEep>();
+                    List<AllAsset> newListAssetCreate = new List<AllAsset>();
                     List<AllAsset> newListAssetUpdate = new List<AllAsset>();
                     List<AllAssetDTO> UpdateListAsset = new List<AllAssetDTO>();
                     List<AllAssetDTO> ErrorDate = new List<AllAssetDTO>();
@@ -151,7 +151,7 @@ namespace ADO.BL.Services
                     }
 
                     newListAsset = new List<AllAssetDTO>();
-                    newListAssetCreate = new List<AllAssetEep>();
+                    newListAssetCreate = new List<AllAsset>();
                     newListAssetUpdate = new List<AllAsset>();
                     newListAsset = new List<AllAssetDTO>();
 
@@ -347,7 +347,7 @@ namespace ADO.BL.Services
             }
         }
 
-        public async Task<Boolean> SaveData(List<AllAssetEep> request)
+        public async Task<Boolean> SaveData(List<AllAsset> request)
         {
 
             await allAssetOracleDataAccess.SaveData(request);            
@@ -366,7 +366,7 @@ namespace ADO.BL.Services
             using (var connection = new NpgsqlConnection(_connectionString))
             {
                 connection.Open();
-                var SelectQuery = $@"SELECT * FROM public.all_asset_eep";
+                var SelectQuery = $@"SELECT * FROM public.all_asset";
                 using (var reader = new NpgsqlCommand(SelectQuery, connection))
                 {
                     try
@@ -468,13 +468,13 @@ namespace ADO.BL.Services
             return newListAsset;
         }
 
-        public static List<AllAssetEep> MapperListReverse(List<AllAssetDTO> request)
+        public static List<AllAsset> MapperListReverse(List<AllAssetDTO> request)
         {
-            var newListAsset = new List<AllAssetEep>();
+            var newListAsset = new List<AllAsset>();
 
             foreach (var item in request)
             {
-                var newAsset = new AllAssetEep();
+                var newAsset = new AllAsset();
 
                 newAsset.Id = item.Id;
                 newAsset.TypeAsset = item.TypeAsset;
