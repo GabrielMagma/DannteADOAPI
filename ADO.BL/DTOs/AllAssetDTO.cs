@@ -15,16 +15,9 @@
         public DateOnly? DateInst { get; set; }
         public DateOnly? DateUnin { get; set; }
         public int? State { get; set; } = 2;
-        public string? Uccap14 { get; set; } = "-1";
-        public long? IdZone { get; set; } = -1;
-        public string? NameZone { get; set; } = "NO DATA";
+        public string? Uccap14 { get; set; } = "-1";        
         public long? IdRegion { get; set; } = -1;
-        public string? NameRegion { get; set; } = "NO DATA";
-        public long? IdLocality { get; set; } = -1;
-        public string? NameLocality { get; set; } = "NO DATA";
-        public long? IdSector { get; set; } = -1;
-        public string? NameSector { get; set; } = "NO DATA";
-        public long? GeographicalCode { get; set; } = -1;
+        public string? NameRegion { get; set; } = "NO DATA";        
         public string? Address { get; set; } = "-1";
         public int? Year { get; set; }
         public int? Month { get; set; }

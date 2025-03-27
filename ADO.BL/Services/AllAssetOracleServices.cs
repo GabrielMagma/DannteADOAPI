@@ -88,13 +88,7 @@ namespace ADO.BL.Services
                                 assetExistUnit.DateUnin = ListAssetExist[0].DateUnin;
                                 assetExistUnit.State = ListAssetExist[0].State;
                                 assetExistUnit.IdRegion = ListAssetExist[0].IdRegion;
-                                assetExistUnit.NameRegion = ListAssetExist[0].NameRegion;
-                                assetExistUnit.IdZone = ListAssetExist[0].IdZone;
-                                assetExistUnit.NameZone = ListAssetExist[0].NameZone;
-                                assetExistUnit.IdLocality = ListAssetExist[0].IdLocality;
-                                assetExistUnit.NameLocality = ListAssetExist[0].NameLocality;
-                                assetExistUnit.IdSector = ListAssetExist[0].IdSector;
-                                assetExistUnit.NameSector = ListAssetExist[0].NameSector;                                
+                                assetExistUnit.NameRegion = ListAssetExist[0].NameRegion;                                
                                 
 
                                 UpdateListAsset.Add(assetExistUnit);
@@ -243,13 +237,7 @@ namespace ADO.BL.Services
                                         allAsset.DateUnin = DateOnly.Parse("2099-12-31");
                                         allAsset.State = 2;
                                         allAsset.IdRegion = 1;
-                                        allAsset.NameRegion = "GENERAL";
-                                        allAsset.IdZone = 1;
-                                        allAsset.NameZone = "ZONA GENERAL";
-                                        allAsset.IdLocality = 1;
-                                        allAsset.NameLocality = "LOCALIDAD GENERAL";
-                                        allAsset.IdSector = 1;
-                                        allAsset.NameSector = "SECTOR GENERAL";
+                                        allAsset.NameRegion = "GENERAL";                                        
                                         allAssets.Add(allAsset);
                                     }
                                 }
@@ -276,13 +264,7 @@ namespace ADO.BL.Services
                                         allAsset.DateUnin = DateOnly.Parse("2099-12-31");
                                         allAsset.State = 2;
                                         allAsset.IdRegion = 1;
-                                        allAsset.NameRegion = "GENERAL";
-                                        allAsset.IdZone = 1;
-                                        allAsset.NameZone = "ZONA GENERAL";
-                                        allAsset.IdLocality = 1;
-                                        allAsset.NameLocality = "LOCALIDAD GENERAL";
-                                        allAsset.IdSector = 1;
-                                        allAsset.NameSector = "SECTOR GENERAL";
+                                        allAsset.NameRegion = "GENERAL";                                        
                                         allAssets.Add(allAsset);
                                     }
                                 }
@@ -309,13 +291,7 @@ namespace ADO.BL.Services
                                         allAsset.DateUnin = DateOnly.Parse("2099-12-31");
                                         allAsset.State = 2;
                                         allAsset.IdRegion = 1;
-                                        allAsset.NameRegion = "GENERAL";
-                                        allAsset.IdZone = 1;
-                                        allAsset.NameZone = "ZONA GENERAL";
-                                        allAsset.IdLocality = 1;
-                                        allAsset.NameLocality = "LOCALIDAD GENERAL";
-                                        allAsset.IdSector = 1;
-                                        allAsset.NameSector = "SECTOR GENERAL";
+                                        allAsset.NameRegion = "GENERAL";                                        
                                         allAssets.Add(allAsset);
                                     }
                                 }
@@ -396,17 +372,10 @@ namespace ADO.BL.Services
                                 {
                                     temp.DateUnin = DateOnly.FromDateTime(DateTime.Parse(result[12].ToString()));
                                 }
-                                temp.State = !string.IsNullOrEmpty(result[13].ToString()) ? int.Parse(result[13].ToString()) : -1;
-                                temp.IdZone = !string.IsNullOrEmpty(result[14].ToString()) ? long.Parse(result[14].ToString()) : -1;
-                                temp.NameZone = result[15].ToString();
-                                temp.IdRegion = !string.IsNullOrEmpty(result[16].ToString()) ? long.Parse(result[16].ToString()) : -1;
-                                temp.NameRegion = result[17].ToString();
-                                temp.IdLocality = !string.IsNullOrEmpty(result[18].ToString()) ? long.Parse(result[18].ToString()) : -1;
-                                temp.NameLocality = result[19].ToString();
-                                temp.IdSector = !string.IsNullOrEmpty(result[20].ToString()) ? long.Parse(result[20].ToString()) : -1;
-                                temp.NameSector = result[21].ToString();
-                                temp.Address = result[22].ToString();
-                                temp.GeographicalCode = !string.IsNullOrEmpty(result[23].ToString()) ? long.Parse(result[23].ToString()) : -1;
+                                temp.State = !string.IsNullOrEmpty(result[13].ToString()) ? int.Parse(result[13].ToString()) : -1;                                
+                                temp.IdRegion = !string.IsNullOrEmpty(result[14].ToString()) ? long.Parse(result[14].ToString()) : -1;
+                                temp.NameRegion = result[15].ToString();                                
+                                temp.Address = result[16].ToString();                                
 
 
                                 assetList.Add(temp);
@@ -450,17 +419,10 @@ namespace ADO.BL.Services
                 newAsset.DateInst = item.DateInst;
                 newAsset.DateUnin = item.DateUnin;
                 newAsset.State = item.State;
-                newAsset.Uccap14 = item.Uccap14;
-                newAsset.IdZone = item.IdZone;
-                newAsset.NameZone = item.NameZone;
+                newAsset.Uccap14 = item.Uccap14;                
                 newAsset.IdRegion = item.IdRegion;
-                newAsset.NameRegion = item.NameRegion;
-                newAsset.IdLocality = item.IdLocality;
-                newAsset.NameLocality = item.NameLocality;
-                newAsset.IdSector = item.IdSector;
-                newAsset.NameSector = item.NameSector;
-                newAsset.Address = item.Address;
-                newAsset.GeographicalCode = item.GeographicalCode;
+                newAsset.NameRegion = item.NameRegion;                
+                newAsset.Address = item.Address;                
 
                 newListAsset.Add(newAsset);
             }
@@ -489,17 +451,10 @@ namespace ADO.BL.Services
                 newAsset.DateInst = item.DateInst;
                 newAsset.DateUnin = item.DateUnin;
                 newAsset.State = item.State;
-                newAsset.Uccap14 = item.Uccap14;
-                newAsset.IdZone = item.IdZone;
-                newAsset.NameZone = item.NameZone;
+                newAsset.Uccap14 = item.Uccap14;                
                 newAsset.IdRegion = item.IdRegion;
-                newAsset.NameRegion = item.NameRegion;
-                newAsset.IdLocality = item.IdLocality;
-                newAsset.NameLocality = item.NameLocality;
-                newAsset.IdSector = item.IdSector;
-                newAsset.NameSector = item.NameSector;
-                newAsset.Address = item.Address;
-                newAsset.GeographicalCode = item.GeographicalCode;
+                newAsset.NameRegion = item.NameRegion;                
+                newAsset.Address = item.Address;                
 
                 newListAsset.Add(newAsset);
             }

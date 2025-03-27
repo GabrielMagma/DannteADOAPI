@@ -569,16 +569,9 @@ namespace ADO.BL.Services
                                     DateInst = DateOnly.TryParse(asset.DateInst, out DateOnly parsedDateInst) ? parsedDateInst : null,
                                     DateUnin = new DateOnly(2099, 12, 31),
                                     State = int.TryParse(asset.State, out int parsedState) ? parsedState : 2,
-                                    Uccap14 = reader["uccap14"]?.ToString() ?? "-1",
-                                    IdZone = reader["id_zone"] as long? ?? -1,
-                                    NameZone = reader["name_zone"]?.ToString() ?? "NO DATA",
+                                    Uccap14 = reader["uccap14"]?.ToString() ?? "-1",                                    
                                     IdRegion = reader["id_region"] as long? ?? -1,
                                     NameRegion = reader["name_region"]?.ToString() ?? "NO DATA",
-                                    IdLocality = reader["id_locality"] as long? ?? -1,
-                                    NameLocality = reader["name_locality"]?.ToString() ?? "NO DATA",
-                                    IdSector = reader["id_sector"] as long? ?? -1,
-                                    NameSector = reader["name_sector"]?.ToString() ?? "NO DATA",
-                                    GeographicalCode = reader["geographical_code"] as long? ?? -1,
                                     Address = reader["address"]?.ToString() ?? "-1"
                                 };
 
@@ -605,9 +598,9 @@ namespace ADO.BL.Services
             createLines = createAssets.Select(asset =>
                 $"{asset.TypeAsset},{asset.CodeSig},{asset.Uia},{asset.Codetaxo},{asset.Fparent}," +
                 $"{asset.Latitude},{asset.Longitude},{asset.Poblation},{asset.Group015},{asset.DateInst?.ToString("yyyy-MM-dd")}," +
-                $"{asset.DateUnin:yyyy-MM-dd},{asset.State},{asset.Uccap14},{asset.IdZone},{asset.NameZone}," +
-                $"{asset.IdRegion},{asset.NameRegion},{asset.IdLocality},{asset.NameLocality},{asset.IdSector}," +
-                $"{asset.NameSector},{asset.GeographicalCode},{asset.Address}"
+                $"{asset.DateUnin:yyyy-MM-dd},{asset.State},{asset.Uccap14}," +
+                $"{asset.IdRegion},{asset.NameRegion}," +
+                $"{asset.Address}"
             ).ToList();
 
             // Crear el archivo _create.csv

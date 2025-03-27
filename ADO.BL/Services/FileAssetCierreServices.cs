@@ -115,17 +115,12 @@ namespace ADO.BL.Services
                                             temp.Uccap14 = result[10].ToString();
                                             temp.DateInst = DateOnly.FromDateTime(DateTime.Parse(result[11].ToString()));
                                             temp.DateUnin = DateOnly.FromDateTime(DateTime.Parse(result[12].ToString()));
-                                            temp.State = int.Parse(result[13].ToString());
-                                            temp.IdZone = long.Parse(result[14].ToString());
-                                            temp.NameZone = result[15].ToString();
-                                            temp.IdRegion = long.Parse(result[16].ToString());
-                                            temp.NameRegion = result[17].ToString();
-                                            temp.IdLocality = long.Parse(result[18].ToString());
-                                            temp.NameLocality = result[19].ToString();
-                                            temp.IdSector = long.Parse(result[20].ToString());
-                                            temp.NameSector = result[21].ToString();
-                                            temp.Address = result[22].ToString();
-                                            temp.GeographicalCode = long.Parse(result[23].ToString());
+                                            temp.State = int.Parse(result[13].ToString());                                            
+                                            temp.IdRegion = long.Parse(result[14].ToString());
+                                            temp.NameRegion = result[15].ToString();                                            
+                                            temp.Address = result[16].ToString();
+                                            temp.Year = int.Parse(result[17].ToString());
+                                            temp.Month = int.Parse(result[18].ToString());
 
 
                                             assetList.Add(temp);
@@ -297,17 +292,12 @@ namespace ADO.BL.Services
                                 newEntity.DateInst = assetTemp.DateInst;
                                 newEntity.DateUnin = assetTemp.DateUnin;
                                 newEntity.State = assetTemp.State;
-                                newEntity.Uccap14 = assetTemp.Uccap14;
-                                newEntity.IdZone = assetTemp.IdZone;
-                                newEntity.NameZone = assetTemp.NameZone;
+                                newEntity.Uccap14 = assetTemp.Uccap14;                                
                                 newEntity.IdRegion = regionTemp.id_region;
                                 newEntity.NameRegion = regionTemp.name_region;
-                                newEntity.IdLocality = assetTemp.IdLocality;
-                                newEntity.NameLocality = assetTemp.NameLocality;
-                                newEntity.IdSector = assetTemp.IdSector;
-                                newEntity.NameSector = assetTemp.NameSector;
-                                newEntity.GeographicalCode = assetTemp.GeographicalCode;
                                 newEntity.Address = assetTemp.Address;
+                                newEntity.Year = assetTemp.Year;
+                                newEntity.Month = assetTemp.Month;
 
                                 assetList.Add(newEntity);
                                 #endregion

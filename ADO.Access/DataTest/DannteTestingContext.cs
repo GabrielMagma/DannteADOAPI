@@ -493,7 +493,7 @@ namespace ADO.Access.DataTest
 
             modelBuilder.Entity<StatusFile>(entity =>
             {
-                entity.ToTable("status_file");
+                entity.ToTable("queue_status_file", "queues");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

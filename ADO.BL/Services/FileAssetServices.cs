@@ -133,17 +133,11 @@ namespace ADO.BL.Services
                                     asset.DateInst = string.IsNullOrEmpty(valueLines[10]) ? new DateOnly(2099, 12, 31) : ParseDate(valueLines[10]);
                                     asset.DateUnin = string.IsNullOrEmpty(valueLines[11]) ? new DateOnly(2099, 12, 31) : ParseDate(valueLines[11]);
                                     asset.State = string.IsNullOrEmpty(valueLines[12]) ? 2 : int.Parse(valueLines[12]);
-                                    asset.IdZone = string.IsNullOrEmpty(valueLines[13]) ? -2 : long.Parse(valueLines[13]);
-                                    asset.NameZone = !string.IsNullOrEmpty(valueLines[14]) ? valueLines[14].Trim().ToUpper() : "-1";
-                                    asset.IdRegion = string.IsNullOrEmpty(valueLines[15]) ? -2 : long.Parse(valueLines[15]);
-                                    asset.NameRegion = string.IsNullOrEmpty(valueLines[16]) ? "-1" : valueLines[16].Trim().ToUpper();
-                                    asset.IdLocality = string.IsNullOrEmpty(valueLines[17]) ? -2 : long.Parse(valueLines[17]);
-                                    asset.NameLocality = string.IsNullOrEmpty(valueLines[18]) ? "-1" : valueLines[18].Trim().ToUpper();
-                                    asset.IdSector = string.IsNullOrEmpty(valueLines[19]) ? -2 : long.Parse(valueLines[19]);
-                                    asset.NameSector = string.IsNullOrEmpty(valueLines[20]) ? "-1" : valueLines[20].Trim().ToUpper();
-                                    asset.GeographicalCode = string.IsNullOrEmpty(valueLines[21]) ? -2 : long.Parse(valueLines[21]);
-                                    asset.Address = string.IsNullOrEmpty(valueLines[22]) ? "-1" : valueLines[22].Trim().ToUpper();
-
+                                    asset.IdRegion = string.IsNullOrEmpty(valueLines[13]) ? -2 : long.Parse(valueLines[13]);
+                                    asset.NameRegion = string.IsNullOrEmpty(valueLines[14]) ? "-1" : valueLines[14].Trim().ToUpper();                                    
+                                    asset.Address = string.IsNullOrEmpty(valueLines[15]) ? "-1" : valueLines[15].Trim().ToUpper();
+                                    asset.Year = string.IsNullOrEmpty(valueLines[16]) ? -2 : int.Parse(valueLines[16]);
+                                    asset.Month = string.IsNullOrEmpty(valueLines[17]) ? -2 : int.Parse(valueLines[17]);
 
                                     keys.Add(key);
 
