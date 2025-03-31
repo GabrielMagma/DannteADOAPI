@@ -26,8 +26,8 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Servicio que toma un archivo de datos CSV guardado en una ruta específica del programa y lo guarda en Base de datos de testing
-        /// en la tabla file_io, importante llenar los campos de userId, year, month para el sistema de colas
+        /// Servicio que toma un archivo de datos desde un archivo XLSX en las páginas 2 y 4, guardado en una ruta específica del programa 
+        /// y lo guarda en Base de datos de testing en las tablas file_io y file_io_complete, importante llenar los campos de userId, year, month para el sistema de colas
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]

@@ -542,7 +542,7 @@ namespace ADO.BL.Services
                 }
                 else
                 {
-                    response.Message = "All files are created";
+                    response.Message = "All files created";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

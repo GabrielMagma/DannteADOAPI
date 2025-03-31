@@ -41,7 +41,7 @@ namespace ADO.BL.Services
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
                 var viewErrors =  lACValidationServices.ValidationLAC(request, responseError);
                 if (viewErrors.Success == false) {
-                    response.Message = "el archivo cargado tiene errores, por favor corregir";
+                    response.Message = "El archivo cargado tiene errores, por favor corregir";
                     response.SuccessData = false;
                     response.Success = false;
                     return response;

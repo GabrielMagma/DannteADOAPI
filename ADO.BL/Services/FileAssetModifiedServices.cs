@@ -459,14 +459,14 @@ namespace ADO.BL.Services
 
                 if (errorFlag)
                 {
-                    response.Message = "file with errors";
+                    response.Message = "File with errors";
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
                 }
                 else
                 {
-                    response.Message = "All files are created";
+                    response.Message = "All files created";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LacsGlobalEssaController : Controller
+    public class LacsGlobalController : Controller
     {
         readonly ILacsGlobalEssaServices lacsServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public LacsGlobalEssaController(ILacsGlobalEssaServices _lacsServices, IHubContext<NotificationHub> hubContext)
+        public LacsGlobalController(ILacsGlobalEssaServices _lacsServices, IHubContext<NotificationHub> hubContext)
         {
             lacsServices = _lacsServices;
             _hubContext = hubContext;
@@ -31,7 +31,7 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(LacsGlobalEssaController.ReadFileLacOrginal))]
+        [Route(nameof(LacsGlobalController.ReadFileLacOrginal))]
         public async Task<IActionResult> ReadFileLacOrginal(LacValidationDTO request)
         {
 
