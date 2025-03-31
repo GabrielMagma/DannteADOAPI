@@ -36,7 +36,11 @@ namespace ADO.BL.Services
                     codeSig = request.columns.CodeSig - 1;
                 }
                 var statusFileList = new List<StatusFileDTO>();
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                                        .Where(file => !file.EndsWith("_Correct.csv")
+                                                        && !file.EndsWith("_Error.csv"))
+                                        .ToList()
+                    )
                 {
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();

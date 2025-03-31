@@ -14,9 +14,7 @@ namespace ADO.BL.Services
     public class SSPDGlobalServices : ISSPDGlobalServices
     {
         private readonly IConfiguration _configuration;
-        private string _connectionString;
-        private readonly string _connectionStringEssa;
-        private readonly string _connectionStringEep;
+        private string _connectionString;        
         private readonly string _sspdDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ISSPDValidationEepServices SSPDValidationServices;        
@@ -28,8 +26,7 @@ namespace ADO.BL.Services
             IStatusFileEssaDataAccess _statuFileEssaDataAccess,
             IMapper _mapper)
         {
-            _connectionStringEssa = configuration.GetConnectionString("PgDbTestingConnection");
-            _connectionStringEep = configuration.GetConnectionString("PgDbEepConnection");
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");            
             _sspdDirectoryPath = configuration["SspdDirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             SSPDValidationServices = _SSPDValidationServices;            
@@ -41,8 +38,7 @@ namespace ADO.BL.Services
         public async Task<ResponseQuery<List<string>>> ReadFileSspdOrginal(LacValidationDTO request, ResponseQuery<List<string>> response)
         {
             try
-            {
-                _connectionString = request.Empresa == "ESSA" ? _connectionStringEssa : _connectionStringEep;
+            {                
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
                 var viewErrors = await SSPDValidationServices.ValidationSSPD(request, responseError);
                 if (viewErrors.Success == false)
@@ -67,10 +63,10 @@ namespace ADO.BL.Services
                     var completed6 = await ReadSspdDelete();
                     Console.WriteLine(completed6);
 
-                    //var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
-                    
-                    //var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
-                    
+                    var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
+
+                    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

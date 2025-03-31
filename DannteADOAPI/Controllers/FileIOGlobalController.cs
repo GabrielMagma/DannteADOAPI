@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FileIOController : ControllerBase
+    public class FileIOGlobalController : ControllerBase
     {
         readonly IFileIOServices fileIOServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public FileIOController(IFileIOServices _fileIOServices, IHubContext<NotificationHub> hubContext)
+        public FileIOGlobalController(IFileIOServices _fileIOServices, IHubContext<NotificationHub> hubContext)
         {
             fileIOServices = _fileIOServices;
             _hubContext = hubContext;
@@ -31,7 +31,7 @@ namespace DannteADOAPI.Controllers
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(FileIOController.UploadIO))]        
+        [Route(nameof(FileIOGlobalController.UploadIO))]        
         public async Task<IActionResult> UploadIO(IOsValidationDTO iosValidation)
         {
             

@@ -2,7 +2,6 @@
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using CsvHelper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Globalization;
@@ -42,7 +41,14 @@ namespace ADO.BL.Services
                     fecha = request.columns.Fecha - 1;
                 }
                 var statusFileList = new List<StatusFileDTO>();
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                    .Where(file => !file.EndsWith("_Correct.csv") 
+                    && !file.EndsWith("_Error.csv")
+                    && !file.EndsWith("_insert.csv") 
+                    && !file.EndsWith("_check.csv") 
+                    && !file.EndsWith("_update.csv"))
+                    .ToList()
+                    )
                 {
 
                     var dataTable = new DataTable();
@@ -227,9 +233,9 @@ namespace ADO.BL.Services
 
         }
 
-        private static void createCSV(DataTable table, string filePath, int columns)
+        private void createCSV(DataTable table, string filePath, int columns)
         {
-            string inputFolder = "C:\\Users\\ingen\\source\\repos\\DannteADOAPI\\files\\TT2";
+            string inputFolder = _TT2DirectoryPath;
             string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Correct.csv");
             using (var writer = new StreamWriter(outputFilePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -246,9 +252,9 @@ namespace ADO.BL.Services
             }
         }
 
-        private static void createCSVError(DataTable table, string filePath)
+        private void createCSVError(DataTable table, string filePath)
         {
-            string inputFolder = "C:\\Users\\ingen\\source\\repos\\DannteADOAPI\\files\\TT2";
+            string inputFolder = _TT2DirectoryPath;
             string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Error.csv");
             using (var writer = new StreamWriter(outputFilePath))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
@@ -274,8 +280,7 @@ namespace ADO.BL.Services
                     return parsedDate.ToString();
                 }
             }
-            return $"Error en el formato de fecha {dateString} no es válido.";
-            //throw new FormatException($"Error en el formato de fecha {dateString} no es válido.");
+            return $"Error en el formato de fecha {dateString} no es válido.";            
         }
 
         

@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TC1Controller : Controller
+    public class TC1GlobalController : Controller
     {
         readonly ITC1Services TC1Services;
         private readonly IHubContext<NotificationHub> _hubContext;
         
-        public TC1Controller(ITC1Services _tc1Services, IHubContext<NotificationHub> hubContext)
+        public TC1GlobalController(ITC1Services _tc1Services, IHubContext<NotificationHub> hubContext)
         {
             TC1Services = _tc1Services;
             _hubContext = hubContext;
@@ -31,7 +31,7 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(TC1Controller.ReadAssets))]
+        [Route(nameof(TC1GlobalController.ReadAssets))]
         public async Task<IActionResult> ReadAssets(TC1ValidationDTO request)
         {
 

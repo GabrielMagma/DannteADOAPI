@@ -41,7 +41,19 @@ namespace ADO.BL.Services
                     eventContinues = request.columns.EventContinues - 1;
                 }
                 var statusFileList = new List<StatusFileDTO>();
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                                    .Where(file => !file.EndsWith("_Correct.csv")
+                                                  && !file.EndsWith("_Error.csv")
+                                                  && !file.EndsWith("_unchanged.csv")
+                                                  && !file.EndsWith("_continuesInsert.csv")
+                                                  && !file.EndsWith("_continuesUpdate.csv")
+                                                  && !file.EndsWith("_continuesInvalid.csv")
+                                                  && !file.EndsWith("_closed.csv")
+                                                  && !file.EndsWith("_closedInvalid.csv")
+                                                  && !file.EndsWith("_delete.csv")
+                                                  && !file.EndsWith("_update.csv"))
+                                    .ToList()
+                    )
                 {                    
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();

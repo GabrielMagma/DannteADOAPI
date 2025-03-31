@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FileAssetModifiedController : ControllerBase
+    public class FileAssetGlobalController : ControllerBase
     {
         readonly IFileAssetModifiedServices fileAssetModifiedServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public FileAssetModifiedController(IFileAssetModifiedServices _fileAssetModifiedServices, IHubContext<NotificationHub> hubContext)
+        public FileAssetGlobalController(IFileAssetModifiedServices _fileAssetModifiedServices, IHubContext<NotificationHub> hubContext)
         {
             fileAssetModifiedServices = _fileAssetModifiedServices;
             _hubContext = hubContext;
@@ -32,7 +32,7 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns> 
         /// 
         [HttpPost]
-        [Route(nameof(FileAssetModifiedController.UploadFile))]        
+        [Route(nameof(FileAssetGlobalController.UploadFile))]        
         public async Task<IActionResult> UploadFile(FileAssetsValidationDTO request)
         {
             ResponseQuery<string> response = new ResponseQuery<string>();
