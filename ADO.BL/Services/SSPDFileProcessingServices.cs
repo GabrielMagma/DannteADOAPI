@@ -97,6 +97,12 @@ namespace ADO.BL.Services
                                         temp.day = int.Parse(result[3].ToString());
                                         temp.status = int.Parse(result[4].ToString());
 
+                                        var existEntity = lacQueueList.FirstOrDefault(x => x.file_name == temp.file_name);
+                                        if (existEntity != null)
+                                        {
+                                            continue;
+                                        }
+
                                         lacQueueList.Add(temp);
                                     }
                                 }
