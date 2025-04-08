@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ADO.BL.DataEntities
 {
-    public partial class StatusFile
+    public partial class QueueStatusAsset
     {
         public long Id { get; set; }
         public string? FileType { get; set; }
@@ -14,5 +14,6 @@ namespace ADO.BL.DataEntities
         public int? Month { get; set; }
         public int? Day { get; set; }
         public int? Status { get; set; }
+        public DateOnly? DateRegister { get; set; }
     }
 }

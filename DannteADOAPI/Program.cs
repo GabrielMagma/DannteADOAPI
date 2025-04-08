@@ -62,7 +62,26 @@ builder.Services.AddTransient<ISSPDValidationEepServices, SSPDValidationEepServi
 builder.Services.AddTransient<ITC1ValidationServices, TC1ValidationServices>();
 builder.Services.AddTransient<ITT2ValidationServices, TT2ValidationServices>();
 
-builder.Services.AddTransient<IStatusFileEssaDataAccess, StatusFileDataEssaAccess>();
+builder.Services.AddTransient<ILacsFileValidationServices, LacsFileValidationServices>();
+builder.Services.AddTransient<ILacsFileProcessServices, LacsFileProcessServices>();
+
+builder.Services.AddTransient<ISSPDFileValidationServices, SSPDFileValidationServices>();
+builder.Services.AddTransient<ISSPDFileProcessingServices, SSPDFileProcessingServices>();
+
+builder.Services.AddTransient<ITC1FileValidationServices, TC1FileValidationServices>();
+builder.Services.AddTransient<ITC1FileProcessingServices, TC1FileProcessingServices>();
+
+builder.Services.AddTransient<ITT2FileValidationServices, TT2FileValidationServices>();
+builder.Services.AddTransient<ITT2FileProcessingServices, TT2FileProcessingServices>();
+
+builder.Services.AddTransient<IFileIOValidationServices, FileIOValidationServices>();
+builder.Services.AddTransient<IFileIOProcessingServices, FileIOProcessingServices>();
+builder.Services.AddTransient<IIoCommentsDataAccess, IoCommentsDataAccess>();
+
+builder.Services.AddTransient<IFileAssetValidationServices, FileAssetValidationServices>();
+builder.Services.AddTransient<IFileAssetProcessingServices, FileAssetProcessingServices>();
+
+builder.Services.AddTransient<IStatusFileDataAccess, StatusFileDataEssaAccess>();
 
 builder.Services.AddTransient<IPolesEepServices, PolesEepServices>();
 builder.Services.AddTransient<IPolesEepDataAccess, PolesEepDataAccess>();

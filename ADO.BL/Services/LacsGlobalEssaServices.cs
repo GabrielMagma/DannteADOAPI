@@ -18,12 +18,12 @@ namespace ADO.BL.Services
         private readonly string _lacDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ILACValidationEssaServices lACValidationServices;
-        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
 
         public LacsGlobalEssaServices(IConfiguration configuration, 
             ILACValidationEssaServices _lACValidationServices,
-            IStatusFileEssaDataAccess _statuFileDataAccess,
+            IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
@@ -39,7 +39,7 @@ namespace ADO.BL.Services
             try
             {
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
-                var viewErrors =  lACValidationServices.ValidationLAC(request, responseError);
+                var viewErrors =  await lACValidationServices.ValidationLAC(request, responseError);
                 if (viewErrors.Success == false) {
                     response.Message = "El archivo cargado tiene errores, por favor corregir";
                     response.SuccessData = false;
@@ -59,8 +59,12 @@ namespace ADO.BL.Services
                     var completed4 = await ReadSspdUpdate();
                     Console.WriteLine(completed4);
 
-                    var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
-                    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    var subgroupMap = mapper.Map<List<QueueStatusLac>>(viewErrors.Data);
+                    foreach (var item in subgroupMap)
+                    {
+                        item.Status = 4;
+                    }
+                    var resultSave = await statusFileDataAccess.UpdateDataLACList(subgroupMap);
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

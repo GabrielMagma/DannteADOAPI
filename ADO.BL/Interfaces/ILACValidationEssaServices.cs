@@ -7,7 +7,7 @@ namespace ADO.BL.Interfaces
     public interface ILACValidationEssaServices
     {
 
-        public ResponseEntity<List<StatusFileDTO>> ValidationLAC(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response);
+        public Task<ResponseEntity<List<StatusFileDTO>>> ValidationLAC(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response);
 
     }
 }

@@ -19,12 +19,12 @@ namespace ADO.BL.Services
         private readonly string _assetsDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ITC1ValidationServices _ITC1ValidationServices;        
-        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
 
         public TC1Services(IConfiguration configuration, 
             ITC1ValidationServices Itc1ValidationServices,            
-            IStatusFileEssaDataAccess _statusFileEssaDataAccess,
+            IStatusFileDataAccess _statusFileDataAccess,
             IMapper _mapper)
         {
             _connectionStringEssa = configuration.GetConnectionString("PgDbTestingConnection");
@@ -32,7 +32,7 @@ namespace ADO.BL.Services
             _assetsDirectoryPath = configuration["Tc1DirectoryPath"];
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _ITC1ValidationServices = Itc1ValidationServices;            
-            statusFileEssaDataAccess = _statusFileEssaDataAccess;
+            statusFileDataAccess = _statusFileDataAccess;
             mapper = _mapper;
             
         }
@@ -61,10 +61,13 @@ namespace ADO.BL.Services
                         Console.WriteLine($"Archivo {filePath} subido exitosamente.");
                     }
 
-                    //var subgroupMap = mapper.Map<List<StatusFile>>(ErrorinFiles.Data);
-                    
-                    //var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
-                    
+                    var subgroupMap = mapper.Map<List<QueueStatusTc1>>(ErrorinFiles.Data);
+                    foreach (var item in subgroupMap)
+                    {
+                        item.Status = 4;
+                    }
+                    var resultSave = await statusFileDataAccess.UpdateDataTC1List(subgroupMap);
+
 
                     response.Message = "Proceso completado para todos los archivos";
                     response.SuccessData = true;

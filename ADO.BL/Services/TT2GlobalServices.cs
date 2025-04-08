@@ -19,12 +19,12 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private const int _batchSize = 10000;
         private readonly ITT2ValidationServices _Itt2ValidationServices;        
-        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
+        private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public TT2GlobalServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,            
-            IStatusFileEssaDataAccess _statusFileEssaDataAccess,
+            IStatusFileDataAccess _statusFileEssaDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbConnection");
@@ -60,9 +60,12 @@ namespace ADO.BL.Services
                     var completed4 = await ReadTt2Update();
                     Console.WriteLine(completed4);
 
-                    var subgroupMap = mapper.Map<List<StatusFile>>(errorFile.Data);
-                    
-                    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    var subgroupMap = mapper.Map<List<QueueStatusTt2>>(errorFile.Data);
+                    foreach (var item in subgroupMap)
+                    {
+                        item.Status = 4;
+                    }
+                    var resultSave = await statusFileEssaDataAccess.UpdateDataTT2List(subgroupMap);
                     
 
                     response.Message = "Proceso completado para todos los archivos";

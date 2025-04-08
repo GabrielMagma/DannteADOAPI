@@ -1,6 +1,8 @@
-﻿using ADO.BL.DTOs;
+﻿using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using System.Data;
@@ -13,11 +15,17 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
         private readonly string _TT2DirectoryPath;
-        public TT2ValidationServices(IConfiguration configuration)
+        private readonly IMapper mapper;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
+        public TT2ValidationServices(IConfiguration configuration,
+            IStatusFileDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _TT2DirectoryPath = configuration["TT2DirectoryPath"];
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
         public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationTT2(TT2ValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
@@ -68,7 +76,8 @@ namespace ADO.BL.Services
                     statusFilesingle.FileType = "TT2";
                     statusFilesingle.Year = request.Year;
                     statusFilesingle.Month = request.Month;
-                    statusFilesingle.Day = -1;
+                    statusFilesingle.Day = 1;
+                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{request.Month}-{request.Year}");
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
@@ -160,10 +169,13 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
-                        statusFilesingle.Status = 0;
+                        statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);
                     }
+
+                    var entityMap = mapper.Map<QueueStatusTt2>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataTT2(entityMap);
 
                     statusFileList.Add(statusFilesingle);
 

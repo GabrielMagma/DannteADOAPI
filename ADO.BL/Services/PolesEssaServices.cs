@@ -14,12 +14,12 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;        
         private readonly string _PolesDirectoryPath;
         private readonly IPolesEssaDataAccess polesEssaDataAccess;
-        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
         public PolesEssaServices(IConfiguration configuration,
             IPolesEssaDataAccess _polesEssaDataAccess,
-            IStatusFileEssaDataAccess _statuFileDataAccess,
+            IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
@@ -178,8 +178,8 @@ namespace ADO.BL.Services
                     {
                         var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
                         var respCreate = CreateData(polesMapped);
-                        var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                        var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                        //var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                        //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
                     }
                 }
 

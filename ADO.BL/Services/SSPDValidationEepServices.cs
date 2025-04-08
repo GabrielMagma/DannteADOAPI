@@ -1,6 +1,8 @@
-﻿using ADO.BL.DTOs;
+﻿using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using System.Data;
@@ -13,11 +15,17 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
         private readonly string _FilesLACDirectoryPath;
-        public SSPDValidationEepServices(IConfiguration configuration)
+        private readonly IMapper mapper;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
+        public SSPDValidationEepServices(IConfiguration configuration,
+            IStatusFileDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _FilesLACDirectoryPath = configuration["SspdDirectoryPath"];
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
         public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationSSPD(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
@@ -85,7 +93,8 @@ namespace ADO.BL.Services
                     statusFilesingle.FileType = "SSPD";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
-                    statusFilesingle.Day = -1;
+                    statusFilesingle.Day = 1;
+                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{month}-{year}");
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
@@ -179,10 +188,13 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
-                        statusFilesingle.Status = 0;
+                        statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);
                     }
+
+                    var entityMap = mapper.Map<QueueStatusSspd>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataSSPD(entityMap);
 
                     statusFileList.Add(statusFilesingle);
 

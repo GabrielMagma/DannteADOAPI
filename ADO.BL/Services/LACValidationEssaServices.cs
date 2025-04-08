@@ -1,6 +1,8 @@
-﻿using ADO.BL.DTOs;
+﻿using ADO.BL.DataEntities;
+using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
+using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using System.Data;
@@ -13,14 +15,20 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
         private readonly string _FilesLACDirectoryPath;
-        public LACValidationEssaServices(IConfiguration configuration)
+        private readonly IMapper mapper;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
+        public LACValidationEssaServices(IConfiguration configuration,
+            IStatusFileDataAccess _statuFileDataAccess,
+            IMapper _mapper)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _FilesLACDirectoryPath = configuration["FilesLACPath"];
+            statusFileDataAccess = _statuFileDataAccess;
+            mapper = _mapper;
         }
 
-        public ResponseEntity<List<StatusFileDTO>> ValidationLAC(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
+        public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationLAC(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
         {            
 
             try
@@ -40,7 +48,7 @@ namespace ADO.BL.Services
                     uia = request.columns.Uia - 1;
                     eventContinues = request.columns.EventContinues - 1;
                 }
-                var statusFileList = new List<StatusFileDTO>();
+                var statusFilesList = new List<StatusFileDTO>();
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
                                         .Where(file => !file.EndsWith("_Correct.csv")
                                                         && !file.EndsWith("_Error.csv")
@@ -59,7 +67,7 @@ namespace ADO.BL.Services
                     // columnas tabla error
                     dataTableError.Columns.Add("C1");
                     dataTableError.Columns.Add("C2");
-                    var statusFilesingle = new StatusFileDTO();
+                    
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
@@ -75,7 +83,8 @@ namespace ADO.BL.Services
                         year = int.Parse(resultYearMonth[0]);
                         month = int.Parse(resultYearMonth[1]);
                         day = int.Parse(resultYearMonth[2]);
-                    }                                        
+                    }
+                    var statusFilesingle = new StatusFileDTO();
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
@@ -84,6 +93,9 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = day;
+                    statusFilesingle.DateRegister = DateOnly.Parse($"{day}-{month}-{year}");
+
+                    
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
@@ -177,12 +189,15 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
-                        statusFilesingle.Status = 0;
+                        statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);
                     }
 
-                    statusFileList.Add(statusFilesingle);
+                    var entityMap = mapper.Map<QueueStatusLac>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataLAC(entityMap);
+
+                    statusFilesList.Add(statusFilesingle);
 
                 }
                 if (errorFlag)
@@ -190,14 +205,14 @@ namespace ADO.BL.Services
                     response.Message = "file with errors";
                     response.SuccessData = false;
                     response.Success = false;
-                    response.Data = statusFileList;
+                    response.Data = statusFilesList;
                     return response;
                 }
                 else {
                     response.Message = "All files are created";
                     response.SuccessData = true;
                     response.Success = true;
-                    response.Data = statusFileList;
+                    response.Data = statusFilesList;
                     return response;
                 }
 

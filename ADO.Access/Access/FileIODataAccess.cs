@@ -31,11 +31,11 @@ namespace ADO.Access.Access
 
         public async Task DeleteData(string fileName)
         {
-            var ioExist = context.FilesIos.FirstOrDefault(x => x.FileIo == fileName);
+            var ioExist = context.FilesIos.Where(x => x.FileIo == fileName).ToList();
 
             if (ioExist != null)
             {
-                context.FilesIos.Remove(ioExist);
+                context.FilesIos.RemoveRange(ioExist);
                 context.SaveChanges();
             }
 

@@ -12,7 +12,6 @@ namespace ADO.BL.DataEntities
         public string? Ubication { get; set; }
         public string? Element { get; set; }
         public string? Component { get; set; }
-        public string? AffectedSector { get; set; }
         public DateTime? HourOut { get; set; }
         public DateTime? HourIn { get; set; }
         public float? MinInterruption { get; set; }
@@ -20,7 +19,6 @@ namespace ADO.BL.DataEntities
         public string? DescCause { get; set; }
         public int? CodCauseEvent { get; set; }
         public int? Cause { get; set; }
-        public string? Observation { get; set; }
         public string? Maneuver { get; set; }
         public string? FuseQuant { get; set; }
         public string? FuseCap { get; set; }
@@ -34,5 +32,7 @@ namespace ADO.BL.DataEntities
         public float? CapacityKva { get; set; }
         public string? Type { get; set; }
         public string? Ownership { get; set; }
+        public long? AffectedSector { get; set; }
+        public long? Observation { get; set; }
     }
 }

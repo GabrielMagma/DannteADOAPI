@@ -20,11 +20,11 @@ namespace ADO.BL.Services
         private readonly IMapper mapper;
         private readonly string[] _timeFormats;
         private readonly string _AssetsDirectoryPath;        
-        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly string _connectionString;
         public FileAssetCierreServices(IConfiguration configuration,
             IMapper _mapper,
-            IStatusFileEssaDataAccess _statuFileDataAccess)
+            IStatusFileDataAccess _statuFileDataAccess)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             mapper = _mapper;

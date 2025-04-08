@@ -18,10 +18,10 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private readonly string _AssetsDirectoryPath;
         private readonly string _connectionString;
-        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
+        private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         public FileAssetServices(IConfiguration configuration, 
             IFileAssetDataAccess _fileDataAccess,            
-            IStatusFileEssaDataAccess _statuFileEssaDataAccess,
+            IStatusFileDataAccess _statuFileEssaDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
@@ -167,11 +167,11 @@ namespace ADO.BL.Services
                         }
                     }
 
-                    if (listUpdateDataString.Length > 1 || AssetsListData.Count > 1)
-                    {
-                        var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                        var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
-                    }
+                    //if (listUpdateDataString.Length > 1 || AssetsListData.Count > 1)
+                    //{
+                    //    var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                    //    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    //}
                     
 
                     response.SuccessData = await fileDataAccess.CreateFile(AssetsListData);

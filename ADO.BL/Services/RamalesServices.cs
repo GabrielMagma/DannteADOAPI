@@ -16,13 +16,13 @@ namespace ADO.BL.Services
     {
         private readonly IRamalesDataAccess ramalesDataAccess;        
         private readonly string _RamalesDirectoryPath;
-        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
 
         public RamalesServices(IConfiguration configuration, 
             IRamalesDataAccess _ramalesDataAccess,
-            IStatusFileEssaDataAccess _statuFileDataAccess,
+            IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
@@ -379,8 +379,8 @@ namespace ADO.BL.Services
 
             if (filesIOList.Count > 0)
             {
-                var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
-                var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
+                //var subgroupMaped = mapper.Map<List<StatusFile>>(statusFileList);
+                //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMaped);
 
 
                 int i = 0;

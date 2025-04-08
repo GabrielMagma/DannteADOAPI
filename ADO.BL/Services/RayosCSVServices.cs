@@ -16,13 +16,13 @@ namespace ADO.BL.Services
     {
         private readonly IRayosCSVDataAccess rayosCSVDataAccess;        
         private readonly string _RayosDirectoryPath;
-        private readonly IStatusFileEssaDataAccess statusFileDataAccess;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
 
         public RayosCSVServices(IConfiguration configuration, 
             IRayosCSVDataAccess _rayosCSVDataAccess,            
-            IStatusFileEssaDataAccess _statuFileDataAccess,
+            IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             rayosCSVDataAccess = _rayosCSVDataAccess;            
@@ -273,8 +273,8 @@ namespace ADO.BL.Services
                 }
                 else
                 {
-                    var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                    var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+                    //var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
+                    //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
                     response.Message = "All files are created";
                     response.SuccessData = true;
                     response.Success = true;

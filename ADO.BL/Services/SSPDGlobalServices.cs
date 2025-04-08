@@ -18,12 +18,12 @@ namespace ADO.BL.Services
         private readonly string _sspdDirectoryPath;
         private readonly string[] _timeFormats;
         private readonly ISSPDValidationEepServices SSPDValidationServices;        
-        private readonly IStatusFileEssaDataAccess statusFileEssaDataAccess;
+        private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
         public SSPDGlobalServices(IConfiguration configuration, 
             ISSPDValidationEepServices _SSPDValidationServices,            
-            IStatusFileEssaDataAccess _statuFileEssaDataAccess,
+            IStatusFileDataAccess _statuFileEssaDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");            
@@ -63,9 +63,12 @@ namespace ADO.BL.Services
                     var completed6 = await ReadSspdDelete();
                     Console.WriteLine(completed6);
 
-                    var subgroupMap = mapper.Map<List<StatusFile>>(viewErrors.Data);
-
-                    var resultSave = await statusFileEssaDataAccess.SaveDataList(subgroupMap);
+                    var subgroupMap = mapper.Map<List<QueueStatusSspd>>(viewErrors.Data);
+                    foreach (var item in subgroupMap)
+                    {
+                        item.Status = 4;
+                    }
+                    var resultSave = await statusFileEssaDataAccess.UpdateDataSSPDList(subgroupMap);
 
 
                     response.Message = "Proceso completado para todos los archivos";
