@@ -83,15 +83,25 @@ namespace ADO.Access.DataTest
                     .HasDefaultValueSql("'-1'::character varying")
                     .HasComment("Código del circuito al cual pertenece el activo");
 
+                entity.Property(e => e.GeographicalCode).HasColumnName("geographical_code");
+
                 entity.Property(e => e.Group015)
                     .HasMaxLength(2)
                     .HasColumnName("group015")
                     .HasDefaultValueSql("'-1'::character varying")
                     .HasComment("Grupo de calidad del activo; de acuerdo a la CREG 015\n\nPrimer Dígito: Criticidad del Activo\n1: Alta Criticidad\n2: Media Criticidad\n3: Baja Criticidad\n\nSegundo Dígito: Nivel de Tensión\n1: Alta Tensión (AT)\n2: Media Tensión (MT)\n3: Baja Tensión (BT)");
 
+                entity.Property(e => e.IdLocality)
+                    .HasColumnName("id_locality")
+                    .HasDefaultValueSql("'-1'::integer");
+
                 entity.Property(e => e.IdRegion)
                     .HasColumnName("id_region")
                     .HasDefaultValueSql("0");
+
+                entity.Property(e => e.IdSector).HasColumnName("id_sector");
+
+                entity.Property(e => e.IdZone).HasColumnName("id_zone");
 
                 entity.Property(e => e.Latitude)
                     .HasColumnName("latitude")
@@ -107,10 +117,22 @@ namespace ADO.Access.DataTest
                     .HasColumnName("month")
                     .HasDefaultValueSql("0");
 
+                entity.Property(e => e.NameLocality)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_locality");
+
                 entity.Property(e => e.NameRegion)
                     .HasMaxLength(100)
                     .HasColumnName("name_region")
                     .HasDefaultValueSql("'GENERAL'::character varying");
+
+                entity.Property(e => e.NameSector)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_sector");
+
+                entity.Property(e => e.NameZone)
+                    .HasMaxLength(100)
+                    .HasColumnName("name_zone");
 
                 entity.Property(e => e.Poblation)
                     .HasMaxLength(2)

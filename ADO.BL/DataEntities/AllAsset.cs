@@ -24,5 +24,12 @@ namespace ADO.BL.DataEntities
         public string? Address { get; set; }        
         public int? Year { get; set; }
         public int? Month { get; set; }
+        public long? IdZone { get; set; }
+        public string? NameZone { get; set; }
+        public long? IdLocality { get; set; }
+        public string? NameLocality { get; set; }
+        public long? IdSector { get; set; }
+        public string? NameSector { get; set; }
+        public long? GeographicalCode { get; set; }
     }
 }

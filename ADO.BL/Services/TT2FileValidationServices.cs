@@ -43,7 +43,7 @@ namespace ADO.BL.Services
                 {
                     response.Message = "Archivo con errores";
                     response.SuccessData = false;
-                    response.Success = false;
+                    response.Success = true;
                     return response;
                 }
                 else

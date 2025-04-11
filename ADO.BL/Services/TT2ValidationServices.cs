@@ -68,16 +68,22 @@ namespace ADO.BL.Services
                     var statusFilesingle = new StatusFileDTO();
 
                     // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    // Obtener los primeros 4 dígitos como el año
+                    int year = int.Parse(fileName.Substring(0, 4));
+
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int month = int.Parse(fileName.Substring(4, 2));
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
                     statusFilesingle.FileName = fileName;
                     statusFilesingle.FileType = "TT2";
-                    statusFilesingle.Year = request.Year;
-                    statusFilesingle.Month = request.Month;
+                    statusFilesingle.Year = year;
+                    statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
-                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{request.Month}-{request.Year}");
+                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{month}-{year}");
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)

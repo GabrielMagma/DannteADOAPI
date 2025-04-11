@@ -56,7 +56,10 @@ namespace ADO.BL.Services
                         var dataTableUpdate = new DataTable();
                         var assetList = new List<AllAssetDTO>();
                         var assetListCreate = new List<AllAssetDTO>();
-                        var fparentRegionList = new List<FparenRegionDTO>();
+                        var mpGeolocalityList = new List<MpGeolocalityDTO>();
+                        var mpRegionList = new List<MpRegionDTO>();
+                        var mpZoneList = new List<MpZoneDTO>();
+                        var mpLocalityList = new List<MpLocalityDTO>();
 
                         var statusFilesingle = new StatusFileDTO();
 
@@ -83,7 +86,7 @@ namespace ADO.BL.Services
                         dataTableError.Columns.Add("C1");
                         dataTableError.Columns.Add("C2");
 
-                        for (int i = 1; i <= 18; i++)
+                        for (int i = 1; i <= 25; i++)
                         {
                             dataTable.Columns.Add($"C{i}");
                         }
@@ -159,12 +162,9 @@ namespace ADO.BL.Services
                                     Console.WriteLine(ex.Message);
                                 }
                             }
-
                             
-                            var fparentQuery = $@"SELECT a.fparent, a.id_region, b.name_region FROM maps.mp_fparent as a
-                                                inner join maps.mp_region as b
-                                                on a.id_region = b.id";
-                            using (var reader2 = new NpgsqlCommand(fparentQuery, connection))
+                            var geolocalityQuery = $@"SELECT code_sig, codigo_geografico, zona, region, localidad FROM maps.mp_geolocality where code_sig in ({listDef})";
+                            using (var reader2 = new NpgsqlCommand(geolocalityQuery, connection))
                             {
                                 try
                                 {
@@ -173,12 +173,99 @@ namespace ADO.BL.Services
                                     {
                                         while (await result2.ReadAsync())
                                         {                                            
-                                            var temp = new FparenRegionDTO();
-                                            temp.fparent = result2[0].ToString();
-                                            temp.id_region = long.Parse(result2[1].ToString());
-                                            temp.name_region = result2[2].ToString();
+                                            var temp = new MpGeolocalityDTO();
+                                            temp.code_sig = result2[0].ToString();
+                                            temp.codigo_geografico = result2[1].ToString();
+                                            temp.zona = result2[2].ToString();
+                                            temp.region = result2[3].ToString();
+                                            temp.localidad = result2[4].ToString();
 
-                                            fparentRegionList.Add(temp);
+                                            mpGeolocalityList.Add(temp);
+                                            
+                                        }
+                                    }
+                                }
+                                catch (NpgsqlException ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                            }
+
+                            var localityQuery = $@"SELECT id, name FROM maps.mp_locality";
+                            using (var reader3 = new NpgsqlCommand(localityQuery, connection))
+                            {
+                                try
+                                {
+
+                                    using (var result3 = await reader3.ExecuteReaderAsync())
+                                    {
+                                        while (await result3.ReadAsync())
+                                        {
+                                            var temp = new MpLocalityDTO();                                            
+                                            temp.id = long.Parse(result3[0].ToString());
+                                            temp.name = result3[1].ToString();
+
+                                            mpLocalityList.Add(temp);                                            
+                                        }
+                                    }
+                                }
+                                catch (NpgsqlException ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                            }
+
+                            var regionQuery = $@"SELECT id, name_region FROM maps.mp_region";
+                            using (var reader4 = new NpgsqlCommand(regionQuery, connection))
+                            {
+                                try
+                                {
+
+                                    using (var result4 = await reader4.ExecuteReaderAsync())
+                                    {
+                                        while (await result4.ReadAsync())
+                                        {
+                                            var temp = new MpRegionDTO();
+                                            temp.id = long.Parse(result4[0].ToString());
+                                            temp.name_region = result4[1].ToString();
+
+                                            mpRegionList.Add(temp);                                            
+                                        }
+                                    }
+                                }
+                                catch (NpgsqlException ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                            }
+
+                            var zoneQuery = $@"SELECT id, name FROM maps.mp_zone";
+                            using (var reader5 = new NpgsqlCommand(zoneQuery, connection))
+                            {
+                                try
+                                {
+
+                                    using (var result5 = await reader5.ExecuteReaderAsync())
+                                    {
+                                        while (await result5.ReadAsync())
+                                        {
+                                            var temp = new MpZoneDTO();
+                                            temp.id = long.Parse(result5[0].ToString());
+                                            temp.name = result5[1].ToString();
+
+                                            mpZoneList.Add(temp);
                                         }
                                     }
                                 }
@@ -244,7 +331,7 @@ namespace ADO.BL.Services
                                     {
                                         rowText.Append($"{worksheet1.Cells[row, i].Text};");
                                     }                                    
-                                    await CreateAsset(rowText, assetListCreate, dataTableError, fparentRegionList, row, assetList, year, month, dataTable);
+                                    await CreateAsset(rowText, assetListCreate, dataTableError, mpGeolocalityList, mpRegionList, mpZoneList, mpLocalityList, row, assetList, year, month, dataTable);
                                     continue;
                                 }
 
@@ -254,12 +341,12 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var regionTemp = fparentRegionList.FirstOrDefault(x => x.fparent == worksheet1.Cells[row, 5].Text.Trim());
+                                var geolocalityTemp = mpGeolocalityList.FirstOrDefault(x => x.code_sig == codeSigDoc);
 
-                                if (regionTemp == null)
+                                if (geolocalityTemp == null)
                                 {
                                     var newRowError = dataTableError.NewRow();
-                                    newRowError[0] = $"Error en la data en la línea {row}, no existe la región para este circuito";
+                                    newRowError[0] = $"Error en la data en la línea {row}, no existe la región para este Registro";
                                     var rowText = new StringBuilder();
                                     for (int i = 1; i < 13; i++)
                                     {
@@ -269,7 +356,54 @@ namespace ADO.BL.Services
                                     dataTableError.Rows.Add(newRowError);
                                     continue;
                                 }
-                                
+
+                                var localityTemp = mpLocalityList.FirstOrDefault(x => x.name.ToUpper() == geolocalityTemp.localidad.ToUpper());
+
+                                if (localityTemp == null)
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, no existe la Localidad para este Registro";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
+
+                                var regionTemp = mpRegionList.FirstOrDefault(x => x.name_region.ToUpper() == geolocalityTemp.region.ToUpper());
+
+                                if (regionTemp == null)
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, no existe la Región para este Registro";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
+
+                                var zoneTemp = mpZoneList.FirstOrDefault(x => x.name.ToUpper() == geolocalityTemp.zona.ToUpper());
+
+                                if (zoneTemp == null)
+                                {
+                                    var newRowError = dataTableError.NewRow();
+                                    newRowError[0] = $"Error en la data en la línea {row}, no existe la Zona para este Registro";
+                                    var rowText = new StringBuilder();
+                                    for (int i = 1; i < 13; i++)
+                                    {
+                                        rowText.Append($"{worksheet1.Cells[row, i].Text}, ");
+                                    }
+                                    newRowError[1] = rowText;
+                                    dataTableError.Rows.Add(newRowError);
+                                    continue;
+                                }
 
                                 if (assetTemp.Fparent != worksheet1.Cells[row, 5].Text.Trim())
                                 {
@@ -411,35 +545,25 @@ namespace ADO.BL.Services
                                 newRow[10] = date;
                                 newRow[11] = DateOnly.Parse("31/12/2099");
                                 newRow[12] = stateTemp;
-                                newRow[13] = regionTemp.id_region;
-                                newRow[14] = regionTemp.name_region;
+                                newRow[13] = regionTemp == null ? '0' : regionTemp.id;
+                                newRow[14] = geolocalityTemp.region;
                                 newRow[15] = string.IsNullOrEmpty(worksheet1.Cells[row, 10].Text) ? "-1" : worksheet1.Cells[row, 10].Text.Trim();
                                 newRow[16] = year;
                                 newRow[17] = month;
+                                newRow[18] = zoneTemp == null ? '0' : zoneTemp.id;
+                                newRow[19] = geolocalityTemp.zona;
+                                newRow[20] = localityTemp == null ? '0' : localityTemp.id;
+                                newRow[21] = geolocalityTemp.localidad;
+                                newRow[22] = 0;
+                                newRow[23] = "SIN SECTOR";
+                                newRow[24] = geolocalityTemp.codigo_geografico;
 
                                 dataTable.Rows.Add(newRow);
 
                                 var newEntity = new AllAssetDTO();
-
-                                newEntity.Id = 0;
-                                newEntity.TypeAsset = worksheet1.Cells[row, 1].Text.Trim().ToUpper();
+                                
                                 newEntity.CodeSig = codeSigDoc;
                                 newEntity.Uia = worksheet1.Cells[row, 3].Text.Trim();
-                                newEntity.Codetaxo = string.IsNullOrEmpty(worksheet1.Cells[row, 4].Text) ? "-1" : worksheet1.Cells[row, 4].Text.Trim();
-                                newEntity.Fparent = worksheet1.Cells[row, 5].Text.Trim().Replace(" ", "");
-                                newEntity.Latitude = float.Parse(worksheet1.Cells[row, 6].Text.Trim());
-                                newEntity.Longitude = float.Parse(worksheet1.Cells[row, 7].Text.Trim());
-                                newEntity.Poblation = string.IsNullOrEmpty(worksheet1.Cells[row, 8].Text) ? "-1" : worksheet1.Cells[row, 8].Text.Trim();
-                                newEntity.Group015 = worksheet1.Cells[row, 9].Text.Trim();
-                                newEntity.DateInst = date;
-                                newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-                                newEntity.State = stateTemp;
-                                newEntity.Uccap14 = string.IsNullOrEmpty(worksheet1.Cells[row, 12].Text) ? "-1" : worksheet1.Cells[row, 12].Text.Trim();
-                                newEntity.IdRegion = regionTemp.id_region;
-                                newEntity.NameRegion = regionTemp.name_region;
-                                newEntity.Address = string.IsNullOrEmpty(worksheet1.Cells[row, 10].Text) ? "-1" : worksheet1.Cells[row, 10].Text.Trim();
-                                newEntity.Year = year;
-                                newEntity.Month = month;
 
                                 assetListCreate.Add(newEntity);
 
@@ -475,7 +599,7 @@ namespace ADO.BL.Services
                 {
                     response.Message = "File with errors";
                     response.SuccessData = false;
-                    response.Success = false;
+                    response.Success = true;
                     return response;
                 }
                 else
@@ -526,7 +650,7 @@ namespace ADO.BL.Services
             {
                 foreach (DataRow row in table.Rows)
                 {
-                    for (int i = 0; i < 18; i++)
+                    for (int i = 0; i < 25; i++)
                     {
                         csv.WriteField(row[i]);
                     }                                        
@@ -562,16 +686,78 @@ namespace ADO.BL.Services
             return DateOnly.Parse("31/12/2099");
         }
 
-        private async Task CreateAsset(StringBuilder data, List<AllAssetDTO> assetListCreate, DataTable dataTableError, List<FparenRegionDTO> fparentRegionList, int row, List<AllAssetDTO> assetList, int year, int month, DataTable dataTable)
+        private async Task CreateAsset(StringBuilder data, 
+            List<AllAssetDTO> assetListCreate, 
+            DataTable dataTableError, 
+            List<MpGeolocalityDTO> mpGeolocalityList, 
+            List<MpRegionDTO> mpRegionList,
+            List<MpZoneDTO> mpZoneList,
+            List<MpLocalityDTO> mpLocalityList,
+            int row, 
+            List<AllAssetDTO> assetList, 
+            int year, 
+            int month, 
+            DataTable dataTable)
         {
+
             var dataUnit = data.ToString().Split(';');
 
-            var regionTemp = fparentRegionList.FirstOrDefault(x => x.fparent == dataUnit[4]);            
+            var codeSigDoc = dataUnit[1].ToString().Trim();
+
+            var geolocalityTemp = mpGeolocalityList.FirstOrDefault(x => x.code_sig == codeSigDoc);
+
+            if (geolocalityTemp == null)
+            {
+                var newRowError = dataTableError.NewRow();
+                newRowError[0] = $"Error en la data en la línea {row}, no existe la región para este Registro";
+                var rowText = new StringBuilder();
+                for (int i = 0; i < 12; i++)
+                {
+                    rowText.Append($"{dataUnit[i]}, ");
+                }
+                newRowError[1] = rowText;
+                dataTableError.Rows.Add(newRowError);
+                return;
+            }
+
+            var localityTemp = mpLocalityList.FirstOrDefault(x => x.name.ToUpper() == geolocalityTemp.localidad.ToUpper());
+
+            if (localityTemp == null)
+            {
+                var newRowError = dataTableError.NewRow();
+                newRowError[0] = $"Error en la data en la línea {row}, no existe la Localidad para este Registro";
+                var rowText = new StringBuilder();
+                for (int i = 0; i < 12; i++)
+                {
+                    rowText.Append($"{dataUnit[i]}, ");
+                }
+                newRowError[1] = rowText;
+                dataTableError.Rows.Add(newRowError);
+                return;
+            }
+
+            var regionTemp = mpRegionList.FirstOrDefault(x => x.name_region.ToUpper() == geolocalityTemp.region.ToUpper());
 
             if (regionTemp == null)
             {
                 var newRowError = dataTableError.NewRow();
-                newRowError[0] = $"Error en la data en la línea {row}, no existe la región para este circuito";
+                newRowError[0] = $"Error en la data en la línea {row}, no existe la Región para este Registro";
+                var rowText = new StringBuilder();
+                for (int i = 0; i < 12; i++)
+                {
+                    rowText.Append($"{dataUnit[i]}, ");
+                }
+                newRowError[1] = rowText;
+                dataTableError.Rows.Add(newRowError);
+                return;
+            }
+
+            var zoneTemp = mpZoneList.FirstOrDefault(x => x.name.ToUpper() == geolocalityTemp.zona.ToUpper());
+
+            if (zoneTemp == null)
+            {
+                var newRowError = dataTableError.NewRow();
+                newRowError[0] = $"Error en la data en la línea {row}, no existe la Zona para este Registro";
                 var rowText = new StringBuilder();
                 for (int i = 0; i < 12; i++)
                 {
@@ -596,9 +782,7 @@ namespace ADO.BL.Services
                 newRowError[1] = rowText;
                 dataTableError.Rows.Add(newRowError);
                 return;
-            }
-            
-            var codeSigDoc = dataUnit[1].ToString().Trim();
+            }                        
 
             var uiaTemp = dataUnit[1] == dataUnit[2] ? codeSigDoc : dataUnit[2];
 
@@ -612,26 +796,9 @@ namespace ADO.BL.Services
             {
 
                 var newEntity = new AllAssetDTO();
-
-                newEntity.Id = 0;
-                newEntity.TypeAsset = dataUnit[0].Trim().ToUpper();
+                
                 newEntity.CodeSig = codeSigDoc;
                 newEntity.Uia = uiaTemp.Trim();
-                newEntity.Codetaxo = string.IsNullOrEmpty(dataUnit[3]) ? "-1" : dataUnit[3].Trim();
-                newEntity.Fparent = dataUnit[4].Trim().Replace(" ", "");
-                newEntity.Latitude = float.Parse(dataUnit[5].Trim());
-                newEntity.Longitude = float.Parse(dataUnit[6].Trim());
-                newEntity.Poblation = string.IsNullOrEmpty(dataUnit[7]) ? "-1" : dataUnit[7].Trim();
-                newEntity.Group015 = dataUnit[8].Trim();
-                newEntity.DateInst = date;
-                newEntity.DateUnin = DateOnly.Parse("31/12/2099");
-                newEntity.State = 2;
-                newEntity.Uccap14 = string.IsNullOrEmpty(dataUnit[11]) ? "-1" : dataUnit[11].Trim();                
-                newEntity.IdRegion = regionTemp.id_region;
-                newEntity.NameRegion = regionTemp.name_region;                
-                newEntity.Address = string.IsNullOrEmpty(dataUnit[9]) ? "-1" : dataUnit[9].Trim();
-                newEntity.Year = year;
-                newEntity.Month = month;
 
                 assetListCreate.Add(newEntity);
 
@@ -650,11 +817,18 @@ namespace ADO.BL.Services
                 newRow[10] = date;
                 newRow[11] = DateOnly.Parse("31/12/2099");
                 newRow[12] = 2;
-                newRow[13] = regionTemp.id_region;
-                newRow[14] = regionTemp.name_region;
+                newRow[13] = regionTemp == null ? '0' : regionTemp.id;
+                newRow[14] = geolocalityTemp.region;
                 newRow[15] = string.IsNullOrEmpty(dataUnit[9]) ? "-1" : dataUnit[9].Trim();
                 newRow[16] = year;
                 newRow[17] = month;
+                newRow[18] = zoneTemp == null ? '0' : zoneTemp.id;
+                newRow[19] = geolocalityTemp.zona;
+                newRow[20] = localityTemp == null ? '0' : localityTemp.id;
+                newRow[21] = geolocalityTemp.localidad;
+                newRow[22] = 0;
+                newRow[23] = "SIN SECTOR";
+                newRow[24] = geolocalityTemp.codigo_geografico;
 
                 dataTable.Rows.Add(newRow);
 

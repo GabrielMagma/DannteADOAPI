@@ -179,6 +179,13 @@ namespace ADO.BL.Services
                             newEntity.Address = valueLines[15];
                             newEntity.Year = int.Parse(valueLines[16]);
                             newEntity.Month = int.Parse(valueLines[17]);
+                            newEntity.IdZone = long.Parse(valueLines[18]);
+                            newEntity.NameZone = valueLines[19];
+                            newEntity.IdLocality = long.Parse(valueLines[20]);
+                            newEntity.NameLocality = valueLines[21];
+                            newEntity.IdSector = long.Parse(valueLines[22]);
+                            newEntity.NameSector = valueLines[23];
+                            newEntity.GeographicalCode = long.Parse(valueLines[24]);
 
                             assetListCreate.Add(newEntity);
                         }

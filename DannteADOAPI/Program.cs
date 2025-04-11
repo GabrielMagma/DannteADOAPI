@@ -81,6 +81,8 @@ builder.Services.AddTransient<IIoCommentsDataAccess, IoCommentsDataAccess>();
 builder.Services.AddTransient<IFileAssetValidationServices, FileAssetValidationServices>();
 builder.Services.AddTransient<IFileAssetProcessingServices, FileAssetProcessingServices>();
 
+builder.Services.AddTransient<IQueueGlobalServices, QueueGlobalServices>();
+
 builder.Services.AddTransient<IStatusFileDataAccess, StatusFileDataEssaAccess>();
 
 builder.Services.AddTransient<IPolesEepServices, PolesEepServices>();
