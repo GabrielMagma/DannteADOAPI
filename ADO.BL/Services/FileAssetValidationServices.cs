@@ -600,7 +600,7 @@ namespace ADO.BL.Services
                 {
                     response.Message = "File with errors";
                     response.SuccessData = false;
-                    response.Success = true;
+                    response.Success = false;
                     return response;
                 }
                 else
