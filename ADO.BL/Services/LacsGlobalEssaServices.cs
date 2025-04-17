@@ -100,7 +100,8 @@ namespace ADO.BL.Services
                                    && !file.EndsWith("_continuesInvalid.csv")
                                    && !file.EndsWith("_closed.csv")
                                    && !file.EndsWith("_closedInvalid.csv"))
-                    .ToList();
+                    .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -121,7 +122,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUnchanged");
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv");
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -144,7 +146,7 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSSpdContinues");
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_continues.csv");
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_continues.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -167,7 +169,7 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSspdUpdate");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_closed.csv");
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_closed.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {

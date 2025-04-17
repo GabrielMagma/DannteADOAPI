@@ -55,7 +55,8 @@ namespace ADO.BL.Services
                     && !file.EndsWith("_insert.csv") 
                     && !file.EndsWith("_check.csv") 
                     && !file.EndsWith("_update.csv"))
-                    .ToList()
+                    .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
 

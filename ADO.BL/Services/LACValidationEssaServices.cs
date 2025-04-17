@@ -57,7 +57,8 @@ namespace ADO.BL.Services
                                                         && !file.EndsWith("_continuesInvalid.csv")
                                                         && !file.EndsWith("_closed.csv")
                                                         && !file.EndsWith("_closedInvalid.csv"))
-                                        .ToList()
+                                        .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {                    
                     var dataTable = new DataTable();
@@ -130,17 +131,23 @@ namespace ADO.BL.Services
                                 RegisterError(dataTableError, item, count, message);
                             }
 
+                            else if (valueLines[eventCode] == "")
+                            {
+                                message = "Error en el código de evento, no puede ser nulo";
+                                RegisterError(dataTableError, item, count, message);
+                            }
+
+                            //else if (valueLines[eventCode] == "NA" && (valueLines[startDate] != "" || valueLines[endDate] != "" || valueLines[eventContinues] != ""))
+                            //{
+                            //    message = "Error de la data, no está llena correctamente";
+                            //    RegisterError(dataTableError, item, count, message);
+                            //}
+
                             else if (valueLines[eventCode] != "NA" && (valueLines[startDate] == "" && valueLines[endDate] == ""))
                             {
                                 message = "Error de la data, no está llena correctamente";
                                 RegisterError(dataTableError, item, count, message);
-                            }
-
-                            else if (valueLines[eventCode] == "NA" && (valueLines[startDate] != "" || valueLines[endDate] != "" || valueLines[eventContinues] != ""))
-                            {
-                                message = "Error de la data, no está llena correctamente";
-                                RegisterError(dataTableError, item, count, message);
-                            }
+                            }                            
 
                             else if (valueLines[eventCode] != "NA" && valueLines[startDate] != "" && valueLines[endDate] != "" && valueLines[eventContinues] == "S")
                             {
@@ -148,32 +155,21 @@ namespace ADO.BL.Services
                                 RegisterError(dataTableError, item, count, message);
                             }
 
-                            else if (valueLines[eventCode] != "NA" && valueLines[endDate] != "" && valueLines[eventContinues] == "S")
+                            else if (valueLines[eventCode] != "NA" && valueLines[startDate] == "" && valueLines[endDate] != "" && valueLines[eventContinues] == "S")
                             {
                                 message = "Error de la fecha de terminación y/o estado en la data, no están llenas correctamente";
                                 RegisterError(dataTableError, item, count, message);
                             }
 
-                            else if (valueLines[eventCode] != "NA" && valueLines[startDate] != "")
+                            else if (valueLines[eventCode] != "NA" && valueLines[startDate] != "" && valueLines[endDate] == "" && valueLines[eventContinues] == "N")
                             {
-                                var datefile = ParseDate(valueLines[startDate]);
-                                var dateToday = DateTime.Now;
-                                if (datefile == DateTime.Parse("31/12/2099 00:00:00"))
-                                {
-                                    message = "Error de la fecha en la data, no tiene el formato correcto";
-                                    RegisterError(dataTableError, item, count, message);
-                                }
-                                else if (datefile > dateToday)
-                                {
-                                    message = "Error de la fecha en la data, no puede ser mayor a la fecha actual";
-                                    RegisterError(dataTableError, item, count, message);
-                                }
-                                else
-                                {
-                                    InsertData(dataTable, valueLines, columns);
-                                }
+                                message = "Error de la fecha de terminación y/o estado en la data, no están llenas correctamente";
+                                RegisterError(dataTableError, item, count, message);
                             }
 
+                            if (valueLines[eventCode] != "NA" && valueLines[eventCode] != "") {
+                                InsertData(dataTable, valueLines, columns);
+                            }
                         }
 
                         count++;

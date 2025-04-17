@@ -42,6 +42,18 @@ namespace ADO.BL.Services
             try
             {
                 var lacQueueList = new List<LacQueueDTO>();
+                var listStatusLac = new List<StatusFileDTO>();
+
+                var listEnds = new List<string>()
+                {
+                    "_Correct",
+                    "_Error",                    
+                    "_Correct_unchange",
+                    "_Correct_continues",
+                    "_Correct_continuesInvalid",
+                    "_Correct_closed",
+                    "_Correct_closedInvalid"
+                };
 
                 foreach (var filePath in Directory.GetFiles(_lacDirectoryPath, "*.csv")
                                         .Where(file => !file.EndsWith("_Correct.csv")
@@ -51,11 +63,29 @@ namespace ADO.BL.Services
                                                         && !file.EndsWith("_continuesInvalid.csv")
                                                         && !file.EndsWith("_closed.csv")
                                                         && !file.EndsWith("_closedInvalid.csv"))
-                                        .ToList()
+                                        .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    var nameTemp = fileName;
+
+                    foreach (var item1 in listEnds)
+                    {
+                        nameTemp = nameTemp.Replace(item1, "");
+                    }
+
+                    var UnitStatusLac = new StatusFileDTO()
+                    {
+                        FileName = fileName
+                    };
+                    var exist = listStatusLac.FirstOrDefault(x => x.FileName == UnitStatusLac.FileName);
+                    if (exist == null)
+                    {
+                        listStatusLac.Add(UnitStatusLac);
+                    }
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -147,7 +177,7 @@ namespace ADO.BL.Services
                 var completed4 = await ReadSspdUpdate();
                 Console.WriteLine(completed4);
 
-                var subgroupMap = mapper.Map<List<QueueStatusLac>>(lacQueueList);
+                var subgroupMap = mapper.Map<List<QueueStatusLac>>(listStatusLac);
                 foreach (var item in subgroupMap)
                 {
                     item.Status = 4;
@@ -180,7 +210,11 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUnchanged");
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv");
+                // var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv");
+
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv")
+                     .OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -203,7 +237,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSSpdContinues");
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_continues.csv");
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_continues.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -226,7 +261,9 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSspdUpdate");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_lacDirectoryPath, "*_closed.csv");
+                var files = Directory.GetFiles(_lacDirectoryPath, "*_closed.csv")
+                    .OrderBy(f => f)
+                     .ToArray(); 
 
                 foreach (var filePath in files)
                 {
@@ -331,7 +368,10 @@ namespace ADO.BL.Services
                     for (int i = 0; i < updates.Count; i++)
                     {
                         updateCommand.Parameters.AddWithValue($"@eventCode{i}", NpgsqlTypes.NpgsqlDbType.Varchar, updates[i].EventCode);
-                        updateCommand.Parameters.AddWithValue($"@endDate{i}", NpgsqlTypes.NpgsqlDbType.Timestamp, updates[i].EndDate ?? (object)DBNull.Value);
+                        //updateCommand.Parameters.AddWithValue($"@endDate{i}", NpgsqlTypes.NpgsqlDbType.Timestamp, updates[i].EndDate ?? (object)DBNull.Value);
+                        var endDate = updates[i].EndDate?.ToLocalTime() ?? (object)DBNull.Value;
+                        updateCommand.Parameters.AddWithValue($"@endDate{i}", NpgsqlTypes.NpgsqlDbType.Timestamp, endDate);
+
                         updateCommand.Parameters.AddWithValue($"@uia{i}", NpgsqlTypes.NpgsqlDbType.Varchar, updates[i].Uia);
                         updateCommand.Parameters.AddWithValue($"@elementType{i}", NpgsqlTypes.NpgsqlDbType.Integer, updates[i].ElementType);
                         updateCommand.Parameters.AddWithValue($"@eventCause{i}", NpgsqlTypes.NpgsqlDbType.Integer, updates[i].EventCause);

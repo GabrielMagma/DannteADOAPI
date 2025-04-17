@@ -30,7 +30,8 @@ namespace ADO.BL.Services
 
                 string inputFolder = _TT2FixDirectoryPath;                                                
 
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").OrderBy(f => f)
+                     .ToArray())
                 {
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();

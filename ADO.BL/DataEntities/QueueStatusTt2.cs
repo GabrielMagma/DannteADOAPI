@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ADO.BL.DataEntities
+﻿namespace ADO.BL.DataEntities
 {
     public partial class QueueStatusTt2
     {

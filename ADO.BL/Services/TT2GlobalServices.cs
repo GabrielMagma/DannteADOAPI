@@ -98,7 +98,8 @@ namespace ADO.BL.Services
                 Console.WriteLine("BeginProcess");
                 var files = Directory.GetFiles(_tt2DirectoryPath, "*_Correct.csv")
                     .Where(file => !file.EndsWith("_insert.csv") && !file.EndsWith("_check.csv") && !file.EndsWith("_update.csv"))
-                    .ToList();
+                    .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -122,7 +123,8 @@ namespace ADO.BL.Services
                     .Where(file => !file.EndsWith("_insert.csv") &&
                                    !file.EndsWith("_check.csv") &&
                                    !file.EndsWith("_update.csv"))
-                    .ToList();
+                    .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 if (!originalFiles.Any())
                 {
@@ -136,7 +138,8 @@ namespace ADO.BL.Services
                 }
 
                 // Procesar archivos *_check.csv
-                var checkFiles = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").ToList();
+                var checkFiles = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").ToList().OrderBy(f => f)
+                     .ToArray();
                 if (!checkFiles.Any())
                 {
                     return ("No se encontraron archivos *_check.csv para verificar.");
@@ -149,7 +152,8 @@ namespace ADO.BL.Services
                 }
 
                 // Procesar archivos *_insert.csv
-                var insertFiles = Directory.GetFiles(_tt2DirectoryPath, "*_insert.csv").ToList();
+                var insertFiles = Directory.GetFiles(_tt2DirectoryPath, "*_insert.csv").ToList().OrderBy(f => f)
+                     .ToArray();
                 if (!insertFiles.Any())
                 {
                     return ("No se encontraron archivos *_insert.csv para insertar.");
@@ -174,7 +178,8 @@ namespace ADO.BL.Services
             try
             {
                 // Obtener todos los archivos *_create.csv
-                var createFiles = Directory.GetFiles(_tt2DirectoryPath, "*_create.csv");
+                var createFiles = Directory.GetFiles(_tt2DirectoryPath, "*_create.csv").OrderBy(f => f)
+                     .ToArray();
                 if (!createFiles.Any())
                 {
                     return ("No se encontraron archivos *_create.csv para procesar.");
@@ -199,7 +204,8 @@ namespace ADO.BL.Services
             try
             {
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_tt2DirectoryPath, "*_update.csv");
+                var files = Directory.GetFiles(_tt2DirectoryPath, "*_update.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {

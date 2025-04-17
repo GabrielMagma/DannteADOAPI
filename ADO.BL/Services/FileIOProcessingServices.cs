@@ -50,7 +50,8 @@ namespace ADO.BL.Services
                 var ioCompleteList = new List<FileIoCompleteDTO>();
 
                 //Procesar cada archivo.xlsx en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").Where(file => !file.EndsWith("_Error.csv")).ToList())
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").Where(file => !file.EndsWith("_Error.csv")).ToList().OrderBy(f => f)
+                     .ToArray())
                 {                                        
                     var statusFilesingle = new StatusFileDTO();
 

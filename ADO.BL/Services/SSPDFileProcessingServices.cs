@@ -40,6 +40,23 @@ namespace ADO.BL.Services
             try
             {
                 var lacQueueList = new List<LacQueueDTO>();
+
+                var listStatusSspd = new List<StatusFileDTO>();
+
+                var listEnds = new List<string>()
+                {
+                    "_Correct",
+                    "_Error",                    
+                    "_Correct_unchange",
+                    "_Correct_continuesInsert",
+                    "_Correct_continuesUpdate",
+                    "_Correct_continuesInvalid",
+                    "_Correct_closed",
+                    "_Correct_closedInvalid",
+                    "_Correct_delete",
+                    "_Correct_update"
+                };
+
                 foreach (var filePath in Directory.GetFiles(_sspdDirectoryPath, "*.csv")
                                     .Where(file => !file.EndsWith("_Correct.csv")
                                                   && !file.EndsWith("_Error.csv")
@@ -51,12 +68,30 @@ namespace ADO.BL.Services
                                                   && !file.EndsWith("_closedInvalid.csv")
                                                   && !file.EndsWith("_delete.csv")
                                                   && !file.EndsWith("_update.csv"))
-                                    .ToList()
+                                    .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    var nameTemp = fileName;
+
+                    foreach (var item1 in listEnds)
+                    {
+                        nameTemp = nameTemp.Replace(item1, "");
+                    }
+
+                    var UnitStatusSspd = new StatusFileDTO()
+                    {
+                        FileName = fileName
+                    };
+                    var exist = listStatusSspd.FirstOrDefault(x => x.FileName == UnitStatusSspd.FileName);
+                    if (exist == null)
+                    {
+                        listStatusSspd.Add(UnitStatusSspd);
+                    }
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -148,7 +183,7 @@ namespace ADO.BL.Services
                 var completed6 = await ReadSspdDelete();
                 Console.WriteLine(completed6);
 
-                var subgroupMap = mapper.Map<List<QueueStatusSspd>>(lacQueueList);
+                var subgroupMap = mapper.Map<List<QueueStatusSspd>>(listStatusSspd);
                 foreach (var item in subgroupMap)
                 {
                     item.Status = 4;
@@ -183,7 +218,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUnchanged");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_unchanged.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_unchanged.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -205,7 +241,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSSpdContinuesInsert");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesInsert.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesInsert.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -228,7 +265,8 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSSpdContinuesUpdate");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesUpdate.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesUpdate.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -250,7 +288,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUpdate");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_update.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_update.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -273,7 +312,8 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSspdDelete");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_delete.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_delete.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {

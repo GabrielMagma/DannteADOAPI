@@ -37,7 +37,7 @@ namespace ADO.BL.Services
                 var errorFlag = false;                
 
                 //Procesar cada archivo.xlsx en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx"))                
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx").OrderBy(f => f).ToArray())                
                 {
                     using (var package = new ExcelPackage(new FileInfo(filePath)))
                     {

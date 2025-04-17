@@ -108,7 +108,8 @@ namespace ADO.BL.Services
                                   && !file.EndsWith("_closedInvalid.csv")
                                   && !file.EndsWith("_delete.csv")
                                   && !file.EndsWith("_update.csv"))
-                   .ToList();
+                   .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -129,7 +130,8 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUnchanged");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_unchanged.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_unchanged.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -151,7 +153,7 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSSpdContinuesInsert");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesInsert.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesInsert.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -174,7 +176,7 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSSpdContinuesUpdate");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesUpdate.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_continuesUpdate.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -196,7 +198,7 @@ namespace ADO.BL.Services
             try
             {
                 Console.WriteLine("ReadSspdUpdate");
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_update.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_update.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {
@@ -219,7 +221,7 @@ namespace ADO.BL.Services
             {
                 Console.WriteLine("ReadSspdDelete");
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_sspdDirectoryPath, "*_delete.csv");
+                var files = Directory.GetFiles(_sspdDirectoryPath, "*_delete.csv").OrderBy(f => f).ToArray();
 
                 foreach (var filePath in files)
                 {

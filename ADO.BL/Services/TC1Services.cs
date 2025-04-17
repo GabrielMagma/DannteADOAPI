@@ -53,7 +53,7 @@ namespace ADO.BL.Services
                 }
                 else
                 {
-                    var files = Directory.GetFiles(_assetsDirectoryPath, "*_Correct.csv");  // OJO TOCA ESTANDARIZAR!!!
+                    var files = Directory.GetFiles(_assetsDirectoryPath, "*_Correct.csv").OrderBy(f => f).ToArray();  // OJO TOCA ESTANDARIZAR!!!
 
                     foreach (var filePath in files)
                     {

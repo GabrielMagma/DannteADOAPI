@@ -3,15 +3,10 @@ using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
-using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using OfficeOpenXml;
 using System.Data;
-using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
-using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ADO.BL.Services
 {
@@ -47,9 +42,10 @@ namespace ADO.BL.Services
                 var statusFileList = new List<StatusFileDTO>();
                 var assetListCreate = new List<AllAssetDTO>();
                 var listDataStringUpdate = new StringBuilder();
+                var updatesList = new List<string>();
 
                 //Procesar cada archivo.xlsx en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").Where(file => !file.EndsWith("_Error.csv")).ToList())
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").Where(file => !file.EndsWith("_Error.csv")).ToList().OrderBy(f => f).ToArray())
                 {                    
 
                     var statusFilesingle = new StatusFileDTO();
@@ -67,7 +63,7 @@ namespace ADO.BL.Services
                     var endDate = beginDate.AddMonths(-2);
                     var listDates = new StringBuilder();
                     var listFilesError = new StringBuilder();
-                    var lacQueueList = new List<LacQueueDTO>();
+                    var lacQueueList = new List<LacQueueDTO>();                    
 
                     while (endDate <= beginDate)
                     {
@@ -136,7 +132,7 @@ namespace ADO.BL.Services
                     statusFilesingle.FileType = "ASSETS";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
-                    statusFilesingle.Day = -1;
+                    statusFilesingle.Day = 1;
                     statusFilesingle.Status = 4;
                     statusFilesingle.DateRegister = DateOnly.Parse($"1-{year}-{month}");
 
@@ -148,7 +144,7 @@ namespace ADO.BL.Services
                         foreach (var item in fileLines)
                         {
                             var valueLines = item.Split(',');
-                            listDataStringUpdate.Append($"'{valueLines[0]}',");
+                            updatesList.Add($"update public.all_asset set state = 3, date_unin = '{DateOnly.Parse(valueLines[1])}' where uia = '{valueLines[0]}'");
                         }
                     }
 
@@ -197,28 +193,30 @@ namespace ADO.BL.Services
 
                 }
 
-                if (listDataStringUpdate.Length > 1)
+                if (updatesList.Count > 0)
                 {
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
-                        connection.Open();
-                        var listDefUpdate = listDataStringUpdate.ToString().Remove(listDataStringUpdate.Length - 1, 1);
-                        var updateQuery = $@"update public.all_asset set state = 3 where code_sig in ({listDefUpdate})";
-                        using (var reader = new NpgsqlCommand(updateQuery, connection))
+                        connection.Open();                        
+                        foreach (var item in updatesList)
                         {
-                            try
+                            using (var reader = new NpgsqlCommand(item, connection))
                             {
-                                await reader.ExecuteReaderAsync();
-                            }
-                            catch (NpgsqlException ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
+                                try
+                                {
+                                    await reader.ExecuteReaderAsync();
+                                }
+                                catch (NpgsqlException ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
                             }
                         }
+                        
 
                     }
                 }

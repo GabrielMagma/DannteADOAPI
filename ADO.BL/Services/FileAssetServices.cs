@@ -37,7 +37,7 @@ namespace ADO.BL.Services
             try
             {                
                 string inputFolder = _AssetsDirectoryPath;
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").OrderBy(f => f).ToArray())
                 {
                     string[] fileLines = File.ReadAllLines(filePath);
                     List<AllAsset> AssetsListData = new List<AllAsset>();

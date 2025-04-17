@@ -39,15 +39,42 @@ namespace ADO.BL.Services
             try
             {
                 var lacQueueList = new List<LacQueueDTO>();
+
+                var listStatusTc1 = new List<StatusFileDTO>();
+
+                var listEnds = new List<string>()
+                {
+                    "_Correct",
+                    "_Error"
+                };
+
                 foreach (var filePath in Directory.GetFiles(_assetsDirectoryPath, "*.csv")
                                         .Where(file => !file.EndsWith("_Correct.csv")
                                                         && !file.EndsWith("_Error.csv"))
-                                        .ToList()
+                                        .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    var nameTemp = fileName;
+
+                    foreach (var item1 in listEnds)
+                    {
+                        nameTemp = nameTemp.Replace(item1, "");
+                    }
+
+                    var UnitStatusTc1 = new StatusFileDTO()
+                    {
+                        FileName = fileName
+                    };
+                    var exist = listStatusTc1.FirstOrDefault(x => x.FileName == UnitStatusTc1.FileName);
+                    if (exist == null)
+                    {
+                        listStatusTc1.Add(UnitStatusTc1);
+                    }
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -129,7 +156,8 @@ namespace ADO.BL.Services
                     }
                 }
 
-                var files = Directory.GetFiles(_assetsDirectoryPath, "*_Correct.csv");  // OJO TOCA ESTANDARIZAR!!!
+                var files = Directory.GetFiles(_assetsDirectoryPath, "*_Correct.csv").OrderBy(f => f)
+                     .ToArray();  // OJO TOCA ESTANDARIZAR!!!
 
                 foreach (var filePath in files)
                 {
@@ -137,7 +165,7 @@ namespace ADO.BL.Services
                     Console.WriteLine($"Archivo {filePath} subido exitosamente.");
                 }
 
-                var subgroupMap = mapper.Map<List<QueueStatusTc1>>(lacQueueList);
+                var subgroupMap = mapper.Map<List<QueueStatusTc1>>(listStatusTc1);
                 foreach (var item in subgroupMap)
                 {
                     item.Status = 4;

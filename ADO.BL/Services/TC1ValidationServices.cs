@@ -47,7 +47,8 @@ namespace ADO.BL.Services
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
                                         .Where(file => !file.EndsWith("_Correct.csv")
                                                         && !file.EndsWith("_Error.csv"))
-                                        .ToList()
+                                        .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
                     var dataTable = new DataTable();

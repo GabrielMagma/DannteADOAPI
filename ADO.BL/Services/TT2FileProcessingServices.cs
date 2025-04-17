@@ -38,19 +38,49 @@ namespace ADO.BL.Services
             try
             {
                 var lacQueueList = new List<LacQueueDTO>();
+                var listStatusTt2 = new List<StatusFileDTO>();
+
+                var listEnds = new List<string>()
+                {
+                    "_Correct",
+                    "_Error",
+                    "_Correct_completed",
+                    "_Correct_completed_insert",
+                    "_Correct_completed_check",
+                    "_Correct_completed_update"
+                };
 
                 foreach (var filePath in Directory.GetFiles(_tt2DirectoryPath, "*.csv")
                     .Where(file => !file.EndsWith("_Correct.csv")
                     && !file.EndsWith("_Error.csv")
+                    && !file.EndsWith("_completed.csv")
                     && !file.EndsWith("_insert.csv")
                     && !file.EndsWith("_check.csv")
                     && !file.EndsWith("_update.csv"))
-                    .ToList()
+                    .ToList().OrderBy(f => f)
+                     .ToArray()
                     )
                 {
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    var nameTemp = fileName;
+
+                    foreach (var item1 in listEnds)
+                    {
+                        nameTemp = nameTemp.Replace(item1, "");
+                    }
+
+                    var UnitStatusTt2 = new StatusFileDTO()
+                    {
+                        FileName = fileName                        
+                    };
+                    var exist = listStatusTt2.FirstOrDefault(x => x.FileName == UnitStatusTt2.FileName);
+                    if (exist == null)
+                    {
+                        listStatusTt2.Add(UnitStatusTt2);
+                    }
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -137,7 +167,7 @@ namespace ADO.BL.Services
                 var completed4 = await ReadTt2Update();
                 Console.WriteLine(completed4);
 
-                var subgroupMap = mapper.Map<List<QueueStatusTt2>>(lacQueueList);
+                var subgroupMap = mapper.Map<List<QueueStatusTt2>>(listStatusTt2);
                 foreach (var item in subgroupMap)
                 {
                     item.Status = 4;
@@ -177,7 +207,8 @@ namespace ADO.BL.Services
                     .Where(file => !file.EndsWith("_insert.csv") &&
                                    !file.EndsWith("_check.csv") &&
                                    !file.EndsWith("_update.csv"))
-                    .ToList();
+                    .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 if (!originalFiles.Any())
                 {
@@ -191,7 +222,8 @@ namespace ADO.BL.Services
                 }
 
                 // Procesar archivos *_check.csv
-                var checkFiles = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").ToList();
+                var checkFiles = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").ToList().OrderBy(f => f)
+                     .ToArray();
                 if (!checkFiles.Any())
                 {
                     return ("No se encontraron archivos *_check.csv para verificar.");
@@ -204,7 +236,8 @@ namespace ADO.BL.Services
                 }
 
                 // Procesar archivos *_insert.csv
-                var insertFiles = Directory.GetFiles(_tt2DirectoryPath, "*_insert.csv").ToList();
+                var insertFiles = Directory.GetFiles(_tt2DirectoryPath, "*_insert.csv").ToList().OrderBy(f => f)
+                     .ToArray();
                 if (!insertFiles.Any())
                 {
                     return ("No se encontraron archivos *_insert.csv para insertar.");
@@ -229,7 +262,8 @@ namespace ADO.BL.Services
             try
             {
                 // Obtener todos los archivos *_create.csv
-                var createFiles = Directory.GetFiles(_tt2DirectoryPath, "*_create.csv");
+                var createFiles = Directory.GetFiles(_tt2DirectoryPath, "*_create.csv").OrderBy(f => f)
+                     .ToArray();
                 if (!createFiles.Any())
                 {
                     return ("No se encontraron archivos *_create.csv para procesar.");
@@ -254,7 +288,8 @@ namespace ADO.BL.Services
             try
             {
                 // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_tt2DirectoryPath, "*_update.csv");
+                var files = Directory.GetFiles(_tt2DirectoryPath, "*_update.csv").OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {

@@ -107,7 +107,8 @@ namespace ADO.BL.Services
                                    && !file.EndsWith("_continuesInvalid.csv")
                                    && !file.EndsWith("_closed.csv")
                                    && !file.EndsWith("_closedInvalid.csv"))
-                    .ToList();
+                    .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {

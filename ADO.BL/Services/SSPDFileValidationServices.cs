@@ -109,7 +109,8 @@ namespace ADO.BL.Services
                                   && !file.EndsWith("_closedInvalid.csv")
                                   && !file.EndsWith("_delete.csv")
                                   && !file.EndsWith("_update.csv"))
-                   .ToList();
+                   .ToList().OrderBy(f => f)
+                     .ToArray();
 
                 foreach (var filePath in files)
                 {
