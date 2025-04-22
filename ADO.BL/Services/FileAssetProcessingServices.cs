@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ADO.BL.Services
 {
@@ -42,7 +43,7 @@ namespace ADO.BL.Services
                 var statusFileList = new List<StatusFileDTO>();
                 var assetListCreate = new List<AllAssetDTO>();
                 var listDataStringUpdate = new StringBuilder();
-                var updatesList = new List<string>();
+                var updatesList = new List<AssetDTO>();
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").Where(file => !file.EndsWith("_Error.csv")).ToList().OrderBy(f => f).ToArray())
@@ -144,7 +145,12 @@ namespace ADO.BL.Services
                         foreach (var item in fileLines)
                         {
                             var valueLines = item.Split(',');
-                            updatesList.Add($"update public.all_asset set state = 3, date_unin = '{DateOnly.Parse(valueLines[1])}' where uia = '{valueLines[0]}'");
+                            var updateAssetUnit = new AssetDTO()
+                            {
+                                Uia = valueLines[0],
+                                DateInst = DateOnly.Parse(valueLines[1])
+                            };
+                            updatesList.Add(updateAssetUnit);                                
                         }
                     }
 
@@ -197,26 +203,35 @@ namespace ADO.BL.Services
                 {
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
-                        connection.Open();                        
-                        foreach (var item in updatesList)
+                        await connection.OpenAsync();
+
+                        using (var transaction = await connection.BeginTransactionAsync())
                         {
-                            using (var reader = new NpgsqlCommand(item, connection))
+                            var updateQuery = new StringBuilder();
+                            updateQuery.Append("WITH update_values (uia, date_unin) AS (VALUES ");
+
+                            for (int i = 0; i < updatesList.Count; i++)
                             {
-                                try
-                                {
-                                    await reader.ExecuteReaderAsync();
-                                }
-                                catch (NpgsqlException ex)
-                                {
-                                    Console.WriteLine(ex.Message);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.WriteLine(ex.Message);
-                                }
+                                if (i > 0) updateQuery.Append(",");
+                                updateQuery.Append($"(@uia{i}, @dateUnin{i})");
                             }
+
+                            updateQuery.Append(") ");
+                            updateQuery.Append("UPDATE public.all_asset SET state = 3, date_unin = uv.date_unin ");
+                            updateQuery.Append("FROM update_values uv ");
+                            updateQuery.Append("WHERE public.all_asset.uia = uv.uia;");
+
+                            var updateCommand = new NpgsqlCommand(updateQuery.ToString(), connection);
+
+                            for (int i = 0; i < updatesList.Count; i++)
+                            {                                
+                                updateCommand.Parameters.AddWithValue($"@uia{i}", NpgsqlTypes.NpgsqlDbType.Varchar, updatesList[i].Uia);                                
+                                updateCommand.Parameters.AddWithValue($"@dateUnin{i}", NpgsqlTypes.NpgsqlDbType.Date, updatesList[i].DateInst ?? (object)DBNull.Value);
+                            }
+
+                            await updateCommand.ExecuteNonQueryAsync();
+                            await transaction.CommitAsync();
                         }
-                        
 
                     }
                 }

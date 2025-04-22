@@ -137,12 +137,6 @@ namespace ADO.BL.Services
                                 RegisterError(dataTableError, item, count, message);
                             }
 
-                            //else if (valueLines[eventCode] == "NA" && (valueLines[startDate] != "" || valueLines[endDate] != "" || valueLines[eventContinues] != ""))
-                            //{
-                            //    message = "Error de la data, no está llena correctamente";
-                            //    RegisterError(dataTableError, item, count, message);
-                            //}
-
                             else if (valueLines[eventCode] != "NA" && (valueLines[startDate] == "" && valueLines[endDate] == ""))
                             {
                                 message = "Error de la data, no está llena correctamente";
