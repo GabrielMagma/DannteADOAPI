@@ -38,6 +38,7 @@ namespace ADO.BL.Services
             try
             {                
                 var errorResponse = new ResponseEntity<List<StatusFileDTO>>();
+                
                 var errorFile = await _Itt2ValidationServices.ValidationTT2(request, errorResponse);
                 if (errorFile.Success == false)
                 {
@@ -50,7 +51,7 @@ namespace ADO.BL.Services
                 {
                     var completed1 = await BeginProcess();
                     Console.WriteLine(completed1);
-                    
+
 
                     var subgroupMap = mapper.Map<List<QueueStatusTt2>>(errorFile.Data);
                     
@@ -148,7 +149,8 @@ namespace ADO.BL.Services
 
                             foreach (var (uia, originalLine) in batchUias)
                             {
-                                var codeSig = codeSigMap.ContainsKey(uia) ? codeSigMap[uia] : "N/A";
+                                var valueLines = originalLine.Split(';', ',');
+                                var codeSig = codeSigMap.ContainsKey(uia) ? codeSigMap[uia] : valueLines[1];
                                 completedLines.Add($"{codeSig};{originalLine}");
                             }
 

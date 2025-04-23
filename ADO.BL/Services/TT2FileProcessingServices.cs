@@ -577,8 +577,8 @@ namespace ADO.BL.Services
                 {
                     CodeSig = values.ElementAtOrDefault(0) ?? "-1",
                     Uia = values.ElementAtOrDefault(1) ?? "-1",
-                    State = values.ElementAtOrDefault(2) ?? "2",
-                    DateInst = values.ElementAtOrDefault(10) ?? null,
+                    State = values.ElementAtOrDefault(10) ?? "2",
+                    DateInst = values.ElementAtOrDefault(12) ?? null,
                     OriginalLine = line
                 };
             }).ToList();

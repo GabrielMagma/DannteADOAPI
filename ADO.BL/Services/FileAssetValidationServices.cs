@@ -115,8 +115,7 @@ namespace ADO.BL.Services
 
                             }
 
-                        }
-                        //var test = await fileAssetModifiedDataAccess.SearchData(listDef);
+                        }                        
 
                         using (var connection = new NpgsqlConnection(_connectionString))
                         {
@@ -295,9 +294,13 @@ namespace ADO.BL.Services
                                     newRowError[1] = rowText;
                                     dataTableError.Rows.Add(newRowError);
                                     continue;
-                                }                                 
+                                }
 
-                                if (assetTemp.Latitude != float.Parse(worksheet1.Cells[row, 6].Text.Trim()))
+                                var latTemp = Math.Round(Decimal.Parse(worksheet1.Cells[row, 6].Text.Trim()), 5);
+
+                                var assetTempLat = Math.Round(Decimal.Parse(assetTemp.Latitude.ToString()), 5);
+
+                                if (assetTempLat != latTemp)
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $"Error en la data en la línea {row}, la latitud no corresponde para esta localización";
@@ -311,7 +314,11 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                if (assetTemp.Longitude != float.Parse(worksheet1.Cells[row, 7].Text.Trim()))
+                                var longTemp = Math.Round(Decimal.Parse(worksheet1.Cells[row, 7].Text.Trim()), 7);
+
+                                var assetTempLong = Math.Round(Decimal.Parse(assetTemp.Longitude.ToString()), 7);
+
+                                if (assetTempLong != longTemp)
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $"Error en la data en la línea {row}, la longitud no corresponde para esta localización";
