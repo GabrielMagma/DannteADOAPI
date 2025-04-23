@@ -184,10 +184,10 @@ namespace ADO.BL.Services
 
                 if (flagValidation)
                 {
-                    response.Message = "files with errors";
+                    response.Message = "files with errors, please update the assets";
                     response.SuccessData = false;
-                    //response.Success = false;
-                    response.Success = true; // cambiar en prod
+                    response.Success = false;
+                    //response.Success = true; // cambiar en prod
                     return response;
 
                 }

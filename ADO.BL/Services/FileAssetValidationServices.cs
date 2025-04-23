@@ -9,6 +9,7 @@ using Npgsql;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -92,6 +93,7 @@ namespace ADO.BL.Services
                         dataTableUpdate.Columns.Add("C2");
 
                         var listDataString = new StringBuilder();
+                        //var listDataString = string.Empty;
                         var listDataStringUpdate = new StringBuilder();
 
                         for (int row = 3; row <= worksheet1.Dimension.End.Row; row++)
@@ -104,13 +106,16 @@ namespace ADO.BL.Services
                                     continue;
                                 }
                                 listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "")}',");
+                                //listDataString.Concat($"'{codeSigDoc.Trim().Replace(" ", "")}',");
                                 if (codeSigDoc[0] == '0')
-                                {                                    
-                                    listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0,1)}',");
+                                {
+                                    listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0, 1)}',");
+                                    //listDataString.Concat($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0, 1)}',");
                                 }
                                 else
-                                {                                    
+                                {
                                     listDataString.Append($"'0{codeSigDoc.Trim().Replace(" ", "")}',");
+                                    //listDataString.Concat($"'0{codeSigDoc.Trim().Replace(" ", "")}',");
                                 }
 
                             }
@@ -120,6 +125,32 @@ namespace ADO.BL.Services
                         using (var connection = new NpgsqlConnection(_connectionString))
                         {
                             connection.Open();
+
+                            #region temporal
+                            //var createTempTableSql = @"
+                            //CREATE TEMP TABLE temp_asset_codes (
+                            //    code_sig text PRIMARY KEY
+                            //) ON COMMIT DROP";
+
+                            //using (var cmd = new NpgsqlCommand(createTempTableSql, connection))
+                            //{
+                            //    await cmd.ExecuteNonQueryAsync();
+                            //}
+
+                            //// Paso 2: Carga masiva de datos usando COPY (el método más rápido)
+                            //var codes = listDataString.TrimEnd(',').Split(',');
+                            //using (var writer = connection.BeginTextImport(
+                            //    @"COPY temp_asset_codes (code_sig) FROM STDIN (FORMAT binary)"))
+                            //{
+                            //    foreach (var code in codes)
+                            //    {
+                            //        await writer.WriteLineAsync(code);
+                            //    }
+                                
+                            //}
+
+                            #endregion
+                            #region tempAnterior
                             var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);
                             var SelectQuery = $@"SELECT id, code_sig, uia, fparent, date_inst, latitude, longitude, poblation, group015, year, month,
                                                  id_locality, name_locality, id_zone, name_zone, geographical_code, id_sector, name_sector
@@ -132,11 +163,11 @@ namespace ADO.BL.Services
                                     using (var result = await reader.ExecuteReaderAsync())
                                     {
                                         while (await result.ReadAsync())
-                                        {                                            
+                                        {
                                             var temp = new AllAssetDTO();
                                             temp.Id = long.Parse(result[0].ToString());
                                             temp.CodeSig = result[1].ToString();
-                                            temp.Uia = result[2].ToString();                                            
+                                            temp.Uia = result[2].ToString();
                                             temp.Fparent = result[3].ToString();
                                             if (!string.IsNullOrEmpty(result[4].ToString()))
                                             {
@@ -168,7 +199,47 @@ namespace ADO.BL.Services
                                 {
                                     Console.WriteLine(ex.Message);
                                 }
-                            }                            
+                            }
+                            #endregion
+
+                            //var selectQuery = @"
+                            //        SELECT a.id, a.code_sig, a.uia, a.fparent, a.date_inst, 
+                            //               a.latitude, a.longitude, a.poblation, a.group015, 
+                            //               a.year, a.month, a.id_locality, a.name_locality, 
+                            //               a.id_zone, a.name_zone, a.geographical_code, 
+                            //               a.id_sector, a.name_sector
+                            //        FROM public.all_asset a
+                            //        JOIN temp_asset_codes t ON a.code_sig = t.code_sig";
+
+                            //await using (var command = new NpgsqlCommand(selectQuery, connection))
+                            //await using (var reader = await command.ExecuteReaderAsync())
+                            //{
+                            //    while (await reader.ReadAsync())
+                            //    {
+                            //        var temp = new AllAssetDTO
+                            //        {
+                            //            Id = reader.GetInt64(0),
+                            //            CodeSig = reader.GetString(1),
+                            //            Uia = reader.GetString(2),
+                            //            Fparent = reader.GetString(3),
+                            //            DateInst = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4)),
+                            //            Latitude = reader.GetFloat(5),
+                            //            Longitude = reader.GetFloat(6),
+                            //            Poblation = reader.GetString(7),
+                            //            Group015 = reader.GetString(8),
+                            //            Year = reader.GetInt32(9),
+                            //            Month = reader.GetInt32(10),
+                            //            IdLocality = reader.GetInt64(11),
+                            //            NameLocality = reader.GetString(12),
+                            //            IdZone = reader.GetInt64(13),
+                            //            NameZone = reader.GetString(14),
+                            //            GeographicalCode = reader.GetInt64(15),
+                            //            IdSector = reader.GetInt64(16),
+                            //            NameSector = reader.GetString(17)
+                            //        };
+                            //        assetList.Add(temp);
+                            //    }
+                            //}
 
                             var fparentQuery = $@"SELECT a.fparent, a.id_region, b.name_region FROM maps.mp_fparent as a
                                                 inner join maps.mp_region as b
@@ -314,9 +385,9 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var longTemp = Math.Round(Decimal.Parse(worksheet1.Cells[row, 7].Text.Trim()), 7);
+                                var longTemp = Math.Round(Decimal.Parse(worksheet1.Cells[row, 7].Text.Trim()), 5);
 
-                                var assetTempLong = Math.Round(Decimal.Parse(assetTemp.Longitude.ToString()), 7);
+                                var assetTempLong = Math.Round(Decimal.Parse(assetTemp.Longitude.ToString()), 5);
 
                                 if (assetTempLong != longTemp)
                                 {

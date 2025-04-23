@@ -43,18 +43,18 @@ namespace ADO.BL.Services
                 var errorFileCreate = await fileTT2Services.ValidationTT2(responseFileCreate);
                 if (errorFileCreate.Success == false)
                 {
-                    response.Message = "Archivo con errores";
+                    response.Message = errorFileCreate.Message;
                     response.SuccessData = false;
-                    response.Success = true;
+                    response.Success = false;
                     return response;
                 }
                 var errorResponse = new ResponseEntity<List<StatusFileDTO>>();                
                 var errorFile = await _Itt2ValidationServices.ValidationTT2(request, errorResponse);
                 if (errorFile.Success == false)
                 {
-                    response.Message = "Archivo con errores";
+                    response.Message = errorFile.Message;
                     response.SuccessData = false;
-                    response.Success = true;
+                    response.Success = false;
                     return response;
                 }
                 else
