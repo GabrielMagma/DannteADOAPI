@@ -16,11 +16,13 @@ namespace ADO.BL.Services
         private readonly IConfiguration _configuration;
         private readonly string[] _timeFormats;
         private readonly string _TT2FixDirectoryPath;
+        private readonly string _connectionString;
         public FileTT2ValidationServices(IConfiguration configuration)
         {
+            _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
-            _TT2FixDirectoryPath = configuration["TT2FIXDirectoryPath"];
+            _TT2FixDirectoryPath = configuration["TT2DirectoryPath"];
         }
 
         public async Task<ResponseQuery<bool>> ValidationTT2(ResponseQuery<bool> response)
@@ -28,8 +30,8 @@ namespace ADO.BL.Services
             try
             {
 
-                string inputFolder = _TT2FixDirectoryPath;                                                
-
+                string inputFolder = _TT2FixDirectoryPath;
+                var flagValidation = false;
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").OrderBy(f => f)
                      .ToArray())
                 {
@@ -65,9 +67,7 @@ namespace ADO.BL.Services
                         {
                             listDataString.Append($"'{valueLinesTemp[0]}',");
                         }
-                    }
-
-                    var _connectionString = "Host=89.117.149.219;Port=5432;Username=postgres;Password=DannteEssa2024;Database=DannteEssaTesting";
+                    }                    
 
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
@@ -102,35 +102,62 @@ namespace ADO.BL.Services
                         }
                     }
 
+                    var ends = new List<string>()
+                    {
+                        "CODIGO TRANSFORMADOR",
+                        "COD_CREG",
+                        "Codigo_Transformador",
+                    };
 
                     foreach (var item in fileLines)
                     {
                         var valueLines = item.Split(';', ',');
 
-                        if (valueLines[0] != "CODIGO TRANSFORMADOR")
+                        if (!ends.Contains(valueLines[0].Replace("ó", "o")))
                         {
                             
-
                             var codesigTemp = allAssetList.FirstOrDefault(x => x.Uia == valueLines[0]);
 
                             if (codesigTemp != null)
                             {
-                                var newRow = dataTable.NewRow();
-                                newRow[0] = valueLines[0];
-                                newRow[1] = codesigTemp.Code_sig;
-                                newRow[2] = valueLines[1];
-                                newRow[3] = valueLines[2];
-                                newRow[4] = valueLines[3];
-                                newRow[5] = valueLines[4];
-                                newRow[6] = valueLines[5];
-                                newRow[7] = valueLines[6];
-                                newRow[8] = valueLines[7];
-                                newRow[9] = valueLines[8];
-                                newRow[10] = valueLines[9];
-                                newRow[11] = valueLines[10];
-                                newRow[12] = valueLines[11];                                
+                                if (valueLines.Length == 12) {
+                                    var newRow = dataTable.NewRow();
+                                    newRow[0] = valueLines[0];
+                                    newRow[1] = codesigTemp.Code_sig;
+                                    newRow[2] = valueLines[1];
+                                    newRow[3] = valueLines[2];
+                                    newRow[4] = valueLines[3];
+                                    newRow[5] = valueLines[4];
+                                    newRow[6] = valueLines[5];
+                                    newRow[7] = valueLines[6];
+                                    newRow[8] = valueLines[7];
+                                    newRow[9] = valueLines[8];
+                                    newRow[10] = valueLines[9];
+                                    newRow[11] = valueLines[10];
+                                    newRow[12] = valueLines[11];
 
-                                dataTable.Rows.Add(newRow);
+                                    dataTable.Rows.Add(newRow);
+                                }
+                                else
+                                {
+                                    var newRow = dataTable.NewRow();
+                                    newRow[0] = valueLines[0];
+                                    newRow[1] = valueLines[1];
+                                    newRow[2] = valueLines[2];
+                                    newRow[3] = valueLines[3];
+                                    newRow[4] = valueLines[4];
+                                    newRow[5] = valueLines[5];
+                                    newRow[6] = valueLines[6];
+                                    newRow[7] = valueLines[7];
+                                    newRow[8] = valueLines[8];
+                                    newRow[9] = valueLines[9];
+                                    newRow[10] = valueLines[10];
+                                    newRow[11] = valueLines[11];
+                                    newRow[12] = valueLines[12];
+
+                                    dataTable.Rows.Add(newRow);
+                                }
+                                
                             }
                             else
                             {
@@ -146,20 +173,31 @@ namespace ADO.BL.Services
                     {
                         createCSV(dataTable, filePath);
                     }
-
+                    
                     if (dataTableError.Rows.Count > 0)
                     {
+                        flagValidation = true;
                         createCSVError(dataTableError, filePath);
                     }
 
                 }
 
-                
-                                
-                response.Message = "All files are created";
-                response.SuccessData = true;
-                response.Success = true;
-                return response;
+                if (flagValidation)
+                {
+                    response.Message = "files with errors";
+                    response.SuccessData = false;
+                    //response.Success = false;
+                    response.Success = true; // cambiar en prod
+                    return response;
+
+                }
+                else
+                {
+                    response.Message = "All files created";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
 
             }
             catch (FormatException ex)

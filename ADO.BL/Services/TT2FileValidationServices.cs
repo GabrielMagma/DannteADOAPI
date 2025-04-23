@@ -19,11 +19,12 @@ namespace ADO.BL.Services
         private readonly ITT2ValidationServices _Itt2ValidationServices;        
         private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
-
+        readonly IFileTT2ValidationServices fileTT2Services;
         public TT2FileValidationServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,            
             IStatusFileDataAccess _statusFileEssaDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IFileTT2ValidationServices _fileTT2Services)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _tt2DirectoryPath = configuration["TT2DirectoryPath"];
@@ -31,14 +32,23 @@ namespace ADO.BL.Services
             _Itt2ValidationServices = Itt2ValidationServices;            
             statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
+            fileTT2Services = _fileTT2Services;
         }
 
         public async Task<ResponseQuery<List<string>>> CompleteTT2Originals(TT2ValidationDTO request, ResponseQuery<List<string>> response)
         {
             try
-            {                
-                var errorResponse = new ResponseEntity<List<StatusFileDTO>>();
-                
+            {
+                ResponseQuery<bool> responseFileCreate = new ResponseQuery<bool>();
+                var errorFileCreate = await fileTT2Services.ValidationTT2(responseFileCreate);
+                if (errorFileCreate.Success == false)
+                {
+                    response.Message = "Archivo con errores";
+                    response.SuccessData = false;
+                    response.Success = true;
+                    return response;
+                }
+                var errorResponse = new ResponseEntity<List<StatusFileDTO>>();                
                 var errorFile = await _Itt2ValidationServices.ValidationTT2(request, errorResponse);
                 if (errorFile.Success == false)
                 {

@@ -255,7 +255,10 @@ namespace ADO.BL.Services
                 "_update",
                 "_insert",
                 "_check",
-                "_update"
+                "_update",
+                "_Fixed",
+                "_create",
+                "_errorCodeSig",
             };
 
             var listStatusAssets = new List<QueueStatusAsset>();

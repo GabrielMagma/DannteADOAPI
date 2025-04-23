@@ -53,12 +53,15 @@ namespace ADO.BL.Services
                     fecha = request.columns.Fecha - 1;
                 }
                 var statusFileList = new List<StatusFileDTO>();
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
-                    .Where(file => !file.EndsWith("*_Correct.csv") 
-                    && !file.EndsWith("*_Error.csv")
-                    && !file.EndsWith("*_insert.csv") 
-                    && !file.EndsWith("*_check.csv") 
-                    && !file.EndsWith("*_update.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*_Fixed.csv")
+                    .Where(file => !file.EndsWith("_Correct.csv") 
+                    && !file.EndsWith("_Error.csv")
+                    && !file.EndsWith("_completed.csv")
+                    && !file.EndsWith("_insert.csv") 
+                    && !file.EndsWith("_check.csv")
+                    && !file.EndsWith("_create.csv")
+                    && !file.EndsWith("_errorCodeSig.csv")
+                    && !file.EndsWith("_update.csv"))
                     .ToList().OrderBy(f => f)
                      .ToArray()
                     )
@@ -233,24 +236,13 @@ namespace ADO.BL.Services
                                 }
 
                                 var assetTemp = assetList.FirstOrDefault(x => x.CodeSig == valueLines[1]);
-                                int countDecLat = 7;
+                                int countDecLat = 5;
                                 var latTemp = Math.Round(Decimal.Parse(valueLines[latitud]), countDecLat);
-                                int countDecLong = 7;
+                                int countDecLong = 5;
                                 var longTemp = Math.Round(Decimal.Parse(valueLines[longitud]), countDecLong);
 
                                 if (assetTemp != null)
-                                {
-                                    
-                                    //if (assetTemp.Latitude.ToString().Contains("."))
-                                    //{
-                                    //    countDecLat = assetTemp.Latitude.ToString().Split('.')[1].Length;
-                                    //}
-
-                                    
-                                    //if (assetTemp.Longitude.ToString().Contains("."))
-                                    //{
-                                    //    countDecLong = assetTemp.Longitude.ToString().Split('.')[1].Length;
-                                    //}
+                                {                                    
 
                                     latTemp = Math.Round(Decimal.Parse(valueLines[latitud]), countDecLat);
 

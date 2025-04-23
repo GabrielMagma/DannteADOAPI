@@ -42,20 +42,25 @@ namespace ADO.BL.Services
 
                 var listEnds = new List<string>()
                 {
-                    "_Correct",
+                    "_Fixed",
                     "_Error",
-                    "_Correct_completed",
-                    "_Correct_completed_insert",
-                    "_Correct_completed_check",
-                    "_Correct_completed_update"
+                    "_Correct",                    
+                    "_completed",
+                    "_insert",
+                    "_create",
+                    "_check",
+                    "_update",
+                    "_errorCodeSig",
                 };
 
                 foreach (var filePath in Directory.GetFiles(_tt2DirectoryPath, "*.csv")
                     .Where(file => !file.EndsWith("_Correct.csv")
                     && !file.EndsWith("_Error.csv")
+                    && !file.EndsWith("_create.csv")
                     && !file.EndsWith("_completed.csv")
                     && !file.EndsWith("_insert.csv")
                     && !file.EndsWith("_check.csv")
+                    && !file.EndsWith("_errorCodeSig.csv")
                     && !file.EndsWith("_update.csv"))
                     .ToList().OrderBy(f => f)
                      .ToArray()
@@ -554,6 +559,15 @@ namespace ADO.BL.Services
             var createLines = new List<string>();
             var missingCodeSigLines = new List<string>();
 
+            // Extraer el nombre del archivo sin la extensión
+            var fileName = Path.GetFileNameWithoutExtension(insertFilePath);            
+
+            // Obtener los primeros 4 dígitos como el año
+            int yearTemp = int.Parse(fileName.Substring(0, 4));
+
+            // Obtener los siguientes 2 dígitos como el mes
+            int monthTemp = int.Parse(fileName.Substring(4, 2));
+
             // Leer el archivo _insert.csv
             var insertLines = new List<string>();
             using (var reader = new StreamReader(insertFilePath))
@@ -577,7 +591,7 @@ namespace ADO.BL.Services
                 {
                     CodeSig = values.ElementAtOrDefault(0) ?? "-1",
                     Uia = values.ElementAtOrDefault(1) ?? "-1",
-                    State = values.ElementAtOrDefault(10) ?? "2",
+                    State = values.ElementAtOrDefault(11) ?? "2",
                     DateInst = values.ElementAtOrDefault(12) ?? null,
                     OriginalLine = line
                 };
@@ -621,7 +635,9 @@ namespace ADO.BL.Services
                                     Uccap14 = reader["uccap14"]?.ToString() ?? "-1",                                    
                                     IdRegion = reader["id_region"] as long? ?? -1,
                                     NameRegion = reader["name_region"]?.ToString() ?? "NO DATA",
-                                    Address = reader["address"]?.ToString() ?? "-1"
+                                    Address = reader["address"]?.ToString() ?? "-1",
+                                    Year = yearTemp,
+                                    Month = monthTemp,
                                 };
 
                                 createAssets.Add(newAsset);
@@ -649,7 +665,7 @@ namespace ADO.BL.Services
                 $"{asset.Latitude},{asset.Longitude},{asset.Poblation},{asset.Group015},{asset.DateInst?.ToString("yyyy-MM-dd")}," +
                 $"{asset.DateUnin:yyyy-MM-dd},{asset.State},{asset.Uccap14}," +
                 $"{asset.IdRegion},{asset.NameRegion}," +
-                $"{asset.Address}"
+                $"{asset.Address}, {asset.Year}, {asset.Month}"
             ).ToList();
 
             // Crear el archivo _create.csv
@@ -701,7 +717,7 @@ namespace ADO.BL.Services
                                 var line = await reader.ReadLineAsync();
                                 var columns = line.Split(new char[] { ';' });
 
-                                if (columns.Length != 23)
+                                if (columns.Length != 18)
                                 {
                                     throw new Exception($"Línea mal formada en {filePath}: {line}");
                                 }
@@ -769,11 +785,17 @@ namespace ADO.BL.Services
 
         private async Task InsertBlockUsingCopy(List<string> lines, NpgsqlConnection connection)
         {
+            //using (var writer = connection.BeginTextImport(@"
+            //COPY public.all_asset (
+            //    type_asset, code_sig, uia, codetaxo, fparent, latitude, longitude, poblation, group015,
+            //    date_inst, date_unin, state, uccap14, id_zone, name_zone, id_region, name_region,
+            //    id_locality, name_locality, id_sector, name_sector, geographical_code, address
+            //) FROM STDIN (FORMAT csv, DELIMITER ';')"))
+
             using (var writer = connection.BeginTextImport(@"
             COPY public.all_asset (
                 type_asset, code_sig, uia, codetaxo, fparent, latitude, longitude, poblation, group015,
-                date_inst, date_unin, state, uccap14, id_zone, name_zone, id_region, name_region,
-                id_locality, name_locality, id_sector, name_sector, geographical_code, address
+                date_inst, date_unin, state, uccap14, id_region, name_region, address, year, month
             ) FROM STDIN (FORMAT csv, DELIMITER ';')"))
             {
                 foreach (var line in lines)
