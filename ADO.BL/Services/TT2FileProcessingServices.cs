@@ -171,6 +171,8 @@ namespace ADO.BL.Services
                 Console.WriteLine(completed3);
                 var completed4 = await ReadTt2Update();
                 Console.WriteLine(completed4);
+                var completed5 = await ReadTt2UpdateCheck();
+                Console.WriteLine(completed5);
 
                 var subgroupMap = mapper.Map<List<QueueStatusTt2>>(listStatusTt2);
                 foreach (var item in subgroupMap)
@@ -410,7 +412,121 @@ namespace ADO.BL.Services
             {
                 throw new Exception($"Error al actualizar lote: {ex.Message}");
             }
-        }        
+        }
+
+        public async Task<string> ReadTt2UpdateCheck()
+        {
+            try
+            {
+                // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
+                var files = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").OrderBy(f => f)
+                     .ToArray();
+
+                foreach (var filePath in files)
+                {
+                    await UpdateAllAssetbyTT2Check(filePath);
+                    Console.WriteLine($"Archivo {filePath} procesado exitosamente.");
+                }
+
+                return ("Proceso completado para todos los archivos.");
+            }
+            catch (Exception ex)
+            {
+                return ($"Error al procesar los archivos: {ex.Message}");
+            }
+        }
+
+        private async Task UpdateAllAssetbyTT2Check(string filePath)
+        {
+
+            var updates = new List<AllAsset>();
+
+            using (var connection = new NpgsqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (var reader = new StreamReader(fileStream, Encoding.UTF8, true))
+                {
+                    int lineNumber = 0;
+                    while (!reader.EndOfStream)
+                    {
+                        var line = await reader.ReadLineAsync();
+                        lineNumber++;
+                        var values = line.Split(new char[] { ',', ';' });
+
+                        try
+                        {
+                            //ESSA
+                            var update = new AllAsset
+                            {
+                                
+                                Uia = values[1],                                
+                                DateInst = !string.IsNullOrEmpty(values[12]) ? ParseDate(values[12]) : (DateOnly?)null
+                            };
+
+
+
+                            updates.Add(update);
+
+                            if (updates.Count >= _batchSize)
+                            {
+                                await UpdateBatchAllAssetbyTT2Check(updates, connection);
+                                updates.Clear();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"Error procesando el archivo {filePath} en la línea {lineNumber}: {ex.Message}");
+                        }
+                    }
+
+                    // Actualizar cualquier remanente que no alcanzó el tamaño del lote
+                    if (updates.Count > 0)
+                    {
+                        await UpdateBatchAllAssetbyTT2Check(updates, connection);
+                    }
+                }
+            }
+        }
+
+        private async Task UpdateBatchAllAssetbyTT2Check(List<AllAsset> updates, NpgsqlConnection connection)
+        {
+            try
+            {
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    var updateQuery = new StringBuilder();
+                    updateQuery.Append("WITH update_values_check (uia, date_inst) AS (VALUES ");
+
+                    for (int i = 0; i < updates.Count; i++)
+                    {
+                        if (i > 0) updateQuery.Append(",");
+                        updateQuery.Append($"(@uia{i}, @dateInst{i})");
+                    }
+
+                    updateQuery.Append(") ");
+                    updateQuery.Append("UPDATE public.all_asset SET date_inst = uv.date_inst ");
+                    updateQuery.Append("FROM update_values_check uv ");
+                    updateQuery.Append("WHERE public.all_asset.uia = uv.uia;");
+
+                    var updateCommand = new NpgsqlCommand(updateQuery.ToString(), connection);
+
+                    for (int i = 0; i < updates.Count; i++)
+                    {                        
+                        updateCommand.Parameters.AddWithValue($"@uia{i}", NpgsqlTypes.NpgsqlDbType.Varchar, updates[i].Uia);                        
+                        updateCommand.Parameters.AddWithValue($"@dateInst{i}", NpgsqlTypes.NpgsqlDbType.Date, updates[i].DateInst ?? (object)DBNull.Value);
+                    }
+
+                    await updateCommand.ExecuteNonQueryAsync();
+                    await transaction.CommitAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al actualizar lote: {ex.Message}");
+            }
+        }
 
         private async Task CreateTT2Files(string filePath)
         {
