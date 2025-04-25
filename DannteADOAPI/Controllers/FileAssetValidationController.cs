@@ -32,11 +32,12 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns> 
         /// 
         [HttpPost]
-        [Route(nameof(FileAssetValidationController.UploadFile))]        
-        public async Task<IActionResult> UploadFile(FileAssetsValidationDTO request)
+        [Route(nameof(FileAssetValidationController.ReadFilesAssets))]        
+        public async Task<IActionResult> ReadFilesAssets(FileAssetsValidationDTO request)
         {
-            ResponseQuery<string> response = new ResponseQuery<string>();
-            await fileAssetValidationServices.UploadFile(request, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "Assest se está Validando");
+            await fileAssetValidationServices.ReadFilesAssets(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);            
         }

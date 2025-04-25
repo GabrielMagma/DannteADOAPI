@@ -10,6 +10,6 @@ namespace ADO.BL.Interfaces
 {
     public interface ITC1FileProcessingServices
     {
-        public Task<ResponseQuery<List<string>>> ReadAssets(TC1ValidationDTO request, ResponseQuery<List<string>> response);
+        public Task<ResponseQuery<bool>> ReadFilesTc1(TC1ValidationDTO request, ResponseQuery<bool> response);
     }
 }

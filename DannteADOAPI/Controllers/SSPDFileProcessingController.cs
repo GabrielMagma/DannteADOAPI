@@ -33,11 +33,12 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(SSPDFileProcessingController.ReadFileSspdOrginal))]
-        public async Task<IActionResult> ReadFileSspdOrginal(LacValidationDTO request)
+        [Route(nameof(SSPDFileProcessingController.ReadFilesSspd))]
+        public async Task<IActionResult> ReadFilesSspd(LacValidationDTO request)
         {
-            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-            await SSPDServices.ReadFileSspdOrginal(request, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "SSPD se está procesando");
+            await SSPDServices.ReadFilesSspd(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);            
         }

@@ -34,7 +34,7 @@ namespace ADO.BL.Services
             
         }
 
-        public async Task<ResponseQuery<List<string>>> ReadAssets(TC1ValidationDTO request, ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<bool>> ReadFilesTc1(TC1ValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {

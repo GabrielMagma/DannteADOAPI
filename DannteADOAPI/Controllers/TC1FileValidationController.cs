@@ -31,12 +31,13 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(TC1FileValidationController.ReadAssets))]
-        public async Task<IActionResult> ReadAssets(TC1ValidationDTO request)
+        [Route(nameof(TC1FileValidationController.ReadFilesTc1))]
+        public async Task<IActionResult> ReadFilesTc1(TC1ValidationDTO request)
         {
 
-            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-            await TC1Services.ReadAssets(request, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "Tc1 se está Validando");
+            await TC1Services.ReadFilesTc1(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
 

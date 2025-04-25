@@ -6,6 +6,6 @@ namespace ADO.BL.Interfaces
 {
     public interface IFileAssetProcessingServices
     {
-        public Task<ResponseQuery<string>> UploadFile(FileAssetsValidationDTO request, ResponseQuery<string> response);
+        public Task<ResponseQuery<bool>> ReadFilesAssets(FileAssetsValidationDTO request, ResponseQuery<bool> response);
     }
 }

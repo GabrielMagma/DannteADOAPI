@@ -6,7 +6,7 @@ namespace ADO.BL.Interfaces
     public interface ILacsFileValidationServices
     {
 
-        public Task<ResponseQuery<List<string>>> ReadFileLacOrginal(LacValidationDTO request, ResponseQuery<List<string>> response);
+        public Task<ResponseQuery<bool>> ReadFilesLacs(LacValidationDTO request, ResponseQuery<bool> response);
 
     }
 }

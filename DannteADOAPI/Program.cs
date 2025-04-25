@@ -17,8 +17,11 @@ builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// signalR
 builder.Services.AddSignalR();
 
+// Cors
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
@@ -99,9 +102,11 @@ builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>
 builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();
 builder.Services.AddTransient<IFileAssetModifiedDataAccess, FileAssetModifiedDataAccess>();
 
+// bd connection
 builder.Services.AddDbContext<DannteTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbTestingConnection")));
 
+// swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "DannteADOAPI v1", Version = "v1" });

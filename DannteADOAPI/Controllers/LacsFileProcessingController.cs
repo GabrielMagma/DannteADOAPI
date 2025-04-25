@@ -31,12 +31,13 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(LacsFileProcessingController.ReadFileLacOrginal))]
-        public async Task<IActionResult> ReadFileLacOrginal(LacValidationDTO request)
+        [Route(nameof(LacsFileProcessingController.ReadFilesLacs))]
+        public async Task<IActionResult> ReadFilesLacs(LacValidationDTO request)
         {
 
-            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-            await lacsServices.ReadFileLacOrginal(request, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "Lacs se está procesando");
+            await lacsServices.ReadFilesLacs(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
             

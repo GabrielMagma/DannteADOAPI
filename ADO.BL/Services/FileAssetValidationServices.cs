@@ -38,7 +38,7 @@ namespace ADO.BL.Services
             statusFileDataAccess = _statuFileDataAccess;
         }
 
-        public async Task<ResponseQuery<string>> UploadFile(FileAssetsValidationDTO request, ResponseQuery<string> response)
+        public async Task<ResponseQuery<bool>> ReadFilesAssets(FileAssetsValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {

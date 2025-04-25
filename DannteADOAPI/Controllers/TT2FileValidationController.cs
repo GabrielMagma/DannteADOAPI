@@ -31,11 +31,12 @@ namespace DannteADOAPI.Controllers
         /// <param></param>
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(TT2FileValidationController.CompleteTT2Originals))]
-        public async Task<IActionResult> CompleteTT2Originals(TT2ValidationDTO request)
+        [Route(nameof(TT2FileValidationController.ReadFilesTT2))]
+        public async Task<IActionResult> ReadFilesTT2(TT2ValidationDTO request)
         {
-            ResponseQuery<List<string>> response = new ResponseQuery<List<string>>();
-            await TT2Services.CompleteTT2Originals(request, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "TT2 se está Validando");
+            await TT2Services.ReadFilesTT2(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);            
         }

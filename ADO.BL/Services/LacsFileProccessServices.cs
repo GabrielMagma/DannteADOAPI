@@ -37,7 +37,7 @@ namespace ADO.BL.Services
             mapper = _mapper;
         }
 
-        public async Task<ResponseQuery<List<string>>> ReadFileLacOrginal(LacValidationDTO request, ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<bool>> ReadFilesLacs(LacValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {

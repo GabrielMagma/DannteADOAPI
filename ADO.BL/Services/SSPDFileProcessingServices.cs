@@ -35,7 +35,7 @@ namespace ADO.BL.Services
 
         }
 
-        public async Task<ResponseQuery<List<string>>> ReadFileSspdOrginal(LacValidationDTO request, ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<bool>> ReadFilesSspd(LacValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {

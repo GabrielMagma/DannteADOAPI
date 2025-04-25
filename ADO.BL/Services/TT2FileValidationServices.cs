@@ -35,7 +35,7 @@ namespace ADO.BL.Services
             fileTT2Services = _fileTT2Services;
         }
 
-        public async Task<ResponseQuery<List<string>>> CompleteTT2Originals(TT2ValidationDTO request, ResponseQuery<List<string>> response)
+        public async Task<ResponseQuery<bool>> ReadFilesTT2(TT2ValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {

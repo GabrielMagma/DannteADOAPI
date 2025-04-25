@@ -76,10 +76,10 @@ namespace ADO.BL.Services
             {
                 // assets
 
-                ResponseQuery<string> responseValidationAsset = new ResponseQuery<string>();
+                ResponseQuery<bool> responseValidationAsset = new ResponseQuery<bool>();
                 var requestValidationAsset = new FileAssetsValidationDTO();
                 requestValidationAsset.UserId = request.UserId;
-                responseValidationAsset = await fileAssetValidationServices.UploadFile(requestValidationAsset, responseValidationAsset);
+                responseValidationAsset = await fileAssetValidationServices.ReadFilesAssets(requestValidationAsset, responseValidationAsset);
                 if (!responseValidationAsset.Success)
                 {
                     response.SuccessData = false;
@@ -88,10 +88,10 @@ namespace ADO.BL.Services
                     return response;
                 }
 
-                ResponseQuery<string> responseProcessingAsset = new ResponseQuery<string>();
+                ResponseQuery<bool> responseProcessingAsset = new ResponseQuery<bool>();
                 var requestProcessingAsset = new FileAssetsValidationDTO();
                 requestProcessingAsset.UserId = request.UserId;
-                responseProcessingAsset = await fileAssetProcessingServices.UploadFile(requestProcessingAsset, responseProcessingAsset);
+                responseProcessingAsset = await fileAssetProcessingServices.ReadFilesAssets(requestProcessingAsset, responseProcessingAsset);
                 if (!responseProcessingAsset.Success)
                 {
                     response.SuccessData = false;
@@ -102,10 +102,10 @@ namespace ADO.BL.Services
 
                 // TT2
 
-                ResponseQuery<List<string>> responseValidationTt2 = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseValidationTt2 = new ResponseQuery<bool>();
                 var requestValidationTt2 = new TT2ValidationDTO();
                 requestValidationTt2.UserId = request.UserId;
-                responseValidationTt2 = await TT2ValidationServices.CompleteTT2Originals(requestValidationTt2, responseValidationTt2);
+                responseValidationTt2 = await TT2ValidationServices.ReadFilesTT2(requestValidationTt2, responseValidationTt2);
                 if (!responseValidationTt2.Success)
                 {
                     response.SuccessData = false;
@@ -114,10 +114,10 @@ namespace ADO.BL.Services
                     return response;
                 }
 
-                ResponseQuery<List<string>> responseProcessingTt2 = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseProcessingTt2 = new ResponseQuery<bool>();
                 var requestProcessingTt2 = new TT2ValidationDTO();
                 requestProcessingTt2.UserId = request.UserId;
-                responseProcessingTt2 = await TT2ProcessingServices.CompleteTT2Originals(requestProcessingTt2, responseProcessingTt2);
+                responseProcessingTt2 = await TT2ProcessingServices.ReadFilesTT2(requestProcessingTt2, responseProcessingTt2);
                 if (!responseProcessingTt2.Success)
                 {
                     response.SuccessData = false;
@@ -128,10 +128,10 @@ namespace ADO.BL.Services
 
                 // LAC
 
-                ResponseQuery<List<string>> responseValidationLac = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseValidationLac = new ResponseQuery<bool>();
                 var requestValidationLac = new LacValidationDTO();
                 requestValidationLac.UserId = request.UserId;
-                responseValidationLac = await lacsValidationServices.ReadFileLacOrginal(requestValidationLac, responseValidationLac);
+                responseValidationLac = await lacsValidationServices.ReadFilesLacs(requestValidationLac, responseValidationLac);
                 if (!responseValidationLac.Success)
                 {
                     response.SuccessData = false;
@@ -140,10 +140,10 @@ namespace ADO.BL.Services
                     return response;
                 }
 
-                ResponseQuery<List<string>> responseProcessingLac = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseProcessingLac = new ResponseQuery<bool>();
                 var requestProcessingLac = new LacValidationDTO();
                 requestProcessingLac.UserId = request.UserId;
-                responseProcessingLac = await lacsProcessingServices.ReadFileLacOrginal(requestProcessingLac, responseProcessingLac);
+                responseProcessingLac = await lacsProcessingServices.ReadFilesLacs(requestProcessingLac, responseProcessingLac);
                 if (!responseProcessingLac.Success)
                 {
                     response.SuccessData = false;
@@ -154,52 +154,52 @@ namespace ADO.BL.Services
 
                 // SSPD
 
-                ResponseQuery<List<string>> responseValidationSspd = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseValidationSspd = new ResponseQuery<bool>();
                 var requestValidationSspd = new LacValidationDTO();
                 requestValidationSspd.UserId = request.UserId;
-                responseValidationSspd = await SSPDValidationServices.ReadFileSspdOrginal(requestValidationSspd, responseValidationSspd);
+                responseValidationSspd = await SSPDValidationServices.ReadFilesSspd(requestValidationSspd, responseValidationSspd);
                 if (!responseValidationSspd.Success)
                 {
                     response.SuccessData = false;
-                    response.Message = $"Error in validation Lacs, {responseValidationSspd.Message}";
+                    response.Message = $"Error in validation SSPD, {responseValidationSspd.Message}";
                     response.Success = false;
                     return response;
                 }
 
-                ResponseQuery<List<string>> responseProcessingSspd = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseProcessingSspd = new ResponseQuery<bool>();
                 var requestProcessingSspd = new LacValidationDTO();
                 requestProcessingSspd.UserId = request.UserId;
-                responseProcessingSspd = await SSPDProcessingServices.ReadFileSspdOrginal(requestProcessingSspd, responseProcessingSspd);
+                responseProcessingSspd = await SSPDProcessingServices.ReadFilesSspd(requestProcessingSspd, responseProcessingSspd);
                 if (!responseProcessingSspd.Success)
                 {
                     response.SuccessData = false;
-                    response.Message = $"Error in validation Lacs, {responseProcessingSspd.Message}";
+                    response.Message = $"Error in Processing SSPD, {responseProcessingSspd.Message}";
                     response.Success = false;
                     return response;
                 }
 
                 // TC1
 
-                ResponseQuery<List<string>> responseValidationTc1 = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseValidationTc1 = new ResponseQuery<bool>();
                 var requestValidationTc1 = new TC1ValidationDTO();
                 requestValidationTc1.UserId = request.UserId;
-                responseValidationTc1 = await TC1validationServices.ReadAssets(requestValidationTc1, responseValidationTc1);
+                responseValidationTc1 = await TC1validationServices.ReadFilesTc1(requestValidationTc1, responseValidationTc1);
                 if (!responseValidationTc1.Success)
                 {
                     response.SuccessData = false;
-                    response.Message = $"Error in validation Lacs, {responseValidationTc1.Message}";
+                    response.Message = $"Error in validation TC1, {responseValidationTc1.Message}";
                     response.Success = false;
                     return response;
                 }
 
-                ResponseQuery<List<string>> responseProcessingTc1 = new ResponseQuery<List<string>>();
+                ResponseQuery<bool> responseProcessingTc1 = new ResponseQuery<bool>();
                 var requestProcessingTc1 = new TC1ValidationDTO();
                 requestProcessingTc1.UserId = request.UserId;
-                responseProcessingTc1 = await TC1ProcessingServices.ReadAssets(requestProcessingTc1, responseProcessingTc1);
+                responseProcessingTc1 = await TC1ProcessingServices.ReadFilesTc1(requestProcessingTc1, responseProcessingTc1);
                 if (!responseProcessingTc1.Success)
                 {
                     response.SuccessData = false;
-                    response.Message = $"Error in validation Lacs, {responseProcessingTc1.Message}";
+                    response.Message = $"Error in Processing TC1, {responseProcessingTc1.Message}";
                     response.Success = false;
                     return response;
                 }

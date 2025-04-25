@@ -10,6 +10,6 @@ namespace ADO.BL.Interfaces
 {
     public interface ITT2FileValidationServices
     {
-        public Task<ResponseQuery<List<string>>> CompleteTT2Originals(TT2ValidationDTO request, ResponseQuery<List<string>> response);
+        public Task<ResponseQuery<bool>> ReadFilesTT2(TT2ValidationDTO request, ResponseQuery<bool> response);
     }
 }

@@ -6,7 +6,7 @@ namespace ADO.BL.Interfaces
     public interface ISSPDFileValidationServices
     {
 
-        public Task<ResponseQuery<List<string>>> ReadFileSspdOrginal(LacValidationDTO request, ResponseQuery<List<string>> response);
+        public Task<ResponseQuery<bool>> ReadFilesSspd(LacValidationDTO request, ResponseQuery<bool> response);
 
     }
 }
