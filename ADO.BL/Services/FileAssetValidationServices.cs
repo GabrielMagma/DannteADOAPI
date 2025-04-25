@@ -78,7 +78,7 @@ namespace ADO.BL.Services
                         statusFilesingle.Month = month;
                         statusFilesingle.Day = 1;
                         statusFilesingle.Status = 1;
-                        statusFilesingle.DateRegister = DateOnly.Parse($"1-{year}-{month}");
+                        statusFilesingle.DateRegister = ParseDate($"1/{month}/{year}");                         
 
                         // columnas tablas
                         dataTableError.Columns.Add("C1");
@@ -93,7 +93,7 @@ namespace ADO.BL.Services
                         dataTableUpdate.Columns.Add("C2");
 
                         var listDataString = new StringBuilder();
-                        //var listDataString = string.Empty;
+                        //var listDataString = new List<string>();
                         var listDataStringUpdate = new StringBuilder();
 
                         for (int row = 3; row <= worksheet1.Dimension.End.Row; row++)
@@ -106,16 +106,16 @@ namespace ADO.BL.Services
                                     continue;
                                 }
                                 listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "")}',");
-                                //listDataString.Concat($"'{codeSigDoc.Trim().Replace(" ", "")}',");
+                                //listDataString.Add($"'{codeSigDoc.Trim().Replace(" ", "")}'");                                    
                                 if (codeSigDoc[0] == '0')
                                 {
                                     listDataString.Append($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0, 1)}',");
-                                    //listDataString.Concat($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0, 1)}',");
+                                    //listDataString.Add($"'{codeSigDoc.Trim().Replace(" ", "").Remove(0, 1)}'");
                                 }
                                 else
                                 {
                                     listDataString.Append($"'0{codeSigDoc.Trim().Replace(" ", "")}',");
-                                    //listDataString.Concat($"'0{codeSigDoc.Trim().Replace(" ", "")}',");
+                                    //listDataString.Add($"'0{codeSigDoc.Trim().Replace(" ", "")}'");
                                 }
 
                             }
@@ -127,29 +127,26 @@ namespace ADO.BL.Services
                             connection.Open();
 
                             #region temporal
-                            //var createTempTableSql = @"
-                            //CREATE TEMP TABLE temp_asset_codes (
-                            //    code_sig text PRIMARY KEY
-                            //) ON COMMIT DROP";
+                            //var createTempTableCommand = new NpgsqlCommand(
+                            //"CREATE TEMP TABLE temp_asset_codes (code_sig VARCHAR)", connection);
+                            //await createTempTableCommand.ExecuteNonQueryAsync();
 
-                            //using (var cmd = new NpgsqlCommand(createTempTableSql, connection))
-                            //{
-                            //    await cmd.ExecuteNonQueryAsync();
-                            //}
-
-                            //// Paso 2: Carga masiva de datos usando COPY (el método más rápido)
-                            //var codes = listDataString.TrimEnd(',').Split(',');
-                            //using (var writer = connection.BeginTextImport(
+                            //// Paso 2: Carga masiva de datos usando COPY (el método más rápido)                            
+                            //using (var writer = connection.BeginBinaryImport(
                             //    @"COPY temp_asset_codes (code_sig) FROM STDIN (FORMAT binary)"))
                             //{
-                            //    foreach (var code in codes)
+                            //    foreach (var code in listDataString)
                             //    {
-                            //        await writer.WriteLineAsync(code);
+                            //        if (code != "") {
+                            //            writer.StartRow();
+                            //            writer.Write(code, NpgsqlTypes.NpgsqlDbType.Varchar);
+                            //        }
                             //    }
-                                
+
                             //}
 
                             #endregion
+
                             #region tempAnterior
                             var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);
                             var SelectQuery = $@"SELECT id, code_sig, uia, fparent, date_inst, latitude, longitude, poblation, group015, year, month,
@@ -202,6 +199,7 @@ namespace ADO.BL.Services
                             }
                             #endregion
 
+                            #region guardadoTemp
                             //var selectQuery = @"
                             //        SELECT a.id, a.code_sig, a.uia, a.fparent, a.date_inst, 
                             //               a.latitude, a.longitude, a.poblation, a.group015, 
@@ -240,6 +238,7 @@ namespace ADO.BL.Services
                             //        assetList.Add(temp);
                             //    }
                             //}
+                            #endregion
 
                             var fparentQuery = $@"SELECT a.fparent, a.id_region, b.name_region FROM maps.mp_fparent as a
                                                 inner join maps.mp_region as b
@@ -417,8 +416,9 @@ namespace ADO.BL.Services
                                     continue;
                                 }
 
-                                var date = ParseDate(worksheet1.Cells[row, 11].Text);
-                                if (date == DateOnly.Parse("31/12/2099"))
+                                var date = ParseDate($"{worksheet1.Cells[row, 11].Text}");
+                                var date2 = DateOnly.ParseExact($"31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                                if (date == date2)
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $"Error en la data en la línea {row}, la fecha viene en un formato incorrecto";
@@ -477,7 +477,7 @@ namespace ADO.BL.Services
                                 newRow[8] = worksheet1.Cells[row, 9].Text.Trim();
                                 newRow[9] = string.IsNullOrEmpty(worksheet1.Cells[row, 12].Text) ? "-1" : worksheet1.Cells[row, 12].Text.Trim();
                                 newRow[10] = date;
-                                newRow[11] = DateOnly.Parse("31/12/2099");
+                                newRow[11] = ParseDate("31/12/2099");
                                 newRow[12] = stateTemp;
                                 newRow[13] = regionTempFparent == null ? '0' : regionTempFparent.id_region;
                                 newRow[14] = regionTempFparent == null ? "SIN REGION" : regionTempFparent.name_region;
@@ -618,7 +618,7 @@ namespace ADO.BL.Services
                     return parsedDate;
                 }
             }
-            return DateOnly.Parse("31/12/2099");
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
         }
 
         private async Task CreateAsset(StringBuilder data, 
@@ -636,9 +636,9 @@ namespace ADO.BL.Services
 
             var codeSigDoc = dataUnit[1].ToString().Trim();            
 
-            var date = ParseDate(dataUnit[10]);
-
-            if (date == DateOnly.Parse("31/12/2099"))
+            var date = ParseDate($"{dataUnit[10]}");
+            
+            if (date == DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture))
             {
                 var newRowError = dataTableError.NewRow();
                 newRowError[0] = $"Error en la data en la línea {row}, la fecha viene en un formato incorrecto";
@@ -683,7 +683,7 @@ namespace ADO.BL.Services
                 newRow[8] = dataUnit[8].Trim();
                 newRow[9] = string.IsNullOrEmpty(dataUnit[11]) ? "-1" : dataUnit[11].Trim();
                 newRow[10] = date;
-                newRow[11] = DateOnly.Parse("31/12/2099");
+                newRow[11] = ParseDate("31/12/2099");
                 newRow[12] = 2;
                 newRow[13] = regionTempFparent == null ? '0' : regionTempFparent.id_region;
                 newRow[14] = regionTempFparent == null ? "SIN REGION" : regionTempFparent.name_region;
