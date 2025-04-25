@@ -93,7 +93,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
-                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{month}-{year}");
+                    statusFilesingle.DateRegister = ParseDateTemp($"1/{month}/{year}");
 
                     #endregion
 
@@ -437,6 +437,17 @@ namespace ADO.BL.Services
             return $"Error en el formato de fecha {dateString} no es válido.";            
         }
 
-        
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        }
+
     }
 }

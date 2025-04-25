@@ -94,7 +94,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = day;
-                    statusFilesingle.DateRegister = DateOnly.Parse($"{day}-{month}-{year}");
+                    statusFilesingle.DateRegister = ParseDateTemp($"{day}/{month}/{year}");
 
                     
 
@@ -301,7 +301,19 @@ namespace ADO.BL.Services
                     return parsedDate.ToUniversalTime();
                 }
             }
-            return DateTime.Parse("31/12/2099 00:00:00");            
+            return ParseDate("31/12/2099 00:00:00");            
+        }
+
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
         }
 
         private List<string> getYearMonth(string[] lines)
@@ -315,7 +327,7 @@ namespace ADO.BL.Services
                     continue;
                 }
                 var resultDate = ParseDate(valueLines[1]);
-                if (resultDate != DateTime.Parse("31/12/2099 00:00:00"))
+                if (resultDate != ParseDate("31/12/2099 00:00:00"))
                 {
                     // formato fecha "dd/MM/YYYY"
                     var dateTemp = resultDate.ToString().Split('/', ' ');

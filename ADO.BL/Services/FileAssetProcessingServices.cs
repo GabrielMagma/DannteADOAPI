@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
+using System.Globalization;
 using System.Text;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -60,7 +61,7 @@ namespace ADO.BL.Services
                     // Obtener los siguientes 2 dígitos como el mes
                     int month = int.Parse(fileName.Substring(4, 2));
 
-                    var beginDate = DateOnly.Parse($"1/{month}/{year}");
+                    var beginDate = ParseDate($"1/{month}/{year}");
                     var endDate = beginDate.AddMonths(-2);
                     var listDates = new StringBuilder();
                     var listFilesError = new StringBuilder();
@@ -135,7 +136,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
                     statusFilesingle.Status = 4;
-                    statusFilesingle.DateRegister = DateOnly.Parse($"1-{year}-{month}");
+                    statusFilesingle.DateRegister = ParseDate($"1/{month}/{year}");
 
                     #region llenado de campos                                
 
@@ -148,7 +149,7 @@ namespace ADO.BL.Services
                             var updateAssetUnit = new AssetDTO()
                             {
                                 Uia = valueLines[0],
-                                DateInst = DateOnly.Parse(valueLines[1])
+                                DateInst = ParseDate(valueLines[1])
                             };
                             updatesList.Add(updateAssetUnit);                                
                         }
@@ -173,8 +174,8 @@ namespace ADO.BL.Services
                             newEntity.Poblation = valueLines[7];
                             newEntity.Group015 = valueLines[8];
                             newEntity.Uccap14 = valueLines[9];
-                            newEntity.DateInst = DateOnly.Parse(valueLines[10]);
-                            newEntity.DateUnin = DateOnly.Parse(valueLines[11]);
+                            newEntity.DateInst = ParseDate(valueLines[10]);
+                            newEntity.DateUnin = ParseDate(valueLines[11]);
                             newEntity.State = int.Parse(valueLines[12]);
                             newEntity.IdRegion = long.Parse(valueLines[13]);
                             newEntity.NameRegion = valueLines[14];
@@ -285,6 +286,18 @@ namespace ADO.BL.Services
         private async Task SaveData(List<AllAsset> dataList)
         {
             await fileAssetModifiedDataAccess.SaveData(dataList);
-        }        
+        }
+
+        private DateOnly ParseDate(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        }
     }
 }

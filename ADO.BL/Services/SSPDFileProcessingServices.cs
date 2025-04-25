@@ -99,7 +99,7 @@ namespace ADO.BL.Services
                     // Obtener los siguientes 2 dígitos como el mes
                     int month = int.Parse(fileName.Substring(4, 2));
 
-                    var beginDate = DateOnly.Parse($"1/{month}/{year}");
+                    var beginDate = ParseDateTemp($"1/{month}/{year}");
                     var endDate = beginDate.AddMonths(-2);
                     var listDates = new StringBuilder();
                     var listFilesError = new StringBuilder();
@@ -616,5 +616,16 @@ namespace ADO.BL.Services
             }
         }
 
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        }
     }
 }
