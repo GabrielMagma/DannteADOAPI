@@ -31,12 +31,12 @@ namespace DannteADOAPI.Controllers
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(FileIOValidationController.UploadIO))]        
-        public async Task<IActionResult> UploadIO(IOsValidationDTO iosValidation)
+        [Route(nameof(FileIOValidationController.ReadFilesIos))]        
+        public async Task<IActionResult> ReadFilesIos(IOsValidationDTO iosValidation)
         {
             
-            ResponseQuery<string> response = new ResponseQuery<string>();
-            await fileIOServices.UploadIO(iosValidation, response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await fileIOServices.ReadFilesIos(iosValidation, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
             

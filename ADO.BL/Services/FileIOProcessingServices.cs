@@ -37,7 +37,7 @@ namespace ADO.BL.Services
             statusFileDataAccess = _statuFileDataAccess;
         }
 
-        public async Task<ResponseQuery<string>> UploadIO(IOsValidationDTO iosValidation, ResponseQuery<string> response)
+        public async Task<ResponseQuery<bool>> ReadFilesIos(IOsValidationDTO iosValidation, ResponseQuery<bool> response)
         {
             try
             {                
@@ -68,7 +68,7 @@ namespace ADO.BL.Services
                     // Obtener los siguientes 2 dígitos como el día
                     int dayName = int.Parse(fileName.Substring(6, 2));
 
-                    var beginDate = DateOnly.Parse($"{dayName}/{monthName}/{yearName}");
+                    var beginDate = ParseDateTemp($"{dayName}/{monthName}/{yearName}");
                     var endDate = beginDate.AddDays(-30);
                     var listDates = new StringBuilder();
                     var listFilesError = new StringBuilder();
@@ -158,7 +158,7 @@ namespace ADO.BL.Services
                         statusFilesingle.Year = year;
                         statusFilesingle.Month = month;
                         statusFilesingle.Day = day;
-                        statusFilesingle.DateRegister = DateOnly.Parse($"{day}-{month}-{year}");
+                        statusFilesingle.DateRegister = ParseDateTemp($"{day}/{month}/{year}");
                         statusFilesingle.Status = 4;
 
                         var subgroupMap = mapper.Map<QueueStatusIo>(statusFilesingle);
@@ -176,7 +176,7 @@ namespace ADO.BL.Services
                         {
                             var valueLines = item.Split(',');
                             var newEntity = new FileIoDTO();
-                            newEntity.DateIo = DateOnly.Parse(valueLines[0]);
+                            newEntity.DateIo = ParseDateTemp(valueLines[0]);
                             newEntity.CodeSig = valueLines[1];
                             newEntity.TypeAsset = valueLines[2];
                             newEntity.Fparent = valueLines[3];
@@ -214,7 +214,7 @@ namespace ADO.BL.Services
                         {
                             var valueLines = item.Split(',');
                             var newEntityComplete = new FileIoCompleteDTO();
-                            newEntityComplete.DateIo = DateOnly.Parse(valueLines[0]);
+                            newEntityComplete.DateIo = ParseDateTemp(valueLines[0]);
                             newEntityComplete.CodeGis = valueLines[1];
                             newEntityComplete.Location = valueLines[2];
                             newEntityComplete.Ubication = valueLines[3];
@@ -353,6 +353,18 @@ namespace ADO.BL.Services
                 }
             }
             return DateTime.Parse("31/12/2099 00:00:00");
+        }
+
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.Parse("31/12/2099");
         }
     }
 }

@@ -5,8 +5,11 @@ using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using Npgsql.Replication.PgOutput.Messages;
+using OfficeOpenXml;
 using Oracle.ManagedDataAccess.Client;
 using System.Data;
+using System.Globalization;
 
 namespace ADO.BL.Services
 {
@@ -15,143 +18,131 @@ namespace ADO.BL.Services
         private readonly IAllAssetOracleDataAccess allAssetOracleDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
+        private readonly string _AssetsDirectoryPath;
+        private readonly string[] _timeFormats;
         public AllAssetOracleServices(IConfiguration configuration, 
             IAllAssetOracleDataAccess _AllAssetOracleDataAccess, 
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
+            _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             allAssetOracleDataAccess = _AllAssetOracleDataAccess;
+            _AssetsDirectoryPath = configuration["FilesAssetsPath"];
             mapper = _mapper;
         }
 
-        public async Task<ResponseEntity<List<AllAssetDTO>>> SearchData(string table, ResponseEntity<List<AllAssetDTO>> response)
+        public async Task<ResponseEntity<List<AllAssetDTO>>> SearchData(ResponseEntity<List<AllAssetDTO>> response)
         {
             try
             {
-                //oracle conection
-                var dataOracle = await OracleConection(table);
-
                 var assetList = new List<AllAssetDTO>();
-                var listAssetNewMap = await GetListAllAssetNews(assetList);                                
+                var listAssetNewMap = await GetListAllAssetNews(assetList);
                 var responseCreate = false;
                 var responseUpdate = false;
                 var dateToday = DateOnly.FromDateTime(DateTime.Now);
 
-                int i = 0;
-                while ((i * 10000) < dataOracle.Count())
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                ExcelPackage excel = new ExcelPackage("info");                
+                ExcelWorksheet workSheet1 = excel.Workbook.Worksheets.Add("Page 1");
+                var beginRow = 3;
+
+                var listTypeAssets = new List<string>()
                 {
-                    var subgroup = dataOracle.Skip(i * 10000).Take(10000);
+                    "TRANSFORMADOR",
+                    "RECONECTADOR",
+                    "INTERRUPTOR"
 
-                    List<AllAssetDTO> newListAsset = new List<AllAssetDTO>();
-                    List<AllAsset> newListAssetCreate = new List<AllAsset>();
-                    List<AllAsset> newListAssetUpdate = new List<AllAsset>();
-                    List<AllAssetDTO> UpdateListAsset = new List<AllAssetDTO>();
-                    List<AllAssetDTO> ErrorDate = new List<AllAssetDTO>();
-                    var assetExistUnit = new AllAssetDTO();
+                };
 
-                    foreach (var item in subgroup)
+                foreach (var itemList in listTypeAssets)
+                {
+
+                    //oracle conection
+                    var dataOracle = await OracleConection(itemList);
+
+                    int i = 0;
+                    while ((i * 10000) < dataOracle.Count())
                     {
-                        var ListAssetExist = subgroup.Where(x => x.CodeSig == item.CodeSig && x.Uia == item.Uia).ToList();
-                        if (ListAssetExist.Count == 1)
+                        var subgroup = dataOracle.Skip(i * 10000).Take(10000);                                                
+                        
+                        var assetExistUnit = new AllAssetDTO();
+
+                        foreach (var item in subgroup)
                         {
-                            assetExistUnit = listAssetNewMap.FirstOrDefault(x => x.CodeSig == ListAssetExist[0].CodeSig && x.Uia == ListAssetExist[0].Uia);
+                            var ListAssetExist = subgroup.FirstOrDefault(x => x.CodeSig == item.CodeSig && x.Uia == item.Uia);
+
+                            assetExistUnit = listAssetNewMap.FirstOrDefault(x => x.CodeSig == ListAssetExist.CodeSig && x.Uia == ListAssetExist.Uia);
 
                             if (assetExistUnit == null)
-                            {
-                                newListAsset.Add(ListAssetExist[0]);
+                            {                                
+
+                                workSheet1.Cells[beginRow, 1].Value = "TRANSFORMADOR";
+                                if (itemList == "RECONECTADOR")
+                                {
+                                    workSheet1.Cells[beginRow, 1].Value = "RECONECTADOR";
+                                }
+                                else if (itemList == "INTERRUPTOR")
+                                {
+                                    workSheet1.Cells[beginRow, 1].Value = "SECCIONADOR";
+                                }
+
+                                workSheet1.Cells[beginRow, 2].Value = ListAssetExist.CodeSig;
+                                workSheet1.Cells[beginRow, 3].Value = ListAssetExist.Uia;
+                                workSheet1.Cells[beginRow, 4].Value = ListAssetExist.Codetaxo;
+                                workSheet1.Cells[beginRow, 5].Value = ListAssetExist.Fparent;
+                                workSheet1.Cells[beginRow, 6].Value = ListAssetExist.Latitude;
+                                workSheet1.Cells[beginRow, 7].Value = ListAssetExist.Longitude;
+                                workSheet1.Cells[beginRow, 8].Value = ListAssetExist.Poblation;
+                                workSheet1.Cells[beginRow, 9].Value = ListAssetExist.Group015;
+                                workSheet1.Cells[beginRow, 10].Value = ListAssetExist.Address;                                
+                                workSheet1.Cells[beginRow, 11].Value = ParseDate(ListAssetExist.DateInst.ToString()).ToString();
+                                workSheet1.Cells[beginRow, 12].Value = ListAssetExist.Uccap14;
                             }
-                            else if (assetExistUnit.State != ListAssetExist[0].State)
+                            else if (assetExistUnit.State != ListAssetExist.State)
                             {
 
-                                assetExistUnit.TypeAsset = "TRANSFORMADOR";
-                                if (table == "RECONECTADOR")
+                                workSheet1.Cells[beginRow, 1].Value = "TRANSFORMADOR";
+                                if (itemList == "RECONECTADOR")
                                 {
-                                    assetExistUnit.TypeAsset = "RECONECTADOR";
+                                    workSheet1.Cells[beginRow, 1].Value = "RECONECTADOR";
                                 }
-                                else if (table == "INTERRUPTOR")
+                                else if (itemList == "INTERRUPTOR")
                                 {
-                                    assetExistUnit.TypeAsset = "SECCIONADOR";
+                                    workSheet1.Cells[beginRow, 1].Value = "SECCIONADOR";
                                 }
-
-                                assetExistUnit.CodeSig = ListAssetExist[0].CodeSig;
-                                assetExistUnit.Uia = ListAssetExist[0].Uia;
-                                assetExistUnit.Codetaxo = ListAssetExist[0].Codetaxo;
-                                assetExistUnit.Fparent = ListAssetExist[0].Fparent;
-                                assetExistUnit.Uccap14 = ListAssetExist[0].Uccap14;
-                                assetExistUnit.Group015 = ListAssetExist[0].Group015;
-                                assetExistUnit.Latitude = ListAssetExist[0].Latitude;
-                                assetExistUnit.Longitude = ListAssetExist[0].Longitude;
-                                assetExistUnit.DateInst = ListAssetExist[0].DateInst;
-                                assetExistUnit.Poblation = ListAssetExist[0].Poblation;
-                                assetExistUnit.Address = ListAssetExist[0].Address;
                                 
-                                assetExistUnit.DateUnin = ListAssetExist[0].DateUnin;
-                                assetExistUnit.State = ListAssetExist[0].State;
-                                assetExistUnit.IdRegion = ListAssetExist[0].IdRegion;
-                                assetExistUnit.NameRegion = ListAssetExist[0].NameRegion;                                
+                                workSheet1.Cells[beginRow, 2].Value = ListAssetExist.CodeSig;
+                                workSheet1.Cells[beginRow, 3].Value = ListAssetExist.Uia;
+                                workSheet1.Cells[beginRow, 4].Value = ListAssetExist.Codetaxo;
+                                workSheet1.Cells[beginRow, 5].Value = ListAssetExist.Fparent;
+                                workSheet1.Cells[beginRow, 6].Value = ListAssetExist.Latitude;
+                                workSheet1.Cells[beginRow, 7].Value = ListAssetExist.Longitude;
+                                workSheet1.Cells[beginRow, 8].Value = ListAssetExist.Poblation;
+                                workSheet1.Cells[beginRow, 9].Value = ListAssetExist.Group015;
+                                workSheet1.Cells[beginRow, 10].Value = ListAssetExist.Address;                                
+                                workSheet1.Cells[beginRow, 11].Value = ParseDate(ListAssetExist.DateInst.ToString()).ToString();
+                                workSheet1.Cells[beginRow, 12].Value = ListAssetExist.Uccap14;
                                 
-
-                                UpdateListAsset.Add(assetExistUnit);
                             }
+
+                            beginRow++;
                         }
-                        else
-                        {
-                            var greaterDate = ListAssetExist.OrderByDescending(x => x.DateInst).FirstOrDefault();
-                            if (greaterDate.DateInst > dateToday)
-                            {
-                                ErrorDate.Add(greaterDate);
-                            }
-                            else
-                            {
-                                assetExistUnit = listAssetNewMap.FirstOrDefault(x => x.CodeSig == greaterDate.CodeSig && x.Uia == greaterDate.Uia);
-                                if (assetExistUnit == null)
-                                {
-                                    newListAsset.Add(assetExistUnit);
-                                }
-                                else
-                                {
-                                    if (assetExistUnit.State != greaterDate.State)
-                                    {
-
-                                        assetExistUnit.CodeSig = greaterDate.CodeSig;
-                                        assetExistUnit.Uia = greaterDate.Uia;
-                                        assetExistUnit.Codetaxo = greaterDate.Codetaxo;
-                                        assetExistUnit.Fparent = greaterDate.Fparent;
-                                        assetExistUnit.Uccap14 = greaterDate.Uccap14;
-                                        assetExistUnit.Group015 = greaterDate.Group015;
-                                        assetExistUnit.Latitude = greaterDate.Latitude;
-                                        assetExistUnit.Longitude = greaterDate.Longitude;
-                                        assetExistUnit.DateInst = greaterDate.DateInst;
-                                        assetExistUnit.Poblation = greaterDate.Poblation;
-                                        assetExistUnit.Address = greaterDate.Address;
-                                        UpdateListAsset.Add(assetExistUnit);
-                                    }
-                                }
-                            }
-                        }
-
+                        
+                        i++;
                     }
 
-                    newListAssetCreate = MapperListReverse(newListAsset);
-
-                    if (newListAssetCreate.Count > 0)
-                    {
-                        responseCreate = await SaveData(newListAssetCreate);
-                    }
-
-                    if (UpdateListAsset.Count > 0)
-                    {
-                        responseUpdate = await UpdateData(UpdateListAsset);
-                    }
-
-                    newListAsset = new List<AllAssetDTO>();
-                    newListAssetCreate = new List<AllAsset>();
-                    newListAssetUpdate = new List<AllAsset>();
-                    newListAsset = new List<AllAssetDTO>();
-
-                    i++;
                 }
 
+                //crea mapa de bytes
+                //excel.GetAsByteArray();
+                var monthDateToday = DateTime.Now.ToString("MM");
+                var yearDateToday = DateTime.Now.Year;
+                var nameFile = $"{yearDateToday}{monthDateToday}_ASSET.xlsx";
+                var rutaCompleta = Path.Combine(_AssetsDirectoryPath, nameFile);
+                excel.SaveAs(rutaCompleta);
+
+                //cierra librería
+                excel.Dispose();
 
                 Console.WriteLine("Proceso completado.");
 
@@ -342,7 +333,7 @@ namespace ADO.BL.Services
             using (var connection = new NpgsqlConnection(_connectionString))
             {
                 connection.Open();
-                var SelectQuery = $@"SELECT * FROM public.all_asset";
+                var SelectQuery = $@"SELECT code_sig, uia, state FROM public.all_asset";
                 using (var reader = new NpgsqlCommand(SelectQuery, connection))
                 {
                     try
@@ -352,31 +343,10 @@ namespace ADO.BL.Services
                         {
                             while (await result.ReadAsync())
                             {                                
-                                var temp = new AllAssetDTO();
-                                temp.Id = long.Parse(result[0].ToString());
-                                temp.TypeAsset = result[1].ToString();
-                                temp.CodeSig = result[2].ToString();
-                                temp.Uia = result[3].ToString();
-                                temp.Codetaxo = result[4].ToString();
-                                temp.Fparent = result[5].ToString();
-                                temp.Latitude = !string.IsNullOrEmpty(result[6].ToString()) ? float.Parse(result[6].ToString()) : -1;
-                                temp.Longitude = !string.IsNullOrEmpty(result[7].ToString()) ? float.Parse(result[7].ToString()) : -1;
-                                temp.Poblation = result[8].ToString();
-                                temp.Group015 = result[9].ToString();
-                                temp.Uccap14 = result[10].ToString();
-                                if (!string.IsNullOrEmpty(result[11].ToString()))
-                                {
-                                    temp.DateInst = DateOnly.FromDateTime(DateTime.Parse(result[11].ToString()));
-                                }
-                                if (!string.IsNullOrEmpty(result[12].ToString()))
-                                {
-                                    temp.DateUnin = DateOnly.FromDateTime(DateTime.Parse(result[12].ToString()));
-                                }
-                                temp.State = !string.IsNullOrEmpty(result[13].ToString()) ? int.Parse(result[13].ToString()) : -1;                                
-                                temp.IdRegion = !string.IsNullOrEmpty(result[14].ToString()) ? long.Parse(result[14].ToString()) : -1;
-                                temp.NameRegion = result[15].ToString();                                
-                                temp.Address = result[16].ToString();                                
-
+                                var temp = new AllAssetDTO();                                
+                                temp.CodeSig = result[0].ToString();
+                                temp.Uia = result[1].ToString();
+                                temp.State = !string.IsNullOrEmpty(result[2].ToString()) ? int.Parse(result[2].ToString()) : -1;
 
                                 assetList.Add(temp);
                             }
@@ -460,6 +430,18 @@ namespace ADO.BL.Services
             }
 
             return newListAsset;
+        }
+
+        private DateOnly ParseDate(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
         }
     }
 }

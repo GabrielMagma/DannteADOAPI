@@ -27,17 +27,16 @@ namespace DannteADOAPI.Controllers
 
         /// <summary>
         /// Servicio que toma los datos de las tablas Spard_Transfor, Spard_Switch y Spard_Recloser, los filtra y los almacena en 
-        /// la tabla all_asset_eep de la base de datos, importante revisar las opciones de entrada
-        /// </summary>
-        /// <param name = "table">TRANSFORMADOR-INTERRUPTOR-RECONECTADOR</param>
+        /// un archivo excel y lo pasa a procesamiento posterior
+        /// </summary>        
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(AllAssetOracleController.SearchData))]
-        public async Task<IActionResult> SearchData(string table)
+        public async Task<IActionResult> SearchData()
         {
             
             ResponseEntity<List<AllAssetDTO>> response = new ResponseEntity<List<AllAssetDTO>>();
-            await allAssetOracleServices.SearchData(table, response);
+            await allAssetOracleServices.SearchData(response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
             

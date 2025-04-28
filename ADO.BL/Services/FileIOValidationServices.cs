@@ -36,7 +36,7 @@ namespace ADO.BL.Services
             ioCommentsDataAccess = _ioCommentsDataAccess;
         }
 
-        public async Task<ResponseQuery<string>> UploadIO(IOsValidationDTO iosValidation, ResponseQuery<string> response)
+        public async Task<ResponseQuery<bool>> ReadFilesIos(IOsValidationDTO iosValidation, ResponseQuery<bool> response)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace ADO.BL.Services
                         statusFilesingle.Year = year;
                         statusFilesingle.Month = month;
                         statusFilesingle.Day = day;
-                        statusFilesingle.DateRegister = DateOnly.Parse($"{day}-{month}-{year}");
+                        statusFilesingle.DateRegister = ParseDate($"{day}/{month}/{year}");
 
                         CultureInfo esCulture = new CultureInfo("es-CO");
                         string[] dateFormats = { "dd/MM/yyyy HH:mm:ss", "d/MM/yyyy hh:mm:ss tt" };
@@ -155,7 +155,7 @@ namespace ADO.BL.Services
                             else if (date != "")
                             {
                                 var date2 = ParseDate(date);
-                                if (date2 == DateOnly.Parse("31/12/2099"))
+                                if (date2 == ParseDate("31/12/2099"))
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $" En la línea {row} de la hoja '{worksheet1}' y columna Fecha";
@@ -387,7 +387,7 @@ namespace ADO.BL.Services
                             else if (date != "")
                             {
                                 var date2 = ParseDate(date);
-                                if (date2 == DateOnly.Parse("31/12/2099"))
+                                if (date2 == ParseDate("31/12/2099"))
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $" En la línea {row} de la hoja '{worksheet2}' y columna Fecha";

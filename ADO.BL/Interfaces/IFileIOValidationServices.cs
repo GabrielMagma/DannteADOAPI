@@ -6,6 +6,6 @@ namespace ADO.BL.Interfaces
 {
     public interface IFileIOValidationServices
     {
-        public Task<ResponseQuery<string>> UploadIO(IOsValidationDTO iosValidation, ResponseQuery<string> response);
+        public Task<ResponseQuery<bool>> ReadFilesIos(IOsValidationDTO iosValidation, ResponseQuery<bool> response);
     }
 }
