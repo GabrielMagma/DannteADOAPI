@@ -139,6 +139,12 @@ namespace ADO.BL.Services
                 var yearDateToday = DateTime.Now.Year;
                 var nameFile = $"{yearDateToday}{monthDateToday}_ASSET.xlsx";
                 var rutaCompleta = Path.Combine(_AssetsDirectoryPath, nameFile);
+
+                if (File.Exists(rutaCompleta))
+                {
+                    File.Delete(rutaCompleta);
+                }
+
                 excel.SaveAs(rutaCompleta);
 
                 //cierra librería
@@ -147,7 +153,7 @@ namespace ADO.BL.Services
                 Console.WriteLine("Proceso completado.");
 
                 response.Message = "All Registers are created and/or updated";
-                response.SuccessData = responseCreate && responseUpdate;
+                response.SuccessData = true;
                 response.Success = true;
                 return response;
 

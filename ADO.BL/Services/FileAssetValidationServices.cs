@@ -24,11 +24,13 @@ namespace ADO.BL.Services
         private readonly string _AssetsDirectoryPath;
         private readonly IFileAssetModifiedDataAccess fileAssetModifiedDataAccess;
         private readonly IStatusFileDataAccess statusFileDataAccess;
+        readonly IAllAssetOracleServices allAssetOracleServices;
         private readonly string _connectionString;
         public FileAssetValidationServices(IConfiguration configuration,
             IMapper _mapper,
             IStatusFileDataAccess _statuFileDataAccess,
-            IFileAssetModifiedDataAccess _fileAssetModifiedDataAccess)
+            IFileAssetModifiedDataAccess _fileAssetModifiedDataAccess,
+            IAllAssetOracleServices _AllAssetOracleServices)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             mapper = _mapper;
@@ -36,6 +38,7 @@ namespace ADO.BL.Services
             _AssetsDirectoryPath = configuration["FilesAssetsPath"];
             fileAssetModifiedDataAccess = _fileAssetModifiedDataAccess;
             statusFileDataAccess = _statuFileDataAccess;
+            allAssetOracleServices = _AllAssetOracleServices;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesAssets(FileAssetsValidationDTO request, ResponseQuery<bool> response)
@@ -45,6 +48,10 @@ namespace ADO.BL.Services
                 string inputFolder = _AssetsDirectoryPath;
                 var errorFlag = false;
                 var statusFileList = new List<StatusFileDTO>();
+
+                // comentar si es para Essa
+                ResponseEntity<List<AllAssetDTO>> responseOracle = new ResponseEntity<List<AllAssetDTO>>();
+                await allAssetOracleServices.SearchData(responseOracle);
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx").OrderBy(f => f).ToArray())
