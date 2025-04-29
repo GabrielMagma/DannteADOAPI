@@ -464,13 +464,20 @@ namespace ADO.BL.Services
                                 //var startDateDef = !string.IsNullOrEmpty(values[1]) ? DateTime.Parse(values[1]) : DateTime.Parse($"{values[2].Split(' ')[0]} 00:00:00");
                                 //var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");
 
-                                var startDateDef = !string.IsNullOrEmpty(values[1])
-                                ? ParseDate(values[1])
-                                : ParseDate($"{values[2].Split(' ')[0]} 00:00:00");
+                                string fallbackStart = "00:00:00";
+                                string fallbackEnd = "23:59:59";
 
-                                var endDateDef = !string.IsNullOrEmpty(values[2])
+                                var startDateDef = !string.IsNullOrWhiteSpace(values[1])
+                                    ? ParseDate(values[1])
+                                    : (!string.IsNullOrWhiteSpace(values[2])
+                                        ? ParseDate($"{values[2].Split(' ')[0]} {fallbackStart}")
+                                        : ParseDate("31/12/2099 00:00:00"));
+
+                                var endDateDef = !string.IsNullOrWhiteSpace(values[2])
                                     ? ParseDate(values[2])
-                                    : ParseDate($"{values[1].Split(' ')[0]} 23:59:59");
+                                    : (!string.IsNullOrWhiteSpace(values[1])
+                                        ? ParseDate($"{values[1].Split(' ')[0]} {fallbackEnd}")
+                                        : ParseDate("31/12/2099 23:59:59"));
 
                                 writer.Write(startDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
                                 writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
