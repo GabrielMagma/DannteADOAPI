@@ -228,7 +228,7 @@ namespace ADO.BL.Services
             return response;
         }
 
-        private static void InsertData(DataTable dataTable, string[] valueLines, int columns)
+        private void InsertData(DataTable dataTable, string[] valueLines, int columns)
         {
             var newRow = dataTable.NewRow();
 
@@ -237,8 +237,8 @@ namespace ADO.BL.Services
             //    newRow[i] = valueLines[i].ToUpper().Trim();
             //}
             newRow[0] = valueLines[0].ToUpper().Trim();
-            newRow[1] = valueLines[1].ToUpper().Trim();
-            newRow[2] = valueLines[2].ToUpper().Trim();
+            newRow[1] = string.IsNullOrEmpty(valueLines[1]) ? ParseDate($"{valueLines[2].Split(' ')[0]} 00:00:00") : valueLines[1];
+            newRow[2] = string.IsNullOrEmpty(valueLines[2]) ? ParseDate($"{valueLines[1].Split(' ')[0]} 23:59:59") : valueLines[2];
             newRow[3] = valueLines[3].ToUpper().Trim();
             newRow[4] = valueLines[4].ToUpper().Trim();
             newRow[5] = valueLines[5].ToUpper().Trim();

@@ -461,11 +461,17 @@ namespace ADO.BL.Services
                                 writer.StartRow();
                                 writer.Write(values[0], NpgsqlTypes.NpgsqlDbType.Varchar); // event_code
 
-                                
+                                //var startDateDef = !string.IsNullOrEmpty(values[1]) ? DateTime.Parse(values[1]) : DateTime.Parse($"{values[2].Split(' ')[0]} 00:00:00");
+                                //var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");
 
-                                var startDateDef = !string.IsNullOrEmpty(values[1]) ? DateTime.Parse(values[1]) : DateTime.Parse($"{values[2].Split(' ')[0]} 00:00:00");
-                                var endDateDef = !string.IsNullOrEmpty(values[2]) ? DateTime.Parse(values[2]) : DateTime.Parse($"{values[1].Split(' ')[0]} 23:59:59");
-                                
+                                var startDateDef = !string.IsNullOrEmpty(values[1])
+                                ? ParseDate(values[1])
+                                : ParseDate($"{values[2].Split(' ')[0]} 00:00:00");
+
+                                var endDateDef = !string.IsNullOrEmpty(values[2])
+                                    ? ParseDate(values[2])
+                                    : ParseDate($"{values[1].Split(' ')[0]} 23:59:59");
+
                                 writer.Write(startDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // start_date
                                 writer.Write(endDateDef, NpgsqlTypes.NpgsqlDbType.Timestamp); // end_date
                                 writer.Write(values[3], NpgsqlTypes.NpgsqlDbType.Varchar); // uia
