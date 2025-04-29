@@ -232,10 +232,20 @@ namespace ADO.BL.Services
         {
             var newRow = dataTable.NewRow();
 
-            for (int i = 0; i < columns; i++)
-            {
-                newRow[i] = valueLines[i].ToUpper().Trim();
-            }
+            //for (int i = 0; i < columns; i++)
+            //{
+            //    newRow[i] = valueLines[i].ToUpper().Trim();
+            //}
+            newRow[0] = valueLines[0].ToUpper().Trim();
+            newRow[1] = valueLines[1].ToUpper().Trim();
+            newRow[2] = valueLines[2].ToUpper().Trim();
+            newRow[3] = valueLines[3].ToUpper().Trim();
+            newRow[4] = valueLines[4].ToUpper().Trim();
+            newRow[5] = valueLines[5].ToUpper().Trim();
+            newRow[6] = valueLines[6].ToUpper().Trim();
+            newRow[7] = valueLines[7].ToUpper().Trim();
+            newRow[8] = valueLines[8].ToUpper().Trim();
+            newRow[9] = valueLines[9].ToUpper().Trim();
 
             dataTable.Rows.Add(newRow);
 

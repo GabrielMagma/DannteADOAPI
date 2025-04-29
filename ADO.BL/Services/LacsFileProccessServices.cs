@@ -24,6 +24,8 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
 
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public LacsFileProcessServices(IConfiguration configuration, 
             ILACValidationEssaServices _lACValidationServices,
             IStatusFileDataAccess _statuFileDataAccess,
@@ -96,7 +98,7 @@ namespace ADO.BL.Services
                     // Obtener los siguientes 2 dígitos como el mes
                     int day = int.Parse(fileName.Substring(6, 2));
 
-                    var beginDate = ParseDateTemp($"{day}/{month}/{year}");
+                    var beginDate = ParseDateTemp($"{year}/{month}/{day}");
                     var endDate = beginDate.AddDays(-30);
                     var listDates = new StringBuilder();
                     var listFilesError = new StringBuilder();
@@ -391,16 +393,28 @@ namespace ADO.BL.Services
             }
         }        
 
+        //private DateTime ParseDate(string dateString)
+        //{
+        //    foreach (var format in _timeFormats)
+        //    {
+        //        if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+        //        {
+        //            return parsedDate.ToUniversalTime();
+        //        }
+        //    }
+        //    return DateTime.ParseExact("31/12/2099 00:00:00", "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture).ToUniversalTime();
+        //}
+
         private DateTime ParseDate(string dateString)
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
-                    return parsedDate.ToUniversalTime();
+                    return parsedDate; // o .ToUniversalTime() si tu columna es timestamptz
                 }
             }
-            return DateTime.Parse("31/12/2099 00:00:00");
+            return DateTime.ParseExact("31/12/2099 00:00:00", "dd/MM/yyyy HH:mm:ss", _spanishCulture);
         }
 
         private void WriteAllLinesWithoutTrailingNewline(string path, List<string> lines)
