@@ -18,6 +18,9 @@ namespace ADO.BL.Services
         private readonly string _Tc1DirectoryPath;
         private readonly IMapper mapper;
         private readonly IStatusFileDataAccess statusFileDataAccess;
+
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public TC1ValidationServices(IConfiguration configuration,
             IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
@@ -253,13 +256,20 @@ namespace ADO.BL.Services
         }
 
         private string ParseDate(string dateString)
-        {          
-            
+        {
+
+            //foreach (var format in _timeFormats)
+            //{
+            //    if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+            //    {
+            //        return parsedDate.ToString();
+            //    }
+            //}
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
-                    return parsedDate.ToString();
+                    return parsedDate.ToString(); // o .ToUniversalTime() si tu columna es timestamptz
                 }
             }
             return $"Error en el formato de fecha {dateString} no es válido.";            

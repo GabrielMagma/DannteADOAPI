@@ -20,6 +20,9 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
 
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+        private static readonly CultureInfo _spanishCultureOnly = new CultureInfo("es-CO"); // o "es-ES"
+
         public TC1FileProcessingServices(IConfiguration configuration, 
             ITC1ValidationServices Itc1ValidationServices,            
             IStatusFileDataAccess _statusFileDataAccess,
@@ -199,9 +202,9 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
-                    return parsedDate;
+                    return parsedDate; // o .ToUniversalTime() si tu columna es timestamptz
                 }
             }
             throw new FormatException($"El formato de fecha {dateString} no es válido.");
@@ -271,14 +274,21 @@ namespace ADO.BL.Services
 
         private DateOnly ParseDateTemp(string dateString)
         {
+            //foreach (var format in _timeFormats)
+            //{
+            //    if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+            //    {
+            //        return parsedDate;
+            //    }
+            //}
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCultureOnly, DateTimeStyles.None, out DateOnly parsedDate))
                 {
-                    return parsedDate;
+                    return parsedDate; // o .ToUniversalTime() si tu columna es timestamptz
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCultureOnly);
         }
     }
 }
