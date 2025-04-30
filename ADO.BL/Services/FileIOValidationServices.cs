@@ -6,7 +6,6 @@ using AutoMapper;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
-using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -201,7 +200,8 @@ namespace ADO.BL.Services
                                 newRow[0] = ParseDate(worksheet1.Cells[row, 1].Text).ToString();
                                 newRow[1] = codeSig;
                                 newRow[2] = element;
-                                newRow[3] = worksheet1.Cells[row, 4].Text.Trim().Replace(" ", "").ToString();
+                                var tempRow4 = Regex.Replace(worksheet1.Cells[row, 4].Text, @"\s+", " ");
+                                newRow[3] = tempRow4.Trim().Replace(" ", "").Replace("\n", "").Replace("\r", "").ToString();
                                 newRow[4] = element;
                                 newRow[5] = worksheet1.Cells[row, 6].Text.Trim().ToUpper().ToString();                                
                                 newRow[6] = DateTime.Parse($"{worksheet1.Cells[row, 1].Text} {worksheet1.Cells[row, 8].Text}").ToString();
@@ -286,7 +286,7 @@ namespace ADO.BL.Services
                                 int longitudLoc = Math.Min(50, textoLoc.Length);
                                 newRowComplete[2] = string.IsNullOrEmpty(textoLoc) ? "-1" : textoLoc.Substring(0, longitudLoc);
 
-                                newRowComplete[3] = worksheet1.Cells[row, 4].Text.Trim().ToUpper();
+                                newRowComplete[3] = worksheet1.Cells[row, 4].Text.Replace("\n", "").Replace("\r", "").Replace(" ", "").Trim().ToUpper();
                                 newRowComplete[4] = element;
                                 newRowComplete[5] = worksheet1.Cells[row, 6].Text.Trim().ToUpper();
                                 newRowComplete[6] = idResult.ToString(); // affectsector

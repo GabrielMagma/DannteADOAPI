@@ -21,6 +21,8 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public SSPDFileProcessingServices(IConfiguration configuration, 
             ISSPDValidationEepServices _SSPDValidationServices,            
             IStatusFileDataAccess _statuFileEssaDataAccess,
@@ -540,7 +542,7 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
                     return parsedDate; // Establecer la hora a las 00:00:00
                 }
@@ -552,7 +554,7 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
                     // Ajustar la fecha al último día del mes con la hora 23:59:59
                     DateTime lastDayOfMonth = new DateTime(parsedDate.Year, parsedDate.Month, DateTime.DaysInMonth(parsedDate.Year, parsedDate.Month), 23, 59, 59);
@@ -620,12 +622,12 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
     }
 }

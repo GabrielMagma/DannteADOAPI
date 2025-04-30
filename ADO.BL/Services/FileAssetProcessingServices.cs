@@ -8,7 +8,6 @@ using Npgsql;
 using System.Data;
 using System.Globalization;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace ADO.BL.Services
 {
@@ -20,6 +19,9 @@ namespace ADO.BL.Services
         private readonly IFileAssetModifiedDataAccess fileAssetModifiedDataAccess;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly string _connectionString;
+
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public FileAssetProcessingServices(IConfiguration configuration,
             IMapper _mapper,
             IStatusFileDataAccess _statuFileDataAccess,
@@ -38,7 +40,6 @@ namespace ADO.BL.Services
             try
             {
                 
-
                 string inputFolder = _AssetsDirectoryPath;
                 var errorFlag = false;
                 var statusFileList = new List<StatusFileDTO>();
@@ -251,6 +252,39 @@ namespace ADO.BL.Services
 
                 }
 
+                using (var connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();                    
+                    var UpdateRegionQuery = $@"UPDATE public.all_asset a
+                                                SET 
+                                                    id_region = r.id_region,
+                                                    name_region = r.name_region
+                                                FROM (
+                                                    SELECT 
+                                                        f.fparent::varchar AS fparent,
+                                                        r.id AS id_region,
+                                                        r.name_region
+                                                    FROM maps.mp_fparent f
+                                                    JOIN maps.mp_region r ON f.id_region = r.id
+                                                ) r
+                                                WHERE a.fparent = r.fparent;";
+                    using (var reader = new NpgsqlCommand(UpdateRegionQuery, connection))
+                    {
+                        try
+                        {
+                            await reader.ExecuteReaderAsync();
+                        }
+                        catch (NpgsqlException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                }
+
                 if (errorFlag)
                 {
                     response.Message = "File with errors";
@@ -292,12 +326,13 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
+
     }
 }

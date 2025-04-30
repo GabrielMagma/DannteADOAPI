@@ -257,14 +257,7 @@ namespace ADO.BL.Services
 
         private string ParseDate(string dateString)
         {
-
-            //foreach (var format in _timeFormats)
-            //{
-            //    if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
-            //    {
-            //        return parsedDate.ToString();
-            //    }
-            //}
+            
             foreach (var format in _timeFormats)
             {
                 if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))

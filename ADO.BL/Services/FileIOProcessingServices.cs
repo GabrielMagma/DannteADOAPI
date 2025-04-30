@@ -3,16 +3,11 @@ using ADO.BL.DTOs;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
-using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ADO.BL.Services
 {
@@ -61,7 +56,7 @@ namespace ADO.BL.Services
 
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
-                    var fileNameTemp = fileName.Replace("_Correct", "").Replace("_CorrectComplete", "").Replace("_Error", "");
+                    var fileNameTemp = fileName.Replace("_CorrectComplete", "").Replace("_Correct", "").Replace("_Error", "");
 
                     // Obtener los primeros 4 dígitos como el año
                     int yearName = int.Parse(fileName.Substring(0, 4));
@@ -138,18 +133,16 @@ namespace ADO.BL.Services
                         response.Success = false;
                         return response;
                     }
+                    
+                    // Obtener los primeros 4 dígitos como el año
+                    int year = int.Parse(fileName.Substring(0, 4));
 
-                    string[] fileLinesTemp = File.ReadAllLines(filePath);
-                    var resultYearMonth = getYearMonth(fileLinesTemp);
-                    int year = 2099;
-                    int month = 12;
-                    int day = 31;
-                    if (resultYearMonth.Count > 0)
-                    {
-                        year = int.Parse(resultYearMonth[0]);
-                        month = int.Parse(resultYearMonth[1]);
-                        day = int.Parse(resultYearMonth[2]);
-                    }
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int month = int.Parse(fileName.Substring(4, 2));
+
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int day = int.Parse(fileName.Substring(6, 2));
+
 
                     var fileNameXlsxTemp = Directory.GetFiles(inputFolder, $"{fileNameTemp}.xlsx").FirstOrDefault();
                     var fileNameXlsx = Path.GetFileNameWithoutExtension(fileNameXlsxTemp);
@@ -188,19 +181,19 @@ namespace ADO.BL.Services
                             newEntity.Component = valueLines[5];
                             newEntity.HourOut = DateTime.Parse(valueLines[6]);
                             newEntity.HourIn = DateTime.Parse(valueLines[7]);
-                            newEntity.MinInterruption = float.Parse(valueLines[8]);
-                            newEntity.HourInterruption = float.Parse(valueLines[9]);
-                            newEntity.CregCause = int.Parse(valueLines[10]);
-                            newEntity.Cause = int.Parse(valueLines[11]);
+                            newEntity.MinInterruption = ParseOrZeroFloat(valueLines[8]);
+                            newEntity.HourInterruption = ParseOrZeroFloat(valueLines[9]);
+                            newEntity.CregCause = ParseOrZero(valueLines[10]);
+                            newEntity.Cause = ParseOrZero(valueLines[11]);
                             newEntity.EventType = valueLines[12];
                             newEntity.Dependence = valueLines[13];
-                            newEntity.Users = int.Parse(valueLines[14]);
-                            newEntity.DnaKwh = float.Parse(valueLines[15]);
-                            newEntity.Failure = int.Parse(valueLines[16]);
+                            newEntity.Users = ParseOrZero(valueLines[14]);
+                            newEntity.DnaKwh = ParseOrZeroFloat(valueLines[15]);
+                            newEntity.Failure = ParseOrZero(valueLines[16]);
                             newEntity.Maneuver = valueLines[17];
                             newEntity.FileIo = valueLines[18];
-                            newEntity.Year = int.Parse(valueLines[19]);
-                            newEntity.Month = int.Parse(valueLines[20]);
+                            newEntity.Year = ParseOrZero(valueLines[19]);
+                            newEntity.Month = ParseOrZero(valueLines[20]);
 
                             if (newEntity.CodeSig.StartsWith("S")) newEntity.TypeAsset = "SWITCH";
                             else if (newEntity.CodeSig.StartsWith("R")) newEntity.TypeAsset = "RECONECTADOR";                            
@@ -223,27 +216,27 @@ namespace ADO.BL.Services
                             newEntityComplete.Location = valueLines[2];
                             newEntityComplete.Ubication = valueLines[3];
                             newEntityComplete.Element = valueLines[4];
-                            newEntityComplete.Component = valueLines[5];
-                            newEntityComplete.AffectedSector = int.Parse(valueLines[6]);
+                            newEntityComplete.Component = valueLines[5];                            
+                            newEntityComplete.AffectedSector = ParseOrZero(valueLines[6]);
                             newEntityComplete.HourOut = DateTime.Parse(valueLines[7]);
                             newEntityComplete.HourIn = DateTime.Parse(valueLines[8]);
-                            newEntityComplete.MinInterruption = float.Parse(valueLines[9]);
-                            newEntityComplete.HourInterruption = float.Parse(valueLines[10]);
+                            newEntityComplete.MinInterruption = ParseOrZeroFloat(valueLines[9]);
+                            newEntityComplete.HourInterruption = ParseOrZeroFloat(valueLines[10]);
                             newEntityComplete.DescCause = valueLines[11];
-                            newEntityComplete.CodCauseEvent = int.Parse(valueLines[12]);
-                            newEntityComplete.Cause = int.Parse(valueLines[13]);
-                            newEntityComplete.Observation = int.Parse(valueLines[14]);
+                            newEntityComplete.CodCauseEvent = ParseOrZero(valueLines[12]);
+                            newEntityComplete.Cause = ParseOrZero(valueLines[13]);
+                            newEntityComplete.Observation = ParseOrZero(valueLines[14]);
                             newEntityComplete.Maneuver = valueLines[15];
                             newEntityComplete.FuseQuant = valueLines[16];
                             newEntityComplete.FuseCap = valueLines[17];
-                            newEntityComplete.CodeConsig = int.Parse(valueLines[18]);
+                            newEntityComplete.CodeConsig = ParseOrZero(valueLines[18]);
                             newEntityComplete.TypeEvent = valueLines[19];
                             newEntityComplete.Dependency = valueLines[20];
-                            newEntityComplete.OutPower = float.Parse(valueLines[21]);
-                            newEntityComplete.DnaKwh = float.Parse(valueLines[22]);
-                            newEntityComplete.Users = int.Parse(valueLines[23]);
+                            newEntityComplete.OutPower = ParseOrZeroFloat(valueLines[21]);
+                            newEntityComplete.DnaKwh = ParseOrZeroFloat(valueLines[22]);
+                            newEntityComplete.Users = ParseOrZero(valueLines[23]);
                             newEntityComplete.ApplicationId = valueLines[24];
-                            newEntityComplete.CapacityKva = float.Parse(valueLines[25]);
+                            newEntityComplete.CapacityKva = ParseOrZeroFloat(valueLines[25]);
                             newEntityComplete.Type = valueLines[26];
                             newEntityComplete.Ownership = valueLines[27];
 
@@ -370,6 +363,24 @@ namespace ADO.BL.Services
                 }
             }
             return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCultureOnly);
+        }
+
+        int ParseOrZero(string input)
+        {
+            if (int.TryParse(input, out int result))
+            {
+                return result;
+            }
+            return -1;
+        }
+
+        float ParseOrZeroFloat(string input)
+        {
+            if (float.TryParse(input, out float result))
+            {
+                return result;
+            }
+            return -1;
         }
     }
 }

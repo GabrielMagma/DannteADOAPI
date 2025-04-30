@@ -20,6 +20,9 @@ namespace ADO.BL.Services
         private readonly string _connectionString;
         private readonly string _AssetsDirectoryPath;
         private readonly string[] _timeFormats;
+
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public AllAssetOracleServices(IConfiguration configuration, 
             IAllAssetOracleDataAccess _AllAssetOracleDataAccess, 
             IMapper _mapper)
@@ -442,12 +445,14 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
+
+        
     }
 }

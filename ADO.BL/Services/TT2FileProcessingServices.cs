@@ -20,6 +20,8 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
 
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public TT2FileProcessingServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,            
             IStatusFileDataAccess _statusFileEssaDataAccess,
@@ -180,7 +182,39 @@ namespace ADO.BL.Services
                     item.Status = 4;
                 }
                 var resultSave = await statusFileEssaDataAccess.UpdateDataTT2List(subgroupMap);
-                    
+
+                using (var connection = new NpgsqlConnection(_connectionString))
+                {
+                    connection.Open();
+                    var UpdateRegionQuery = $@"UPDATE public.all_asset a
+                                                SET 
+                                                    id_region = r.id_region,
+                                                    name_region = r.name_region
+                                                FROM (
+                                                    SELECT 
+                                                        f.fparent::varchar AS fparent,
+                                                        r.id AS id_region,
+                                                        r.name_region
+                                                    FROM maps.mp_fparent f
+                                                    JOIN maps.mp_region r ON f.id_region = r.id
+                                                ) r
+                                                WHERE a.fparent = r.fparent;";
+                    using (var reader = new NpgsqlCommand(UpdateRegionQuery, connection))
+                    {
+                        try
+                        {
+                            await reader.ExecuteReaderAsync();
+                        }
+                        catch (NpgsqlException ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                }
 
                 response.Message = "Proceso completado para todos los archivos";
                 response.SuccessData = true;
@@ -925,7 +959,7 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
@@ -937,12 +971,12 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
 
     }

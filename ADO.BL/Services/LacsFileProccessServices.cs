@@ -7,9 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
 using System.Globalization;
-using System.IO.Pipes;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace ADO.BL.Services
@@ -393,18 +390,6 @@ namespace ADO.BL.Services
             }
         }        
 
-        //private DateTime ParseDate(string dateString)
-        //{
-        //    foreach (var format in _timeFormats)
-        //    {
-        //        if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
-        //        {
-        //            return parsedDate.ToUniversalTime();
-        //        }
-        //    }
-        //    return DateTime.ParseExact("31/12/2099 00:00:00", "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture).ToUniversalTime();
-        //}
-
         private DateTime ParseDate(string dateString)
         {
             foreach (var format in _timeFormats)
@@ -508,12 +493,14 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
+
+        
     }
 }

@@ -20,6 +20,9 @@ namespace ADO.BL.Services
         private readonly IMapper mapper;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly string _connectionString;
+
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
+
         public TT2ValidationServices(IConfiguration configuration,
             IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
@@ -429,7 +432,7 @@ namespace ADO.BL.Services
         {            
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
                 {
                     return parsedDate.ToString();
                 }
@@ -441,12 +444,12 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
 
     }
