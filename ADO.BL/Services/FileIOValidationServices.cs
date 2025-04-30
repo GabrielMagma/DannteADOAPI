@@ -22,6 +22,9 @@ namespace ADO.BL.Services
         private readonly IFileIODataAccess fileIODataAccess;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IIoCommentsDataAccess ioCommentsDataAccess;
+
+        private static readonly CultureInfo _spanishCultureOnly = new CultureInfo("es-CO"); // o "es-ES"
+
         public FileIOValidationServices(IConfiguration configuration,
             IMapper _mapper,
             IStatusFileDataAccess _statuFileDataAccess,
@@ -707,12 +710,12 @@ namespace ADO.BL.Services
         {
             foreach (var format in _timeFormats)
             {
-                if (DateOnly.TryParseExact(dateString, format.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCultureOnly, DateTimeStyles.None, out DateOnly parsedDate))
                 {
-                    return parsedDate;
+                    return parsedDate; // o .ToUniversalTime() si tu columna es timestamptz
                 }
             }
-            return DateOnly.Parse("31/12/2099");
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCultureOnly);
         }        
     }
 }
