@@ -21,8 +21,17 @@ namespace ADO.Access.Access
 
         public async Task SaveData(List<AllAsset> request)
         {
-            context.AllAssets.AddRange(request);
-            context.SaveChanges();
+            try
+            {
+                context.AllAssets.AddRange(request);
+                context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                var message = ex.Message;
+                throw;
+            }
+            
         }
 
         public async Task<List<AllAssetDTO>> SearchData(string request)

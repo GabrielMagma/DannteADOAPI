@@ -53,8 +53,8 @@ namespace ADO.BL.Services
                 var statusFileList = new List<StatusFileDTO>();
 
                 // comentar si es para Essa
-                ResponseEntity<List<AllAssetDTO>> responseOracle = new ResponseEntity<List<AllAssetDTO>>();
-                await allAssetOracleServices.SearchData(responseOracle);
+                //ResponseEntity<List<AllAssetDTO>> responseOracle = new ResponseEntity<List<AllAssetDTO>>();
+                //await allAssetOracleServices.SearchData(responseOracle);
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx").OrderBy(f => f).ToArray())

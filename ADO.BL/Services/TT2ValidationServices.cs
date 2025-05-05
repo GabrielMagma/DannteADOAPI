@@ -91,7 +91,7 @@ namespace ADO.BL.Services
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
-                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileName = fileName.Replace("_Fixed", "");
                     statusFilesingle.FileType = "TT2";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
