@@ -36,7 +36,6 @@ namespace ADO.BL.Services
             {
                 var inputFolder = _PolesDirectoryPath;
                 
-
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
@@ -86,34 +85,7 @@ namespace ADO.BL.Services
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
                         connection.Open();
-                        var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);                        
-                        var SelectQueryAssets = $@"SELECT distinct fparent, name_region, id_region from public.all_asset where fparent in ({listDef})";
-                        using (var reader = new NpgsqlCommand(SelectQueryAssets, connection))
-                        {
-                            try
-                            {
-
-                                using (var result = reader.ExecuteReader())
-                                {
-                                    while (result.Read())
-                                    {
-                                        var temp = new AssetsDTO();
-                                        temp.Fparent = result[0].ToString();
-                                        temp.NameRegion = result[1].ToString();
-                                        temp.IdRegion = long.Parse(result[2].ToString());
-                                        listAssetsDTO.Add(temp);
-                                    }
-                                }
-                            }
-                            catch (NpgsqlException ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                        }
+                        var listDef = listDataString.ToString().Remove(listDataString.Length - 1, 1);                                                
 
                         var SelectQueryUtility = $@"SELECT painting_code, fparent from maps.mp_utility_pole where fparent in ({listDef})";
                         using (var reader = new NpgsqlCommand(SelectQueryUtility, connection))
@@ -168,14 +140,12 @@ namespace ADO.BL.Services
                         {                            
                             var entityPole = new MpUtilityPoleDTO();
 
-                            entityPole.InventaryCode = valueLines[0].Trim();
-                            entityPole.PaintingCode = valueLines[0].Trim();
+                            entityPole.InventaryCode = valueLines[1].Trim();
+                            entityPole.PaintingCode = valueLines[2].Trim();
                             entityPole.Latitude = float.Parse(valueLines[3].ToString());
                             entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                            entityPole.Fparent = valueLines[1].Trim();
-                            entityPole.IdRegion = (long)assetTemp.IdRegion;
-                            entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
-                            entityPole.TypePole = int.Parse(valueLines[2].ToString());
+                            entityPole.Fparent = valueLines[8].Trim();                            
+                            entityPole.TypePole = int.Parse(valueLines[11].ToString());
 
                             listEntityPoleDTO.Add(entityPole);
                         }
@@ -183,14 +153,12 @@ namespace ADO.BL.Services
                         {
                             var entityPole = new MpUtilityPoleDTO();
 
-                            entityPole.InventaryCode = valueLines[0].Trim();
-                            entityPole.PaintingCode = valueLines[0].Trim();
+                            entityPole.InventaryCode = valueLines[1].Trim();
+                            entityPole.PaintingCode = valueLines[2].Trim();
                             entityPole.Latitude = float.Parse(valueLines[3].ToString());
                             entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                            entityPole.Fparent = valueLines[1].Trim();
-                            entityPole.IdRegion = (long)assetTemp.IdRegion;
-                            entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
-                            entityPole.TypePole = int.Parse(valueLines[2].ToString());
+                            entityPole.Fparent = valueLines[8].Trim();                            
+                            entityPole.TypePole = int.Parse(valueLines[11].ToString());
 
                             listEntityPoleDTO.Add(entityPole);
                         }
