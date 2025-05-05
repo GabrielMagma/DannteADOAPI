@@ -21,7 +21,7 @@ namespace DannteADOAPI.Controllers
         [Route(nameof(TestController.notiHub))]
         public async Task<IActionResult> notiHub()
         {
-            await AddMessage(true, "Mensaje de prueba para segundo api");
+            await AddMessage(true, "Mensaje de prueba para  segundo api");
             return Ok();
 
         }

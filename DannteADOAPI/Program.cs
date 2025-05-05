@@ -22,13 +22,23 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
 // Cors
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowLocalhost",
+//        builder => builder
+//            .WithOrigins("http://127.0.0.1:5500", "http://localhost:4200", "https://localhost:7155/", "https://localhost:7189/") // Dirección de tu frontend
+//            .AllowAnyMethod()
+//            .AllowAnyHeader());
+//});
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost",
-        builder => builder
-            .WithOrigins("http://127.0.0.1:5500", "http://localhost:4200") // Dirección de tu frontend
+    options.AddPolicy("AllowSignalR",
+        policy => policy
+            .WithOrigins("https://localhost:7189", "https://127.0.0.1:7155", "http://127.0.0.1:4200", "http://127.0.0.1:5500")
+            .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowAnyHeader());
+            .AllowCredentials()); // Importante para SignalR
 });
 
 var mapperConfig = new MapperConfiguration(mc =>
@@ -174,9 +184,11 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DannteADOAP
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseCors("AllowLocalhost");
+
 
 app.UseRouting();
+
+app.UseCors("AllowSignalR");
 
 app.UseAuthentication();
 app.UseAuthorization();
