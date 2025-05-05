@@ -46,5 +46,12 @@ namespace ADO.BL.Interfaces
 
         public Task<Boolean> UpdateDataTT2List(List<QueueStatusTt2> request);
 
+        //poles
+        public Task<Boolean> SaveDataPoleList(List<QueueStatusPole> request);
+
+        public Task<Boolean> UpdateDataPole(QueueStatusPole request);
+
+        public Task<Boolean> UpdateDataPoleList(List<QueueStatusPole> request);
+
     }
 }

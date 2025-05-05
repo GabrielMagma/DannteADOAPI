@@ -308,7 +308,7 @@ namespace ADO.BL.Services
                 }
                 if (errorFlag)
                 {
-                    response.Message = "file with errors";
+                    response.Message = "validation of the file with errors";
                     response.SuccessData = false;
                     //response.Success = false;
                     response.Success = true; // cambiar en prod

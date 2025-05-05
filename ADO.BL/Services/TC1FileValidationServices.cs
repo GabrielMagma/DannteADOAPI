@@ -46,7 +46,7 @@ namespace ADO.BL.Services
                 var ErrorinFiles = await _ITC1ValidationServices.ValidationTC1(request, responseError);
                 if (ErrorinFiles.Success == false)
                 {
-                    response.Message = "Archivo con errores";
+                    response.Message = ErrorinFiles.Message;
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
@@ -57,7 +57,7 @@ namespace ADO.BL.Services
                     var subgroupMap = mapper.Map<List<QueueStatusTc1>>(ErrorinFiles.Data);                    
                     var resultSave = await statusFileDataAccess.UpdateDataTC1List(subgroupMap);                    
 
-                    response.Message = "Proceso completado para todos los archivos";
+                    response.Message = "All files created";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

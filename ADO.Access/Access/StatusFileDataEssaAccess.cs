@@ -496,5 +496,85 @@ namespace ADO.Access.Access
 
         }
 
+        //Poles
+        public async Task<Boolean> SaveDataPoleList(List<QueueStatusPole> request)
+        {
+
+            context.QueueStatusPoles.AddRange(request);
+            context.SaveChanges();
+            var result = true;
+
+            return result;
+        }
+
+        public async Task<Boolean> UpdateDataPole(QueueStatusPole request)
+        {
+
+            var poleExist = context.QueueStatusPoles.FirstOrDefault(x => x.FileName == request.FileName);
+
+            if (poleExist != null)
+            {
+                //actualizar data
+                //FrameworkTypeUtility.SetProperties(request, tt2Exist);
+
+                poleExist.UserId = request.UserId == null ? poleExist.UserId : request.UserId;
+                poleExist.FileType = request.FileType == null ? poleExist.FileType : request.FileType;
+                poleExist.DateFile = request.DateFile == null ? poleExist.DateFile : request.DateFile;
+                poleExist.Year = request.Year == null ? poleExist.Year : request.Year;
+                poleExist.Month = request.Month == null ? poleExist.Month : request.Month;
+                poleExist.Day = request.Day == null ? poleExist.Day : request.Day;
+                poleExist.Status = request.Status == null ? poleExist.Status : request.Status;
+                poleExist.DateRegister = request.DateRegister == null ? poleExist.DateRegister : request.DateRegister;
+
+                //guardar cambios                
+                context.SaveChanges();
+                var result = true;
+
+                return result;
+            }
+            else
+            {
+                var result = false;
+
+                return result;
+            }
+
+
+        }
+
+        public async Task<Boolean> UpdateDataPoleList(List<QueueStatusPole> request)
+        {
+            var result = true;
+            foreach (var item in request)
+            {
+                var poleExist = context.QueueStatusTt2s.FirstOrDefault(x => x.FileName == item.FileName);
+
+                if (poleExist != null)
+                {
+                    //actualizar data
+                    //FrameworkTypeUtility.SetProperties(item, tt2Exist);
+
+                    poleExist.UserId = item.UserId == null ? poleExist.UserId : item.UserId;
+                    poleExist.FileType = item.FileType == null ? poleExist.FileType : item.FileType;
+                    poleExist.DateFile = item.DateFile == null ? poleExist.DateFile : item.DateFile;
+                    poleExist.Year = item.Year == null ? poleExist.Year : item.Year;
+                    poleExist.Month = item.Month == null ? poleExist.Month : item.Month;
+                    poleExist.Day = item.Day == null ? poleExist.Day : item.Day;
+                    poleExist.Status = item.Status == null ? poleExist.Status : item.Status;
+                    poleExist.DateRegister = item.DateRegister == null ? poleExist.DateRegister : item.DateRegister;
+
+                    //guardar cambios                
+                    context.SaveChanges();
+                    result = true;
+                }
+                else
+                {
+                    result = false;
+                }
+            }
+            return result;
+
+        }
+
     }
 }

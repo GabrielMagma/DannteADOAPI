@@ -36,7 +36,7 @@ namespace DannteADOAPI.Controllers
         {
 
             ResponseQuery<bool> response = new ResponseQuery<bool>();
-            await AddMessage(true, "Tc1 se está Validando");
+            await AddMessage(true, "TC1 se está Validando");
             await TC1Services.ReadFilesTc1(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);

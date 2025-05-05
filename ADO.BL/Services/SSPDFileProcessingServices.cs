@@ -193,7 +193,7 @@ namespace ADO.BL.Services
                 var resultSave = await statusFileEssaDataAccess.UpdateDataSSPDList(subgroupMap);
 
 
-                response.Message = "Proceso completado para todos los archivos";
+                response.Message = "All records updated and/or created";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;

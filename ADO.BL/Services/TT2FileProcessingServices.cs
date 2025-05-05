@@ -216,7 +216,7 @@ namespace ADO.BL.Services
                     }
                 }
 
-                response.Message = "Proceso completado para todos los archivos";
+                response.Message = "All records created and/or updated";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;

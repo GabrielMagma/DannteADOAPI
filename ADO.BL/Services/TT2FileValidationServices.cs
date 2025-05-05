@@ -72,22 +72,19 @@ namespace ADO.BL.Services
                         {
                             item.Status = 3;
                         }
-                        response.Message = "Proceso Con errores, favor validar y volver a lanzar el proceso";
+                        response.Message = "File with errors";
                         response.SuccessData = false;
                         response.Success = false;
                     }
                     else
                     {
-                        response.Message = "Proceso completado con éxito";
+                        response.Message = "validation process completed successfully";
                         response.SuccessData = true;
                         response.Success = true;
                     }                    
                     var resultSave = await statusFileEssaDataAccess.UpdateDataTT2List(subgroupMap);
                     
 
-                    response.Message = "Proceso completado para todos los archivos";
-                    response.SuccessData = true;
-                    response.Success = true;
                     return response;
                 }
 

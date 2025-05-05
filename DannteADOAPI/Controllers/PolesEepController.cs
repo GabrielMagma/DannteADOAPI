@@ -37,6 +37,7 @@ namespace DannteADOAPI.Controllers
         {
 
             ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "Poles se está ejecutando");
             await polesEepServices.ValidationFile(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);

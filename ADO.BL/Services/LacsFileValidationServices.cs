@@ -41,7 +41,7 @@ namespace ADO.BL.Services
                 var responseError = new ResponseEntity<List<StatusFileDTO>>();
                 var viewErrors =  await lACValidationServices.ValidationLAC(request, responseError);
                 if (viewErrors.Success == false) {
-                    response.Message = "El archivo cargado tiene errores, por favor corregir";
+                    response.Message = viewErrors.Message;
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
@@ -61,13 +61,13 @@ namespace ADO.BL.Services
                         {
                             item.Status = 3;
                         }
-                        response.Message = "Proceso Con errores, favor validar y volver a lanzar el proceso";
+                        response.Message = "File with errors";
                         response.SuccessData = false;
                         response.Success = false;
                     }
                     else
                     {
-                        response.Message = "Proceso completado con éxito";
+                        response.Message = "All files created";
                         response.SuccessData = true;
                         response.Success = true;
                     }

@@ -36,6 +36,7 @@ namespace DannteADOAPI.Controllers
         {
             
             ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "IO se está Validando");
             await fileIOServices.ReadFilesIos(iosValidation, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);

@@ -43,7 +43,7 @@ namespace ADO.BL.Services
                 var viewErrors = await SSPDValidationServices.ValidationSSPD(request, responseError);
                 if (viewErrors.Success == false)
                 {
-                    response.Message = "el archivo cargado tiene errores, por favor corregir";
+                    response.Message = viewErrors.Message;
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
@@ -61,13 +61,13 @@ namespace ADO.BL.Services
                         {
                             item.Status = 3;
                         }
-                        response.Message = "Proceso Con errores, favor validar y volver a lanzar el proceso";
+                        response.Message = "loaded file have some errors, please fix it and upload again";
                         response.SuccessData = false;
                         response.Success = false;
                     }
                     else
                     {
-                        response.Message = "Proceso completado con éxito";
+                        response.Message = "All files created";
                         response.SuccessData = true;
                         response.Success = true;
                     }

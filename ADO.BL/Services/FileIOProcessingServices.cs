@@ -275,7 +275,7 @@ namespace ADO.BL.Services
 
                 }
 
-                response.Message = "All files created";
+                response.Message = "All records created";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;

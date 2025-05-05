@@ -48,16 +48,22 @@ namespace ADO.BL.Services
                     var statusFilesingle = new StatusFileDTO();
 
                     // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    // Obtener los primeros 4 dígitos como el año
+                    int year = int.Parse(fileName.Substring(0, 4));
+
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int month = int.Parse(fileName.Substring(4, 2));
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
                     statusFilesingle.FileName = fileName;
                     statusFilesingle.FileType = "POLES";
-                    statusFilesingle.Year = request.Year;
-                    statusFilesingle.Month = request.Month;
-                    statusFilesingle.Day = -1;
-                    statusFilesingle.Status = 1;
+                    statusFilesingle.Year = year;
+                    statusFilesingle.Month = month;
+                    statusFilesingle.Day = 1;
+                    statusFilesingle.Status = 4;
 
                     statusFileList.Add(statusFilesingle);
 
@@ -145,28 +151,50 @@ namespace ADO.BL.Services
                         {
                             continue;
                         }
-                        if (valueLines[0] != "NODO_FISICO")
+                        if (valueLines[0] == "NODO_FISICO")
                         {
-                            var assetTemp = listAssetsDTO.FirstOrDefault(x => x.Fparent == valueLines[1]);
-                            var poleTemp = listUtilityPoleDTO.FirstOrDefault(x => x.PaintingCode == valueLines[0]);
+                            continue;
+                        }
 
-                            if (poleTemp == null && assetTemp != null)
-                            {
-                            
-                                    var entityPole = new MpUtilityPoleDTO();
+                        var assetTemp = listAssetsDTO.FirstOrDefault(x => x.Fparent == valueLines[1]);
+                        var poleTemp = listUtilityPoleDTO.FirstOrDefault(x => x.PaintingCode == valueLines[0]);
 
-                                    entityPole.InventaryCode = valueLines[0].Trim();
-                                    entityPole.PaintingCode = valueLines[0].Trim();
-                                    entityPole.Latitude = float.Parse(valueLines[3].ToString());
-                                    entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                                    entityPole.Fparent = valueLines[1].Trim();
-                                    entityPole.IdRegion = (long)assetTemp.IdRegion;
-                                    entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
-                                    entityPole.TypePole = int.Parse(valueLines[2].ToString());
+                        if (assetTemp == null)
+                        {
+                            continue;
+                        }
 
-                                    listEntityPoleDTO.Add(entityPole);
-                            }
-                        }                                                   
+                        if (poleTemp == null)
+                        {                            
+                            var entityPole = new MpUtilityPoleDTO();
+
+                            entityPole.InventaryCode = valueLines[0].Trim();
+                            entityPole.PaintingCode = valueLines[0].Trim();
+                            entityPole.Latitude = float.Parse(valueLines[3].ToString());
+                            entityPole.Longitude = float.Parse(valueLines[4].ToString());
+                            entityPole.Fparent = valueLines[1].Trim();
+                            entityPole.IdRegion = (long)assetTemp.IdRegion;
+                            entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
+                            entityPole.TypePole = int.Parse(valueLines[2].ToString());
+
+                            listEntityPoleDTO.Add(entityPole);
+                        }
+                        else if(poleTemp.Fparent != valueLines[1].Trim())
+                        {
+                            var entityPole = new MpUtilityPoleDTO();
+
+                            entityPole.InventaryCode = valueLines[0].Trim();
+                            entityPole.PaintingCode = valueLines[0].Trim();
+                            entityPole.Latitude = float.Parse(valueLines[3].ToString());
+                            entityPole.Longitude = float.Parse(valueLines[4].ToString());
+                            entityPole.Fparent = valueLines[1].Trim();
+                            entityPole.IdRegion = (long)assetTemp.IdRegion;
+                            entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
+                            entityPole.TypePole = int.Parse(valueLines[2].ToString());
+
+                            listEntityPoleDTO.Add(entityPole);
+                        }
+                        
                     }
 
                     if(listEntityPoleDTO.Count > 0)
@@ -174,12 +202,13 @@ namespace ADO.BL.Services
                         
                         var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
                         var respCreate = CreateData(polesMapped);
-                        //var subgroupMap = mapper.Map<List<StatusFile>>(statusFileList);
-                        //var resultSave = await statusFileDataAccess.SaveDataList(subgroupMap);
+
+                        var entityMap = mapper.Map<QueueStatusPole>(statusFilesingle);
+                        var resultSave = await statusFileDataAccess.UpdateDataPole(entityMap);
                     }
                 }
 
-                response.Message = "File uploaded correctly";
+                response.Message = "File uploaded successfully";
                 response.Success = true;
                 response.SuccessData = true;
             }
