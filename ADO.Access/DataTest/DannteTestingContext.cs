@@ -391,9 +391,7 @@ namespace ADO.Access.DataTest
 
                 entity.Property(e => e.Fparent)
                     .HasMaxLength(20)
-                    .HasColumnName("fparent");
-
-                entity.Property(e => e.IdRegion).HasColumnName("id_region");
+                    .HasColumnName("fparent");                
 
                 entity.Property(e => e.InventaryCode)
                     .HasMaxLength(50)
@@ -403,21 +401,12 @@ namespace ADO.Access.DataTest
 
                 entity.Property(e => e.Longitude).HasColumnName("longitude");
 
-                entity.Property(e => e.NameRegion)
-                    .HasMaxLength(50)
-                    .HasColumnName("name_region");
-
                 entity.Property(e => e.PaintingCode)
                     .HasMaxLength(50)
                     .HasColumnName("painting_code");
 
                 entity.Property(e => e.TypePole).HasColumnName("type_pole");
-
-                entity.Property(e => e.X).HasColumnName("x");
-
-                entity.Property(e => e.Y).HasColumnName("y");
-
-                entity.Property(e => e.Z).HasColumnName("z");
+                
             });
 
             modelBuilder.Entity<FilesIoComplete>(entity =>
