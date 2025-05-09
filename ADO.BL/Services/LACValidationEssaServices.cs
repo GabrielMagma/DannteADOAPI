@@ -1,9 +1,11 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Globalization;
@@ -17,18 +19,20 @@ namespace ADO.BL.Services
         private readonly string _FilesLACDirectoryPath;
         private readonly IMapper mapper;
         private readonly IStatusFileDataAccess statusFileDataAccess;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public LACValidationEssaServices(IConfiguration configuration,
             IStatusFileDataAccess _statuFileDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _FilesLACDirectoryPath = configuration["FilesLACPath"];
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationLAC(LacValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
@@ -63,31 +67,40 @@ namespace ADO.BL.Services
                                         .ToList().OrderBy(f => f)
                      .ToArray()
                     )
-                {                    
+                {
+
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} está validando la estructura del formato");
+
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();
                     int count = 1;
                     var columns = int.Parse(_configuration["Validations:LACColumns"]);                    
                     // columnas tabla error
                     dataTableError.Columns.Add("C1");
-                    dataTableError.Columns.Add("C2");
-                    
+                    dataTableError.Columns.Add("C2");                                        
 
-                    // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);
                     string[] fileLines = File.ReadAllLines(filePath);
                     // Asumiendo que el formato del archivo es AAAAMMDD_LAC.csv
 
-                    var resultYearMonth = getYearMonth(fileLines);
-                    int year = 2099;
-                    int month = 12;
-                    int day = 31;                    
-                    if (resultYearMonth.Count > 0)
-                    {
-                        year = int.Parse(resultYearMonth[0]);
-                        month = int.Parse(resultYearMonth[1]);
-                        day = int.Parse(resultYearMonth[2]);
-                    }
+                    // Obtener los primeros 4 dígitos como el año
+                    int year = int.Parse(fileName.Substring(0, 4));
+
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int month = int.Parse(fileName.Substring(4, 2));
+
+                    // Obtener los siguientes 2 dígitos como el día
+                    int day = int.Parse(fileName.Substring(6, 2));
+
                     var statusFilesingle = new StatusFileDTO();
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
@@ -98,9 +111,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = day;
                     statusFilesingle.DateRegister = ParseDateTemp($"{day}/{month}/{year}");
-
-                    
-
+                   
                     // columnas tabla datos correctos
                     for (int i = 1; i <= columns; i++)
                     {
@@ -182,6 +193,7 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
+                        await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores");
                         statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);
@@ -327,31 +339,6 @@ namespace ADO.BL.Services
                 }
             }
             return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
-        }
-
-        private List<string> getYearMonth(string[] lines)
-        {
-            var yearMonth = new List<string>();
-            for (int i = 1; i < lines.Count(); i++)
-            {
-                var valueLines = lines[i].Split(',', ';');
-                if (string.IsNullOrEmpty(valueLines[1]))
-                {
-                    continue;
-                }
-                var resultDate = ParseDate(valueLines[1]);
-                if (resultDate != ParseDate("31/12/2099 00:00:00"))
-                {
-                    // formato fecha "dd/MM/YYYY"
-                    var dateTemp = resultDate.ToString().Split('/', ' ');
-                    yearMonth.Add(dateTemp[2]);
-                    yearMonth.Add(dateTemp[1]);
-                    yearMonth.Add(dateTemp[0]);
-                    break;
-                }
-
-            }
-            return yearMonth;
-        }
+        }        
     }
 }

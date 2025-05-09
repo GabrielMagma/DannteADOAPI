@@ -1,9 +1,11 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using OfficeOpenXml;
@@ -26,14 +28,15 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileDataAccess;
         readonly IAllAssetOracleServices allAssetOracleServices;
         private readonly string _connectionString;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public FileAssetValidationServices(IConfiguration configuration,
             IMapper _mapper,
             IStatusFileDataAccess _statuFileDataAccess,
             IFileAssetModifiedDataAccess _fileAssetModifiedDataAccess,
-            IAllAssetOracleServices _AllAssetOracleServices)
+            IAllAssetOracleServices _AllAssetOracleServices,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             mapper = _mapper;
@@ -42,6 +45,7 @@ namespace ADO.BL.Services
             fileAssetModifiedDataAccess = _fileAssetModifiedDataAccess;
             statusFileDataAccess = _statuFileDataAccess;
             allAssetOracleServices = _AllAssetOracleServices;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesAssets(FileAssetsValidationDTO request, ResponseQuery<bool> response)
@@ -59,6 +63,18 @@ namespace ADO.BL.Services
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx").OrderBy(f => f).ToArray())
                 {
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} se está validando");
+
                     using (var package = new ExcelPackage(new FileInfo(filePath)))
                     {
                         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -69,10 +85,7 @@ namespace ADO.BL.Services
                         var assetList = new List<AllAssetDTO>();
                         var assetListCreate = new List<AllAssetDTO>();
                         var fparentRegionList = new List<FparenRegionDTO>();
-                        var statusFilesingle = new StatusFileDTO();
-
-                        // Extraer el nombre del archivo sin la extensión
-                        var fileName = Path.GetFileNameWithoutExtension(filePath);
+                        var statusFilesingle = new StatusFileDTO();                        
 
                         // Obtener los primeros 4 dígitos como el año
                         int year = int.Parse(fileName.Substring(0, 4));
@@ -521,6 +534,7 @@ namespace ADO.BL.Services
                             errorFlag = true;
                             statusFilesingle.Status = 2;
                             RegisterError(dataTableError, inputFolder, filePath);
+                            await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores, por favor corregirlo");
                         }
 
                         var subgroupMap = mapper.Map<QueueStatusAsset>(statusFilesingle);

@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Globalization;
@@ -19,13 +21,14 @@ namespace ADO.BL.Services
         private readonly ITT2ValidationServices _Itt2ValidationServices;        
         private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public TT2FileProcessingServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,            
             IStatusFileDataAccess _statusFileEssaDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _tt2DirectoryPath = configuration["TT2DirectoryPath"];
@@ -33,6 +36,7 @@ namespace ADO.BL.Services
             _Itt2ValidationServices = Itt2ValidationServices;            
             statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesTT2(TT2ValidationDTO request, ResponseQuery<bool> response)
@@ -70,7 +74,14 @@ namespace ADO.BL.Services
                 {
 
                     // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
 
                     var nameTemp = fileName;
 
@@ -167,13 +178,13 @@ namespace ADO.BL.Services
                         return response;
                     }
                 }
-                var completed2 = await ReadFileTT2Orginal();
+                var completed2 = await ReadFileTT2Orginal(request);
                 Console.WriteLine(completed2);
-                var completed3 = await BulkInsertAllAsset();
+                var completed3 = await BulkInsertAllAsset(request);
                 Console.WriteLine(completed3);
-                var completed4 = await ReadTt2Update();
+                var completed4 = await ReadTt2Update(request);
                 Console.WriteLine(completed4);
-                var completed5 = await ReadTt2UpdateCheck();
+                var completed5 = await ReadTt2UpdateCheck(request);
                 Console.WriteLine(completed5);
 
                 var subgroupMap = mapper.Map<List<QueueStatusTt2>>(listStatusTt2);
@@ -239,7 +250,7 @@ namespace ADO.BL.Services
             return response;
         }        
 
-        private async Task<string> ReadFileTT2Orginal()
+        private async Task<string> ReadFileTT2Orginal(TT2ValidationDTO request)
         {
             try
             {
@@ -258,8 +269,18 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in originalFiles)
                 {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+                    
                     await CreateTT2Files(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente para particiones.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente para particiones.");
                 }
 
                 // Procesar archivos *_check.csv
@@ -272,8 +293,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in checkFiles)
                 {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
                     await CheckByInsertFile(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente para verificación.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente para verificación.");
                 }
 
                 // Procesar archivos *_insert.csv
@@ -286,8 +316,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in insertFiles)
                 {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
                     await CreateNewFileFromInsert(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente para inserción.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente para inserción.");
                 }
 
                 return ("Proceso completado para todos los archivos.");
@@ -298,7 +337,7 @@ namespace ADO.BL.Services
             }           
         }
 
-        public async Task<string> BulkInsertAllAsset()
+        public async Task<string> BulkInsertAllAsset(TT2ValidationDTO request)
         {
             try
             {
@@ -312,8 +351,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in createFiles)
                 {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
                     await BulkInsertUsingCopy(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
                 }
 
                 return ("Archivos procesados e insertados correctamente.");
@@ -324,7 +372,7 @@ namespace ADO.BL.Services
             }
         }
 
-        public async Task<string> ReadTt2Update()
+        public async Task<string> ReadTt2Update(TT2ValidationDTO request)
         {
             try
             {
@@ -334,8 +382,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
                     await UpdateAllAssetbyTT2(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
                 }
 
                 return ("Proceso completado para todos los archivos.");
@@ -343,6 +400,37 @@ namespace ADO.BL.Services
             catch (Exception ex)
             {
                 return ( $"Error al procesar los archivos: {ex.Message}");
+            }
+        }
+
+        public async Task<string> ReadTt2UpdateCheck(TT2ValidationDTO request)
+        {
+            try
+            {
+                // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
+                var files = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").OrderBy(f => f)
+                     .ToArray();
+
+                foreach (var filePath in files)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+                    await UpdateAllAssetbyTT2Check(filePath);
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                }
+
+                return ("Proceso completado para todos los archivos.");
+            }
+            catch (Exception ex)
+            {
+                return ($"Error al procesar los archivos: {ex.Message}");
             }
         }
 
@@ -446,29 +534,7 @@ namespace ADO.BL.Services
             {
                 throw new Exception($"Error al actualizar lote: {ex.Message}");
             }
-        }
-
-        public async Task<string> ReadTt2UpdateCheck()
-        {
-            try
-            {
-                // Obtener todos los archivos CSV en la carpeta que terminan en _update.csv
-                var files = Directory.GetFiles(_tt2DirectoryPath, "*_check.csv").OrderBy(f => f)
-                     .ToArray();
-
-                foreach (var filePath in files)
-                {
-                    await UpdateAllAssetbyTT2Check(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente.");
-                }
-
-                return ("Proceso completado para todos los archivos.");
-            }
-            catch (Exception ex)
-            {
-                return ($"Error al procesar los archivos: {ex.Message}");
-            }
-        }
+        }        
 
         private async Task UpdateAllAssetbyTT2Check(string filePath)
         {

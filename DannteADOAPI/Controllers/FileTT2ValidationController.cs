@@ -1,7 +1,7 @@
 ﻿using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
-using DannteADOAPI.Helper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -31,11 +31,11 @@ namespace DannteADOAPI.Controllers
         /// <returns></returns>  
         [HttpPost]
         [Route(nameof(FileTT2ValidationController.ValidationTT2))]        
-        public async Task<IActionResult> ValidationTT2()
+        public async Task<IActionResult> ValidationTT2(TT2ValidationDTO request)
         {
             
             ResponseQuery<bool> response = new ResponseQuery<bool>();
-            await fileTT2Services.ValidationTT2(response);
+            await fileTT2Services.ValidationTT2(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
             

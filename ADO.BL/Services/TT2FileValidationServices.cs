@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Globalization;
@@ -20,11 +22,13 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileEssaDataAccess;
         private readonly IMapper mapper;
         readonly IFileTT2ValidationServices fileTT2Services;
+        private readonly IHubContext<NotificationHub> _hubContext;
         public TT2FileValidationServices(IConfiguration configuration, 
             ITT2ValidationServices Itt2ValidationServices,            
             IStatusFileDataAccess _statusFileEssaDataAccess,
             IMapper _mapper,
-            IFileTT2ValidationServices _fileTT2Services)
+            IFileTT2ValidationServices _fileTT2Services,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _tt2DirectoryPath = configuration["TT2DirectoryPath"];
@@ -33,6 +37,7 @@ namespace ADO.BL.Services
             statusFileEssaDataAccess = _statusFileEssaDataAccess;
             mapper = _mapper;
             fileTT2Services = _fileTT2Services;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesTT2(TT2ValidationDTO request, ResponseQuery<bool> response)
@@ -40,7 +45,7 @@ namespace ADO.BL.Services
             try
             {
                 ResponseQuery<bool> responseFileCreate = new ResponseQuery<bool>();
-                var errorFileCreate = await fileTT2Services.ValidationTT2(responseFileCreate);
+                var errorFileCreate = await fileTT2Services.ValidationTT2(request, responseFileCreate);
                 if (errorFileCreate.Success == false)
                 {
                     response.Message = errorFileCreate.Message;
@@ -59,7 +64,7 @@ namespace ADO.BL.Services
                 }
                 else
                 {
-                    var completed1 = await BeginProcess();
+                    var completed1 = await BeginProcess(request);
                     Console.WriteLine(completed1);
 
 
@@ -105,7 +110,7 @@ namespace ADO.BL.Services
             return response;
         }
 
-        private async Task<string> BeginProcess()
+        private async Task<string> BeginProcess(TT2ValidationDTO request)
         {
             try
             {
@@ -117,7 +122,19 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
-                   await ProcessAndCompleteFile(filePath);
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} se está validando");
+
+                    await ProcessAndCompleteFile(filePath);
                 }
                 Console.WriteLine("EndBeginProcess");
                 return "Completed";

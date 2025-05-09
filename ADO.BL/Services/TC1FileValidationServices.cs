@@ -1,13 +1,11 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
-using Npgsql;
-using OfficeOpenXml.Drawing.Style.Fill;
-using System.Globalization;
-using System.Text;
 
 namespace ADO.BL.Services
 {
@@ -21,11 +19,12 @@ namespace ADO.BL.Services
         private readonly ITC1ValidationServices _ITC1ValidationServices;        
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         public TC1FileValidationServices(IConfiguration configuration, 
             ITC1ValidationServices Itc1ValidationServices,            
             IStatusFileDataAccess _statusFileDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionStringEssa = configuration.GetConnectionString("PgDbTestingConnection");
             _connectionStringEep = configuration.GetConnectionString("PgDbEepConnection");
@@ -34,7 +33,7 @@ namespace ADO.BL.Services
             _ITC1ValidationServices = Itc1ValidationServices;            
             statusFileDataAccess = _statusFileDataAccess;
             mapper = _mapper;
-            
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesTc1(TC1ValidationDTO request, ResponseQuery<bool> response)

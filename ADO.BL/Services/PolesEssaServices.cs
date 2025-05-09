@@ -163,9 +163,7 @@ namespace ADO.BL.Services
                                     entityPole.PaintingCode = valueLines[14].Trim();
                                     entityPole.Latitude = float.Parse(valueLines[18].ToString());
                                     entityPole.Longitude = float.Parse(valueLines[19].ToString());
-                                    entityPole.Fparent = valueLines[5].Trim().Replace(" ", "");
-                                    entityPole.IdRegion = (long)assetTemp.IdRegion;
-                                    entityPole.NameRegion = assetTemp.NameRegion.Trim().ToUpper();
+                                    entityPole.Fparent = valueLines[5].Trim().Replace(" ", "");                                    
                                     entityPole.TypePole = 1;
 
                                     listEntityPoleDTO.Add(entityPole);

@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
@@ -20,11 +22,12 @@ namespace ADO.BL.Services
         private readonly ISSPDValidationEepServices SSPDValidationServices;        
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         public SSPDFileValidationServices(IConfiguration configuration, 
             ISSPDValidationEepServices _SSPDValidationServices,            
             IStatusFileDataAccess _statuFileEssaDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");            
             _sspdDirectoryPath = configuration["SspdDirectoryPath"];
@@ -32,7 +35,7 @@ namespace ADO.BL.Services
             SSPDValidationServices = _SSPDValidationServices;
             statusFileDataAccess = _statuFileEssaDataAccess;
             mapper = _mapper;
-
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesSspd(LacValidationDTO request, ResponseQuery<bool> response)
@@ -50,7 +53,7 @@ namespace ADO.BL.Services
                 }
                 else
                 {
-                    var completed1 = await BeginProcess();
+                    var completed1 = await BeginProcess(request);
                     Console.WriteLine(completed1);
 
                     //update status queue
@@ -94,7 +97,7 @@ namespace ADO.BL.Services
             return response;
         }
 
-        private async Task<string> BeginProcess()
+        private async Task<string> BeginProcess(LacValidationDTO request)
         {
             try
             {
@@ -114,8 +117,19 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
-                   await CreateSspdFiles(filePath);
-                    Console.WriteLine($"Archivo {filePath} subido exitosamente.");
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 10)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} se está validando");
+                    await CreateSspdFiles(filePath);
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} subido exitosamente.");
                 }
                 Console.WriteLine("EndBeginProcess");
                 return "Completed";

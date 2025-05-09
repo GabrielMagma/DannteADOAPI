@@ -1,10 +1,11 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Globalization;
@@ -18,18 +19,20 @@ namespace ADO.BL.Services
         private readonly string _Tc1DirectoryPath;
         private readonly IMapper mapper;
         private readonly IStatusFileDataAccess statusFileDataAccess;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public TC1ValidationServices(IConfiguration configuration,
             IStatusFileDataAccess _statuFileDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _Tc1DirectoryPath = configuration["Tc1DirectoryPath"];
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
+            _hubContext = hubContext;
         }
          
         public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationTC1(TC1ValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
@@ -54,6 +57,20 @@ namespace ADO.BL.Services
                      .ToArray()
                     )
                 {
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    var fileNameTemp = fileName.Replace("_Fixed", "");
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} está validando la estructura del formato");
+
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();
                     int count = 1;
@@ -62,10 +79,7 @@ namespace ADO.BL.Services
                     dataTableError.Columns.Add("C1");
                     dataTableError.Columns.Add("C2");
 
-                    var statusFilesingle = new StatusFileDTO();
-
-                    // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    var statusFilesingle = new StatusFileDTO();                    
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -140,6 +154,7 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
+                        await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} tiene errores");
                         statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);

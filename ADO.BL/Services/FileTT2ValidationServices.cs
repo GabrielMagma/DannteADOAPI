@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using CsvHelper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
@@ -17,15 +19,17 @@ namespace ADO.BL.Services
         private readonly string[] _timeFormats;
         private readonly string _TT2FixDirectoryPath;
         private readonly string _connectionString;
-        public FileTT2ValidationServices(IConfiguration configuration)
+        private readonly IHubContext<NotificationHub> _hubContext;
+        public FileTT2ValidationServices(IConfiguration configuration, IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _configuration = configuration;
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _TT2FixDirectoryPath = configuration["TT2DirectoryPath"];
+            _hubContext = hubContext;
         }
 
-        public async Task<ResponseQuery<bool>> ValidationTT2(ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ValidationTT2(TT2ValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {
@@ -35,6 +39,18 @@ namespace ADO.BL.Services
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").OrderBy(f => f)
                      .ToArray())
                 {
+
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);                    
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} está validando el código de ubicación");
+
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();
 
@@ -176,6 +192,7 @@ namespace ADO.BL.Services
                     
                     if (dataTableError.Rows.Count > 0)
                     {
+                        await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores");
                         flagValidation = true;
                         createCSVError(dataTableError, filePath);
                     }

@@ -1,9 +1,11 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
 using CsvHelper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
@@ -20,12 +22,13 @@ namespace ADO.BL.Services
         private readonly IMapper mapper;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly string _connectionString;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public TT2ValidationServices(IConfiguration configuration,
             IStatusFileDataAccess _statuFileDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _configuration = configuration;
@@ -33,6 +36,7 @@ namespace ADO.BL.Services
             _TT2DirectoryPath = configuration["TT2DirectoryPath"];
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseEntity<List<StatusFileDTO>>> ValidationTT2(TT2ValidationDTO request, ResponseEntity<List<StatusFileDTO>> response)
@@ -70,16 +74,25 @@ namespace ADO.BL.Services
                     )
                 {
 
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = fileName.Replace("_Fixed", "");
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} está validando la estructura del formato");
+
                     var dataTable = new DataTable();
                     var dataTableError = new DataTable();
                     int count = 1;                                                            
                     // columnas tabla error
                     dataTableError.Columns.Add("C1");
                     dataTableError.Columns.Add("C2");
-                    var statusFilesingle = new StatusFileDTO();
-
-                    // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var statusFilesingle = new StatusFileDTO();                                        
 
                     #region queue
 
@@ -295,6 +308,7 @@ namespace ADO.BL.Services
 
                     if (dataTableError.Rows.Count > 0)
                     {
+                        await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} tiene errores");
                         statusFilesingle.Status = 2;
                         errorFlag = true;
                         createCSVError(dataTableError, filePath);
@@ -310,8 +324,8 @@ namespace ADO.BL.Services
                 {
                     response.Message = "validation of the file with errors";
                     response.SuccessData = false;
-                    //response.Success = false;
-                    response.Success = true; // cambiar en prod
+                    response.Success = false;
+                    //response.Success = true; // cambiar en prod
                     response.Data = statusFileList;
                     return response;
                 }

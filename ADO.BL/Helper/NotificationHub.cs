@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace DannteADOAPI.Helper
+namespace ADO.BL.Helper
 {
     public class NotificationHub : Hub
     {

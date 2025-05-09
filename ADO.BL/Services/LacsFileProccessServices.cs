@@ -1,8 +1,10 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
@@ -20,13 +22,14 @@ namespace ADO.BL.Services
         private readonly ILACValidationEssaServices lACValidationServices;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
-
+        private readonly IHubContext<NotificationHub> _hubContext;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
 
         public LacsFileProcessServices(IConfiguration configuration, 
             ILACValidationEssaServices _lACValidationServices,
             IStatusFileDataAccess _statuFileDataAccess,
-            IMapper _mapper)
+            IMapper _mapper,
+            IHubContext<NotificationHub> hubContext)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _lacDirectoryPath = configuration["FilesLACPath"];
@@ -34,6 +37,7 @@ namespace ADO.BL.Services
             lACValidationServices = _lACValidationServices;
             statusFileDataAccess = _statuFileDataAccess;
             mapper = _mapper;
+            _hubContext = hubContext;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesLacs(LacValidationDTO request, ResponseQuery<bool> response)
@@ -68,6 +72,13 @@ namespace ADO.BL.Services
                 {
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
 
                     var nameTemp = fileName;
 
@@ -169,11 +180,11 @@ namespace ADO.BL.Services
                 }
 
                 // validate previous status 60 days 
-                var completed2 = await ReadSspdUnchanged();
+                var completed2 = await ReadSspdUnchanged(request);
                 Console.WriteLine(completed2);
-                var completed3 = await ReadSSpdContinues();
+                var completed3 = await ReadSSpdContinues(request);
                 Console.WriteLine(completed3);
-                var completed4 = await ReadSspdUpdate();
+                var completed4 = await ReadSspdUpdate(request);
                 Console.WriteLine(completed4);
 
                 var subgroupMap = mapper.Map<List<QueueStatusLac>>(listStatusLac);
@@ -204,12 +215,11 @@ namespace ADO.BL.Services
             return response;
         }        
 
-        public async Task<string> ReadSspdUnchanged()
+        public async Task<string> ReadSspdUnchanged(LacValidationDTO request)
         {
             try
             {
-                Console.WriteLine("ReadSspdUnchanged");
-                // var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv");
+                Console.WriteLine("ReadSspdUnchanged");                
 
                 var files = Directory.GetFiles(_lacDirectoryPath, "*_unchanged.csv")
                      .OrderBy(f => f)
@@ -217,8 +227,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
-                   await UploadLac(filePath);
-                    Console.WriteLine($"Archivo {filePath} subido exitosamente.");
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 12)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+                    await UploadLac(filePath);
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_unchanged subido exitosamente.");
                 }
 
                 Console.WriteLine("EndReadSspdUnchanged");
@@ -231,7 +250,7 @@ namespace ADO.BL.Services
             
         }
 
-        public async Task<string> ReadSSpdContinues()
+        public async Task<string> ReadSSpdContinues(LacValidationDTO request)
         {
             try
             {
@@ -241,8 +260,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
-                   await UploadLac(filePath);
-                    Console.WriteLine($"Archivo {filePath} subido exitosamente.");
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 12)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+                    await UploadLac(filePath);
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_continues subido exitosamente.");
                 }
 
                 Console.WriteLine("EndReadSSpdContinues");
@@ -254,7 +282,7 @@ namespace ADO.BL.Services
             }            
         }
 
-        public async Task<string> ReadSspdUpdate()
+        public async Task<string> ReadSspdUpdate(LacValidationDTO request)
         {
             try
             {
@@ -266,8 +294,17 @@ namespace ADO.BL.Services
 
                 foreach (var filePath in files)
                 {
-                   await UpdateLACbyLAC(filePath);
-                    Console.WriteLine($"Archivo {filePath} procesado exitosamente.");
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = $"{fileName.Substring(0, 12)}.csv";
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+                    await UpdateLACbyLAC(filePath);
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_update Procesado exitosamente.");
                 }
 
                 Console.WriteLine("EndReadSspdUpdate");
