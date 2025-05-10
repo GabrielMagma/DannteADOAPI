@@ -227,7 +227,7 @@ namespace ADO.BL.Services
                     }
                 }
 
-                response.Message = "All records created and/or updated";
+                response.Message = "Todos los registros creados y/o actualizados";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;
@@ -361,7 +361,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await BulkInsertUsingCopy(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha creado nuevos registros");
                 }
 
                 return ("Archivos procesados e insertados correctamente.");
@@ -392,7 +392,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UpdateAllAssetbyTT2(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha actualizado los registros correspondientes");
                 }
 
                 return ("Proceso completado para todos los archivos.");
@@ -423,7 +423,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UpdateAllAssetbyTT2Check(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} se ha procesado exitosamente.");
                 }
 
                 return ("Proceso completado para todos los archivos.");

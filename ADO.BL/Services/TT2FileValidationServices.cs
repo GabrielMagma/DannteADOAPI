@@ -77,13 +77,13 @@ namespace ADO.BL.Services
                         {
                             item.Status = 3;
                         }
-                        response.Message = "File with errors";
+                        response.Message = "Archivos con errores";
                         response.SuccessData = false;
                         response.Success = false;
                     }
                     else
                     {
-                        response.Message = "validation process completed successfully";
+                        response.Message = "Validación de archivos completada";
                         response.SuccessData = true;
                         response.Success = true;
                     }                    
@@ -135,6 +135,8 @@ namespace ADO.BL.Services
                     await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} se está validando");
 
                     await ProcessAndCompleteFile(filePath);
+
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} ha terminado el proceso de validación");
                 }
                 Console.WriteLine("EndBeginProcess");
                 return "Completed";

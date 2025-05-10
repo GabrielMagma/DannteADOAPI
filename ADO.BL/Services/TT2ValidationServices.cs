@@ -322,7 +322,7 @@ namespace ADO.BL.Services
                 }
                 if (errorFlag)
                 {
-                    response.Message = "validation of the file with errors";
+                    response.Message = "Archivo con errores en su estructura.";
                     response.SuccessData = false;
                     response.Success = false;
                     //response.Success = true; // cambiar en prod

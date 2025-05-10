@@ -555,14 +555,14 @@ namespace ADO.BL.Services
 
                 if (errorFlag)
                 {
-                    response.Message = "File with errors";
+                    response.Message = "Archivo con errores";
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
                 }
                 else
                 {
-                    response.Message = "All files created";
+                    response.Message = "todos los archivos validados correctamente";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

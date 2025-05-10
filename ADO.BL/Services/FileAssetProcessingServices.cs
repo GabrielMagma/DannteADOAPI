@@ -302,14 +302,14 @@ namespace ADO.BL.Services
 
                 if (errorFlag)
                 {
-                    response.Message = "File with errors";
+                    response.Message = "Archivo con errores, favor corregirlos";
                     response.SuccessData = false;
                     response.Success = false;
                     return response;
                 }
                 else
                 {
-                    response.Message = "All records created";
+                    response.Message = "Todos los registros creados satisfactoriamente.";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

@@ -194,7 +194,7 @@ namespace ADO.BL.Services
                 }
                 var resultSave = await statusFileDataAccess.UpdateDataLACList(subgroupMap);
 
-                response.Message = "All records created";
+                response.Message = "Todos los registros creados";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;                

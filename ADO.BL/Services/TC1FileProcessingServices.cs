@@ -197,7 +197,7 @@ namespace ADO.BL.Services
                 var resultSave = await statusFileDataAccess.UpdateDataTC1List(subgroupMap);
 
 
-                response.Message = "All records created";
+                response.Message = "Todos los registros fueron creados";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;

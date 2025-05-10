@@ -64,13 +64,13 @@ namespace ADO.BL.Services
                         {
                             item.Status = 3;
                         }
-                        response.Message = "loaded file have some errors, please fix it and upload again";
+                        response.Message = "Archivos con errores";
                         response.SuccessData = false;
                         response.Success = false;
                     }
                     else
                     {
-                        response.Message = "All files created";
+                        response.Message = "Todos los archivos fueron validados";
                         response.SuccessData = true;
                         response.Success = true;
                     }
@@ -129,7 +129,7 @@ namespace ADO.BL.Services
 
                     await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} se está validando");
                     await CreateSspdFiles(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha terminado la validación");
                 }
                 Console.WriteLine("EndBeginProcess");
                 return "Completed";

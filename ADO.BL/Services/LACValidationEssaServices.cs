@@ -207,7 +207,7 @@ namespace ADO.BL.Services
                 }
                 if (errorFlag)
                 {
-                    response.Message = "file with errors";
+                    response.Message = "Archivo con errores en su estructura";
                     response.SuccessData = false;
                     response.Success = false;
                     response.Data = statusFilesList;

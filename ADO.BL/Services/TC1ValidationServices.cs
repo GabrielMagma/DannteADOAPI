@@ -168,7 +168,7 @@ namespace ADO.BL.Services
                 }
                 if (errorFlag)
                 {
-                    response.Message = "file with errors";
+                    response.Message = "Archivos con errores";
                     response.SuccessData = false;
                     response.Success = false;
                     response.Data = statusFileList;

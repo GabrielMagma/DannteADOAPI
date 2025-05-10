@@ -201,7 +201,7 @@ namespace ADO.BL.Services
 
                 if (flagValidation)
                 {
-                    response.Message = "files with errors, please update the assets";
+                    response.Message = "Archivos con errores en Código de ubicación, por favor actualice los Assets.";
                     response.SuccessData = false;
                     response.Success = false;
                     //response.Success = true; // cambiar en prod

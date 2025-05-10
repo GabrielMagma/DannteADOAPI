@@ -56,7 +56,7 @@ namespace ADO.BL.Services
                     var subgroupMap = mapper.Map<List<QueueStatusTc1>>(ErrorinFiles.Data);                    
                     var resultSave = await statusFileDataAccess.UpdateDataTC1List(subgroupMap);                    
 
-                    response.Message = "All files created";
+                    response.Message = "Todos los archivos fueron validados";
                     response.SuccessData = true;
                     response.Success = true;
                     return response;

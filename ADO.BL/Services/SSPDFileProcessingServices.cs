@@ -204,7 +204,7 @@ namespace ADO.BL.Services
                 var resultSave = await statusFileEssaDataAccess.UpdateDataSSPDList(subgroupMap);
 
 
-                response.Message = "All records updated and/or created";
+                response.Message = "Todos los registros fueron creados y/o actualizados";
                 response.SuccessData = true;
                 response.Success = true;
                 return response;
@@ -246,7 +246,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UploadSSpd(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha creado registros nuevos completos");
                 }
 
                 Console.WriteLine("EndReadSspdUnchanged");
@@ -278,7 +278,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UploadSSpd(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha creado registros sin cierre");
                 }
 
                 Console.WriteLine("EndReadSSpdContinuesInsert");
@@ -311,7 +311,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UpdateLACbySSPD(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha actualizado registros sin cierre");
                 }
 
                 Console.WriteLine("EndReadSSpdContinuesUpdate");
@@ -343,7 +343,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UpdateLACbySSPD(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha actualizado los registros correspondientes");
                 }
 
                 Console.WriteLine("EndReadSspdUpdate");
@@ -376,7 +376,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await DeleteLACbySSPD(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp} procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El Archivo {fileNameTemp} ha eliminado registros innecesarios");
                 }
 
                 Console.WriteLine("EndReadSspdDelete");
