@@ -237,7 +237,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UploadLac(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_unchanged subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"el Archivo {fileNameTemp} ha creado registros nuevos completos");
                 }
 
                 Console.WriteLine("EndReadSspdUnchanged");
@@ -270,7 +270,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UploadLac(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_continues subido exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"el Archivo {fileNameTemp} ha creado registros sin cierre");
                 }
 
                 Console.WriteLine("EndReadSSpdContinues");
@@ -304,7 +304,7 @@ namespace ADO.BL.Services
                         }
                     }
                     await UpdateLACbyLAC(filePath);
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"Archivo {fileNameTemp}_update Procesado exitosamente.");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"el Archivo {fileNameTemp} ha actualizado el cierre de registros.");
                 }
 
                 Console.WriteLine("EndReadSspdUpdate");
