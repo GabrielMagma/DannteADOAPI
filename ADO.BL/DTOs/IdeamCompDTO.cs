@@ -2,12 +2,12 @@
 {
     public class IdeamCompDTO
     {
-        public string? Codigo { get; set; }
-        public string? Latitud { get; set; }
-        public string? Longitud { get; set; }
-        public string? Altitud { get; set; }
-        public string? Departamento { get; set; }
-        public string? Municipio { get; set; }
+        public string? code { get; set; }
+        public long? latitude { get; set; }
+        public long? longitude { get; set; }
+        public long? altitude { get; set; }
+        public string? department { get; set; }
+        public string? municipality { get; set; }
     }
 
 }

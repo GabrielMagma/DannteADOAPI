@@ -576,5 +576,85 @@ namespace ADO.Access.Access
 
         }
 
+        //Rayos
+        public async Task<Boolean> SaveDataRayosList(List<QueueStatusLightning> request)
+        {
+
+            context.QueueStatusLightnings.AddRange(request);
+            context.SaveChanges();
+            var result = true;
+
+            return result;
+        }
+
+        public async Task<Boolean> UpdateDataRayos(QueueStatusLightning request)
+        {
+
+            var assetExist = context.QueueStatusLightnings.FirstOrDefault(x => x.FileName == request.FileName);
+
+            if (assetExist != null)
+            {
+                //actualizar data
+                //FrameworkTypeUtility.SetProperties(request, assetExist);
+
+                assetExist.UserId = request.UserId == null ? assetExist.UserId : request.UserId;
+                assetExist.FileType = request.FileType == null ? assetExist.FileType : request.FileType;
+                assetExist.DateFile = request.DateFile == null ? assetExist.DateFile : request.DateFile;
+                assetExist.Year = request.Year == null ? assetExist.Year : request.Year;
+                assetExist.Month = request.Month == null ? assetExist.Month : request.Month;
+                assetExist.Day = request.Day == null ? assetExist.Day : request.Day;
+                assetExist.Status = request.Status == null ? assetExist.Status : request.Status;
+                assetExist.DateRegister = request.DateRegister == null ? assetExist.DateRegister : request.DateRegister;
+
+                //guardar cambios                
+                context.SaveChanges();
+                var result = true;
+
+                return result;
+            }
+            else
+            {
+                var result = false;
+
+                return result;
+            }
+
+
+        }
+
+        public async Task<Boolean> UpdateDataRayosList(List<QueueStatusLightning> request)
+        {
+            var result = true;
+            foreach (var item in request)
+            {
+                var assetExist = context.QueueStatusLightnings.FirstOrDefault(x => x.FileName == item.FileName);
+
+                if (assetExist != null)
+                {
+                    //actualizar data
+                    //FrameworkTypeUtility.SetProperties(item, assetExist);
+
+                    assetExist.UserId = item.UserId == null ? assetExist.UserId : item.UserId;
+                    assetExist.FileType = item.FileType == null ? assetExist.FileType : item.FileType;
+                    assetExist.DateFile = item.DateFile == null ? assetExist.DateFile : item.DateFile;
+                    assetExist.Year = item.Year == null ? assetExist.Year : item.Year;
+                    assetExist.Month = item.Month == null ? assetExist.Month : item.Month;
+                    assetExist.Day = item.Day == null ? assetExist.Day : item.Day;
+                    assetExist.Status = item.Status == null ? assetExist.Status : item.Status;
+                    assetExist.DateRegister = item.DateRegister == null ? assetExist.DateRegister : item.DateRegister;
+
+                    //guardar cambios                
+                    context.SaveChanges();
+                    result = true;
+                }
+                else
+                {
+                    result = false;
+                }
+            }
+            return result;
+
+        }
+
     }
 }
