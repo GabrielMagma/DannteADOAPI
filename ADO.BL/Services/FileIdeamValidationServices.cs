@@ -223,8 +223,8 @@ namespace ADO.BL.Services
                         await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores");
                     }
 
-                    var subgroupMap = mapper.Map<QueueStatusLightning>(statusFilesingle);
-                    var resultSave = await statusFileDataAccess.UpdateDataRayos(subgroupMap);
+                    //var subgroupMap = mapper.Map<QueueStatusLightning>(statusFilesingle);
+                    //var resultSave = await statusFileDataAccess.UpdateDataRayos(subgroupMap);
 
                 }
                 return response;

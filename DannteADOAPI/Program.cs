@@ -59,7 +59,8 @@ builder.Services.AddTransient<IAllAssetOracleServices, AllAssetOracleServices>()
 builder.Services.AddTransient<IAllAssetOracleDataAccess, AllAssetOracleDataAccess>();
 builder.Services.AddTransient<IFileTT2ValidationServices, FileTT2ValidationServices>();
 builder.Services.AddTransient<ITokenServices, TokenServices>();
-builder.Services.AddTransient<IRayosCSVServices, RayosCSVServices>();
+builder.Services.AddTransient<IFileRayosValidationServices, FileRayosValidationServices>();
+builder.Services.AddTransient<IFileRayosProcessingServices, FileRayosProcessingServices>();
 builder.Services.AddTransient<IRayosCSVDataAccess, RayosCSVDataAccess>();
 builder.Services.AddTransient<IRamalesServices, RamalesServices>();
 builder.Services.AddTransient<IRamalesDataAccess, RamalesDataAccess>();
