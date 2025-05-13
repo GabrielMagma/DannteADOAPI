@@ -20,7 +20,9 @@ namespace ADO.Access
             CreateMap<StatusFileDTO, QueueStatusTt2>().ReverseMap();
             CreateMap<StatusFileDTO, QueueStatusLightning>().ReverseMap();
             CreateMap<StatusFileDTO, QueueStatusPole>().ReverseMap();
+            CreateMap<StatusFileDTO, QueueStatusCompensation>().ReverseMap();
             CreateMap<MpLightningDTO, MpLightning>().ReverseMap();
+            CreateMap<MpCompensacionesDTO, MpCompensation>().ReverseMap();
             CreateMap<PodaDTO, IaPoda>().ReverseMap();
             CreateMap<FileIoCompleteDTO, FilesIoComplete>().ReverseMap();
             CreateMap<FileIoDTO, FilesIo>().ReverseMap();

@@ -53,12 +53,19 @@ namespace ADO.BL.Interfaces
 
         public Task<Boolean> UpdateDataPoleList(List<QueueStatusPole> request);
 
-        //poles
+        //rayos
         public Task<Boolean> SaveDataRayosList(List<QueueStatusLightning> request);
 
         public Task<Boolean> UpdateDataRayos(QueueStatusLightning request);
 
         public Task<Boolean> UpdateDataRayosList(List<QueueStatusLightning> request);
+
+        //Compensaciones
+        public Task<Boolean> SaveDataCompensationsList(List<QueueStatusCompensation> request);
+
+        public Task<Boolean> UpdateDataCompensations(QueueStatusCompensation request);
+
+        public Task<Boolean> UpdateDataCompensationsList(List<QueueStatusCompensation> request);
 
     }
 }

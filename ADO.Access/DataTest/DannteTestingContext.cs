@@ -21,6 +21,7 @@ namespace ADO.Access.DataTest
         public virtual DbSet<IaPoda> IaPodas { get; set; } = null!;
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
+        public virtual DbSet<MpCompensation> MpCompensations { get; set; } = null!;
         public virtual DbSet<FilesIoComplete> FilesIoCompletes { get; set; } = null!;
         public virtual DbSet<IoComment> IoComments { get; set; } = null!;
         public virtual DbSet<FileIoTemp> FileIoTemps { get; set; } = null!;        
@@ -33,6 +34,7 @@ namespace ADO.Access.DataTest
         public virtual DbSet<QueueStatusTt2> QueueStatusTt2s { get; set; } = null!;
         public virtual DbSet<QueueStatusPole> QueueStatusPoles { get; set; } = null!;
         public virtual DbSet<QueueStatusLightning> QueueStatusLightnings { get; set; } = null!;
+        public virtual DbSet<QueueStatusCompensation> QueueStatusCompensations { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -407,6 +409,49 @@ namespace ADO.Access.DataTest
 
                 entity.Property(e => e.TypePole).HasColumnName("type_pole");
                 
+            });
+
+            modelBuilder.Entity<MpCompensation>(entity =>
+            {
+                entity.ToTable("mp_compensation", "maps");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("nextval('maps.compensation_id_seq'::regclass)");
+
+                entity.Property(e => e.CodeSig)
+                    .HasMaxLength(32)
+                    .HasColumnName("code_sig");
+
+                entity.Property(e => e.Fparent)
+                    .HasMaxLength(16)
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Nui)
+                    .HasMaxLength(255)
+                    .HasColumnName("nui");
+
+                entity.Property(e => e.QualityGroup)
+                    .HasMaxLength(255)
+                    .HasColumnName("quality_group");
+
+                entity.Property(e => e.TensionLevel)
+                    .HasMaxLength(255)
+                    .HasColumnName("tension_level");
+
+                entity.Property(e => e.Vc).HasColumnName("vc");
+
+                entity.Property(e => e.Vcd).HasColumnName("vcd");
+
+                entity.Property(e => e.Vcf).HasColumnName("vcf");
+
+                entity.Property(e => e.Year).HasColumnName("year");
             });
 
             modelBuilder.Entity<FilesIoComplete>(entity =>
@@ -943,6 +988,37 @@ namespace ADO.Access.DataTest
             modelBuilder.Entity<QueueStatusLightning>(entity =>
             {
                 entity.ToTable("queue_status_lightning", "queues");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.DateFile).HasColumnName("date_file");
+
+                entity.Property(e => e.DateRegister).HasColumnName("date_register");
+
+                entity.Property(e => e.Day).HasColumnName("day");
+
+                entity.Property(e => e.FileName)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_name");
+
+                entity.Property(e => e.FileType)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_type");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<QueueStatusCompensation>(entity =>
+            {
+                entity.ToTable("queue_status_compensation", "queues");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

@@ -11,10 +11,7 @@ using Npgsql;
 using OfficeOpenXml;
 using System.Data;
 using System.Globalization;
-using System.Linq;
-using System.Net.NetworkInformation;
 using System.Text;
-using System.Text.RegularExpressions;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 
 namespace ADO.BL.Services

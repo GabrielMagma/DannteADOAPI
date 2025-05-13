@@ -153,6 +153,7 @@ namespace ADO.BL.Services
                                 var newRowError = dataTableError.NewRow();
                                 newRowError[0] = $"Error en la data en la línea {row} de la hoja '{worksheet1}', hay uno o más campos vacíos y estos son Requeridos";
                                 dataTableError.Rows.Add(newRowError);
+                                continue;
                             }
                             else if (date != "")
                             {

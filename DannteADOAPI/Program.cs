@@ -103,6 +103,10 @@ builder.Services.AddTransient<IFilePolesValidationServices, FilePolesValidationS
 builder.Services.AddTransient<IFilePolesProcessingServices, FilePolesProcessingServices>();
 builder.Services.AddTransient<IPolesDataAccess, PolesDataAccess>();
 
+builder.Services.AddTransient<IFileCompensacionesValidationServices, FileCompensacionesValidationServices>();
+builder.Services.AddTransient<IFileCompensacionesProcessingServices, FileCompensacionesProcessingServices>();
+builder.Services.AddTransient<ICompsDataAccess, CompsDataAccess>();
+
 builder.Services.AddTransient<IPolesEssaServices, PolesEssaServices>();
 builder.Services.AddTransient<IPolesEssaDataAccess, PolesEssaDataAccess>();
 
