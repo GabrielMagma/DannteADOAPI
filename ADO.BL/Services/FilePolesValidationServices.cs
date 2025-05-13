@@ -5,11 +5,12 @@ using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using System.Data;
 using System.Text;
 
 namespace ADO.BL.Services
 {
-    public class PolesEepServices : IPolesEepServices
+    public class FilePolesValidationServices : IFilePolesValidationServices
     {
         private readonly IConfiguration _configuration;        
         private readonly string _PolesDirectoryPath;
@@ -17,7 +18,7 @@ namespace ADO.BL.Services
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
-        public PolesEepServices(IConfiguration configuration,
+        public FilePolesValidationServices(IConfiguration configuration,
             IPolesEepDataAccess _polesEepDataAccess,
             IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
@@ -30,7 +31,7 @@ namespace ADO.BL.Services
             statusFileDataAccess = _statuFileDataAccess;
         }
 
-        public async Task<ResponseQuery<bool>> ValidationFile(PolesValidationDTO request, ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ReadFilesPoles(PolesValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {
@@ -39,15 +40,21 @@ namespace ADO.BL.Services
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
-                    var listAssetsDTO = new List<AssetsDTO>();
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!fileName.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
                     var listUtilityPoleDTO = new List<MpUtilityPoleDTO>();
                     var listEntityPoleDTO = new List<MpUtilityPoleDTO>();                    
                     
                     var statusFileList = new List<StatusFileDTO>();
                     var statusFilesingle = new StatusFileDTO();
-
-                    // Extraer el nombre del archivo sin la extensión
-                    var fileName = Path.GetFileNameWithoutExtension(filePath);
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -62,13 +69,25 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
-                    statusFilesingle.Status = 4;
-
-                    statusFileList.Add(statusFilesingle);
+                    
 
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
-                    var listFparent = new List<string>();                    
+                    var listFparent = new List<string>();
+                    var dataTable = new DataTable();
+                    var dataTableError = new DataTable();
+
+                    // columnas tabla error
+                    dataTableError.Columns.Add("C1");
+                    dataTableError.Columns.Add("C2");
+                    var count = 2;
+
+                    // columnas tabla datos correctos
+                    for (int i = 1; i <= 6; i++)
+                    {
+                        dataTable.Columns.Add($"C{i}");
+                    }
+
                     foreach (var item in fileLines)
                     {
                         var valueLinesTemp = item.Split(',',';');
@@ -121,20 +140,21 @@ namespace ADO.BL.Services
                             string.IsNullOrEmpty(valueLines[2]) || string.IsNullOrEmpty(valueLines[3]) ||
                             string.IsNullOrEmpty(valueLines[4]))
                         {
+                            var message = $"Error de la data en la línea {count}, todas las columnas son Requeridas";
+                            var newRowError = dataTableError.NewRow();
+                            newRowError[0] = $"{item}";
+                            newRowError[1] = message;
+                            dataTableError.Rows.Add(newRowError);
+                            count++;
                             continue;
                         }
+
                         if (valueLines[0] == "NODO_FISICO")
                         {
                             continue;
                         }
 
-                        var assetTemp = listAssetsDTO.FirstOrDefault(x => x.Fparent == valueLines[1]);
                         var poleTemp = listUtilityPoleDTO.FirstOrDefault(x => x.PaintingCode == valueLines[0]);
-
-                        if (assetTemp == null)
-                        {
-                            continue;
-                        }
 
                         if (poleTemp == null)
                         {                            
@@ -165,20 +185,25 @@ namespace ADO.BL.Services
                         
                     }
 
-                    if(listEntityPoleDTO.Count > 0)
+                    statusFilesingle.Status = 1;
+
+                    statusFileList.Add(statusFilesingle);
+
+                    if (listEntityPoleDTO.Count > 0)
                     {
                         
-                        var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
-                        var respCreate = CreateData(polesMapped);
+                        //var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
+                        //var respCreate = CreateData(polesMapped);
 
                         var entityMap = mapper.Map<QueueStatusPole>(statusFilesingle);
                         var resultSave = await statusFileDataAccess.UpdateDataPole(entityMap);
                     }
                 }
 
-                response.Message = "File uploaded successfully";
+                response.Message = "Archivo validado correctamente";
                 response.Success = true;
                 response.SuccessData = true;
+                return response;
             }
 
             catch (FormatException ex)
@@ -187,6 +212,7 @@ namespace ADO.BL.Services
                 response.Message = ex.Message;
                 response.Success = false;
                 response.SuccessData = false;
+                return response;
             }
             catch (Exception ex)
             {
@@ -194,9 +220,10 @@ namespace ADO.BL.Services
                 response.Message = ex.Message;
                 response.Success = false;
                 response.SuccessData = false;
+                return response;
             }
 
-            return response;
+            
         }
 
         

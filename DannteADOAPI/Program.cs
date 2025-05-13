@@ -99,7 +99,7 @@ builder.Services.AddTransient<IQueueGlobalServices, QueueGlobalServices>();
 
 builder.Services.AddTransient<IStatusFileDataAccess, StatusFileDataEssaAccess>();
 
-builder.Services.AddTransient<IPolesEepServices, PolesEepServices>();
+builder.Services.AddTransient<IFilePolesValidationServices, FilePolesValidationServices>();
 builder.Services.AddTransient<IPolesEepDataAccess, PolesEepDataAccess>();
 
 builder.Services.AddTransient<IPolesEssaServices, PolesEssaServices>();

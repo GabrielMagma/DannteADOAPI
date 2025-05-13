@@ -9,14 +9,14 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]    
-    public class PolesEepController : ControllerBase
+    public class FilePolesValidationController : ControllerBase
     {
-        readonly IPolesEepServices polesEepServices;
+        readonly IFilePolesValidationServices polesServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public PolesEepController(IPolesEepServices _polesEepServices, IHubContext<NotificationHub> hubContext)
+        public FilePolesValidationController(IFilePolesValidationServices _polesServices, IHubContext<NotificationHub> hubContext)
         {
-            polesEepServices = _polesEepServices;
+            polesServices = _polesServices;
             _hubContext = hubContext;
         }
 
@@ -26,18 +26,17 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Servicio que toma el archivo de postes o apoyos eep, los valida y guarda en la base de datos en la tabla correspondiente,
-        /// importante llenar el valor de userId, year y month para el sistema de colas
+        /// Servicio que toma el archivo de postes o apoyos y los valida
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(PolesEepController.ValidationFile))]        
-        public async Task<IActionResult> ValidationFile(PolesValidationDTO request)
+        [Route(nameof(FilePolesValidationController.ReadFilesPoles))]        
+        public async Task<IActionResult> ReadFilesPoles(PolesValidationDTO request)
         {
 
             ResponseQuery<bool> response = new ResponseQuery<bool>();
-            await AddMessage(true, "Poles se está ejecutando");
-            await polesEepServices.ValidationFile(request, response);
+            await AddMessage(true, "La validación de postes se está ejecutando");
+            await polesServices.ReadFilesPoles(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);
             

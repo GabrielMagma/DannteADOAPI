@@ -138,11 +138,10 @@ namespace ADO.BL.Services
                                 string.IsNullOrEmpty(valueLines[circuito]) || string.IsNullOrEmpty(valueLines[latitud]) || 
                                 string.IsNullOrEmpty(valueLines[longitud]) || string.IsNullOrEmpty(valueLines[municipio]) || 
                                 string.IsNullOrEmpty(valueLines[error]) || string.IsNullOrEmpty(valueLines[corriente]))                            
-                        {
-                            message = $"Error de la data en la línea {count}, las columnas Fecha, Región, Circuito, Latitud, Longitud, Corriente, Error y Municipio son Requeridas";
+                        {                            
                             var newRowError = dataTableError.NewRow();
                             newRowError[0] = $"{item}";
-                            newRowError[1] = message;
+                            newRowError[1] = $"Error de la data en la línea {count}, las columnas Fecha, Región, Circuito, Latitud, Longitud, Corriente, Error y Municipio son Requeridas";
                             dataTableError.Rows.Add(newRowError);
                             count++;
                             continue;
