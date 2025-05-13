@@ -4,11 +4,11 @@ using ADO.BL.Interfaces;
 
 namespace ADO.Access.Access
 {
-    public class PolesEepDataAccess : IPolesEepDataAccess
+    public class PolesDataAccess : IPolesDataAccess
     {
         protected DannteTestingContext context;        
 
-        public PolesEepDataAccess(DannteTestingContext _context)
+        public PolesDataAccess(DannteTestingContext _context)
         {
             context = _context;            
         }

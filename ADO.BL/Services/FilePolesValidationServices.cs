@@ -1,34 +1,42 @@
 ﻿using ADO.BL.DataEntities;
 using ADO.BL.DTOs;
+using ADO.BL.Helper;
 using ADO.BL.Interfaces;
 using ADO.BL.Responses;
 using AutoMapper;
+using CsvHelper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
+using System.Drawing;
+using System.Globalization;
 using System.Text;
 
 namespace ADO.BL.Services
 {
     public class FilePolesValidationServices : IFilePolesValidationServices
     {
-        private readonly IConfiguration _configuration;        
-        private readonly string _PolesDirectoryPath;
-        private readonly IPolesEepDataAccess polesEepDataAccess;
-        private readonly IStatusFileDataAccess statusFileDataAccess;
         private readonly IMapper mapper;
         private readonly string _connectionString;
+        private readonly string _PolesDirectoryPath;
+        private readonly IConfiguration _configuration;
+        private readonly IPolesDataAccess polesEepDataAccess;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IStatusFileDataAccess statusFileDataAccess;
         public FilePolesValidationServices(IConfiguration configuration,
-            IPolesEepDataAccess _polesEepDataAccess,
+            IHubContext<NotificationHub> hubContext,
+            IPolesDataAccess _polesEepDataAccess,
             IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
-            polesEepDataAccess = _polesEepDataAccess;
-            _configuration = configuration;            
             _PolesDirectoryPath = configuration["PolesPath"];
-            mapper = _mapper;
             statusFileDataAccess = _statuFileDataAccess;
+            polesEepDataAccess = _polesEepDataAccess;
+            _configuration = configuration;
+            _hubContext = hubContext;
+            mapper = _mapper;
         }
 
         public async Task<ResponseQuery<bool>> ReadFilesPoles(PolesValidationDTO request, ResponseQuery<bool> response)
@@ -36,7 +44,8 @@ namespace ADO.BL.Services
             try
             {
                 var inputFolder = _PolesDirectoryPath;
-                
+                var errorFlag = false;
+
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
                 {
@@ -50,8 +59,8 @@ namespace ADO.BL.Services
                         }
                     }
 
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} está validando la estructura del formato");
                     var listUtilityPoleDTO = new List<MpUtilityPoleDTO>();
-                    var listEntityPoleDTO = new List<MpUtilityPoleDTO>();                    
                     
                     var statusFileList = new List<StatusFileDTO>();
                     var statusFilesingle = new StatusFileDTO();
@@ -69,7 +78,6 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
-                    
 
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
@@ -158,29 +166,37 @@ namespace ADO.BL.Services
 
                         if (poleTemp == null)
                         {                            
-                            var entityPole = new MpUtilityPoleDTO();
+                            
+                            var newRow = dataTable.NewRow();
+                            newRow[0] = valueLines[0].Trim();
+                            newRow[1] = valueLines[1].Trim().Replace(" ","");
+                            newRow[2] = valueLines[2].ToString();
+                            newRow[3] = valueLines[3].ToString();
+                            newRow[4] = valueLines[4].Trim();
+                            newRow[5] = valueLines[5].ToString();
 
-                            entityPole.InventaryCode = valueLines[1].Trim();
-                            entityPole.PaintingCode = valueLines[2].Trim();
-                            entityPole.Latitude = float.Parse(valueLines[3].ToString());
-                            entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                            entityPole.Fparent = valueLines[8].Trim();                            
-                            entityPole.TypePole = int.Parse(valueLines[11].ToString());
+                            dataTable.Rows.Add(newRow);
 
-                            listEntityPoleDTO.Add(entityPole);
+                            count++;
                         }
+
                         else if(poleTemp.Fparent != valueLines[1].Trim())
                         {
-                            var entityPole = new MpUtilityPoleDTO();
+                            var newRow = dataTable.NewRow();
+                            newRow[0] = valueLines[0].Trim();
+                            newRow[1] = valueLines[1].Trim().Replace(" ", "");
+                            newRow[2] = valueLines[2].ToString();
+                            newRow[3] = valueLines[3].ToString();
+                            newRow[4] = valueLines[4].Trim();
+                            newRow[5] = valueLines[5].ToString();
 
-                            entityPole.InventaryCode = valueLines[1].Trim();
-                            entityPole.PaintingCode = valueLines[2].Trim();
-                            entityPole.Latitude = float.Parse(valueLines[3].ToString());
-                            entityPole.Longitude = float.Parse(valueLines[4].ToString());
-                            entityPole.Fparent = valueLines[8].Trim();                            
-                            entityPole.TypePole = int.Parse(valueLines[11].ToString());
+                            dataTable.Rows.Add(newRow);
 
-                            listEntityPoleDTO.Add(entityPole);
+                            count++;
+                        }
+                        else
+                        {
+                            count++;
                         }
                         
                     }
@@ -189,21 +205,39 @@ namespace ADO.BL.Services
 
                     statusFileList.Add(statusFilesingle);
 
-                    if (listEntityPoleDTO.Count > 0)
+                    if (dataTable.Rows.Count > 0)
                     {
-                        
+                        RegisterData(dataTable, inputFolder, filePath);
                         //var polesMapped = mapper.Map<List<MpUtilityPole>>(listEntityPoleDTO);
                         //var respCreate = CreateData(polesMapped);
-
-                        var entityMap = mapper.Map<QueueStatusPole>(statusFilesingle);
-                        var resultSave = await statusFileDataAccess.UpdateDataPole(entityMap);
                     }
+
+                    if (dataTableError.Rows.Count > 0)
+                    {
+                        await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores.");
+                        statusFilesingle.Status = 2;
+                        errorFlag = true;
+                        RegisterError(dataTableError, inputFolder, filePath);
+                    }
+
+                    var entityMap = mapper.Map<QueueStatusPole>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataPole(entityMap);
                 }
 
-                response.Message = "Archivo validado correctamente";
-                response.Success = true;
-                response.SuccessData = true;
-                return response;
+                if (errorFlag)
+                {
+                    response.Message = "Archivos con errores";
+                    response.SuccessData = false;
+                    response.Success = false;
+                    return response;
+                }
+                else
+                {
+                    response.Message = "Todos los archivos validados";
+                    response.SuccessData = true;
+                    response.Success = true;
+                    return response;
+                }
             }
 
             catch (FormatException ex)
@@ -226,7 +260,40 @@ namespace ADO.BL.Services
             
         }
 
-        
+        private static void RegisterError(DataTable table, string inputFolder, string filePath)
+        {
+            string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Error.csv");
+            using (var writer = new StreamWriter(outputFilePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    for (var i = 0; i < 2; i++)
+                    {
+                        csv.WriteField(row[i]);
+                    }
+                    csv.NextRecord();
+                }
+            }
+        }
+
+        private static void RegisterData(DataTable dataTable, string inputFolder, string filePath)
+        {
+            string outputFilePath = Path.Combine(inputFolder, $"{Path.GetFileNameWithoutExtension(filePath)}_Correct.csv");
+            using (var writer = new StreamWriter(outputFilePath))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    for (var i = 0; i < 6; i++)
+                    {
+                        csv.WriteField(row[i]);
+                    }
+                    csv.NextRecord();
+                }
+            }
+        }
 
         // acciones en bd y mappeo
 
