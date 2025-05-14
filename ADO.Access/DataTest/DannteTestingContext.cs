@@ -22,6 +22,7 @@ namespace ADO.Access.DataTest
         public virtual DbSet<MpLightning> MpLightnings { get; set; } = null!;
         public virtual DbSet<MpUtilityPole> MpUtilityPoles { get; set; } = null!;
         public virtual DbSet<MpCompensation> MpCompensations { get; set; } = null!;
+        public virtual DbSet<MpTransformerBurned> MpTransformerBurneds { get; set; } = null!;
         public virtual DbSet<FilesIoComplete> FilesIoCompletes { get; set; } = null!;
         public virtual DbSet<IoComment> IoComments { get; set; } = null!;
         public virtual DbSet<FileIoTemp> FileIoTemps { get; set; } = null!;        
@@ -35,7 +36,8 @@ namespace ADO.Access.DataTest
         public virtual DbSet<QueueStatusPole> QueueStatusPoles { get; set; } = null!;
         public virtual DbSet<QueueStatusLightning> QueueStatusLightnings { get; set; } = null!;
         public virtual DbSet<QueueStatusCompensation> QueueStatusCompensations { get; set; } = null!;
-        public virtual DbSet<QueueStatusPoda> QueueStatusPodas { get; set; } = null!;
+        public virtual DbSet<QueueStatusPoda> QueueStatusPodas { get; set; } = null!;        
+        public virtual DbSet<QueueStatusTransformerBurned> QueueStatusTransformerBurneds { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -451,6 +453,45 @@ namespace ADO.Access.DataTest
                 entity.Property(e => e.Vcd).HasColumnName("vcd");
 
                 entity.Property(e => e.Vcf).HasColumnName("vcf");
+
+                entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<MpTransformerBurned>(entity =>
+            {
+                entity.ToTable("mp_transformer_burned", "maps");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.ChangeDate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("change_date");
+
+                entity.Property(e => e.CodeSig)
+                    .HasColumnType("character varying")
+                    .HasColumnName("code_sig");
+
+                entity.Property(e => e.FailureDate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("failure_date");
+
+                entity.Property(e => e.Fparent)
+                    .HasColumnType("character varying")
+                    .HasColumnName("fparent");
+
+                entity.Property(e => e.Latitude).HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude).HasColumnName("longitude");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.RetireDate)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("retire_date");
+
+                entity.Property(e => e.Total).HasColumnName("total");
 
                 entity.Property(e => e.Year).HasColumnName("year");
             });
@@ -1051,6 +1092,37 @@ namespace ADO.Access.DataTest
             modelBuilder.Entity<QueueStatusPoda>(entity =>
             {
                 entity.ToTable("queue_status_podas", "queues");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.DateFile).HasColumnName("date_file");
+
+                entity.Property(e => e.DateRegister).HasColumnName("date_register");
+
+                entity.Property(e => e.Day).HasColumnName("day");
+
+                entity.Property(e => e.FileName)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_name");
+
+                entity.Property(e => e.FileType)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_type");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<QueueStatusTransformerBurned>(entity =>
+            {
+                entity.ToTable("queue_status_transformer_burned", "queues");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

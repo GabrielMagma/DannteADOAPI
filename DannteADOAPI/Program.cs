@@ -114,6 +114,10 @@ builder.Services.AddTransient<IFilePodasValidationServices, FilePodasValidationS
 builder.Services.AddTransient<IFilePodasProcessingServices, FilePodasProcessingServices>();
 builder.Services.AddTransient<IPodasDataAccess, PodasDataAccess>();
 
+builder.Services.AddTransient<IFileTrafosQValidationServices, FileTrafosQValidationServices>();
+builder.Services.AddTransient<IFileTrafosQProcessingServices, FileTrafosQProcessingServices>();
+builder.Services.AddTransient<ITrafosDataAccess, TrafosDataAccess>();
+
 builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>();
 
 builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();

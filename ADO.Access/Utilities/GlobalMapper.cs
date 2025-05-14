@@ -22,6 +22,7 @@ namespace ADO.Access
             CreateMap<StatusFileDTO, QueueStatusPole>().ReverseMap();
             CreateMap<StatusFileDTO, QueueStatusPoda>().ReverseMap();
             CreateMap<StatusFileDTO, QueueStatusCompensation>().ReverseMap();
+            CreateMap<StatusFileDTO, QueueStatusTransformerBurned>().ReverseMap();
             CreateMap<MpLightningDTO, MpLightning>().ReverseMap();
             CreateMap<MpCompensacionesDTO, MpCompensation>().ReverseMap();
             CreateMap<PodaDTO, IaPoda>().ReverseMap();
@@ -29,6 +30,7 @@ namespace ADO.Access
             CreateMap<FileIoDTO, FilesIo>().ReverseMap();
             CreateMap<FileIoTempDTO, FileIoTemp>().ReverseMap();
             CreateMap<MpUtilityPoleDTO, MpUtilityPole>().ReverseMap();
+            CreateMap<MpTransformerBurnedDTO, MpTransformerBurned>().ReverseMap();
         }
     }
 }

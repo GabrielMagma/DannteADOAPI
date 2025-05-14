@@ -124,15 +124,10 @@ namespace ADO.BL.Services
                                     break;
                                 }
 
-                                if (string.IsNullOrEmpty(worksheet.Cells[row, 1].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 2].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 3].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 4].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 5].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 6].Text) ||
+                                if (string.IsNullOrEmpty(worksheet.Cells[row, 3].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 5].Text) ||
                                     string.IsNullOrEmpty(worksheet.Cells[row, 7].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 8].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 9].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 10].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 11].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 12].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 13].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 14].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 15].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 16].Text) ||
-                                    string.IsNullOrEmpty(worksheet.Cells[row, 17].Text) )
+                                    string.IsNullOrEmpty(worksheet.Cells[row, 12].Text) || string.IsNullOrEmpty(worksheet.Cells[row, 13].Text) ||
+                                    string.IsNullOrEmpty(worksheet.Cells[row, 14].Text))
                                 {
                                     var newRowError = dataTableError.NewRow();
                                     newRowError[0] = $"Error en la data en la línea {row} y hoja {worksheet}, está incompleta";

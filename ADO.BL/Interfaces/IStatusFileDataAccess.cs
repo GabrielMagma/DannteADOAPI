@@ -74,5 +74,12 @@ namespace ADO.BL.Interfaces
 
         public Task<Boolean> UpdateDataPodasList(List<QueueStatusPoda> request);
 
+        //Trafos Q
+        public Task<Boolean> SaveDataTrafosQuemadosList(List<QueueStatusTransformerBurned> request);
+
+        public Task<Boolean> UpdateDataTrafosQuemados(QueueStatusTransformerBurned request);
+
+        public Task<Boolean> UpdateDataTrafosQuemadosList(List<QueueStatusTransformerBurned> request);
+
     }
 }
