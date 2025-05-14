@@ -67,5 +67,12 @@ namespace ADO.BL.Interfaces
 
         public Task<Boolean> UpdateDataCompensationsList(List<QueueStatusCompensation> request);
 
+        //Podas
+        public Task<Boolean> SaveDataPodasList(List<QueueStatusPoda> request);
+
+        public Task<Boolean> UpdateDataPodas(QueueStatusPoda request);
+
+        public Task<Boolean> UpdateDataPodasList(List<QueueStatusPoda> request);
+
     }
 }

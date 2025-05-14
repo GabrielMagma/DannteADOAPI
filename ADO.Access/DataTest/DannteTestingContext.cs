@@ -35,6 +35,7 @@ namespace ADO.Access.DataTest
         public virtual DbSet<QueueStatusPole> QueueStatusPoles { get; set; } = null!;
         public virtual DbSet<QueueStatusLightning> QueueStatusLightnings { get; set; } = null!;
         public virtual DbSet<QueueStatusCompensation> QueueStatusCompensations { get; set; } = null!;
+        public virtual DbSet<QueueStatusPoda> QueueStatusPodas { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -1019,6 +1020,37 @@ namespace ADO.Access.DataTest
             modelBuilder.Entity<QueueStatusCompensation>(entity =>
             {
                 entity.ToTable("queue_status_compensation", "queues");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.DateFile).HasColumnName("date_file");
+
+                entity.Property(e => e.DateRegister).HasColumnName("date_register");
+
+                entity.Property(e => e.Day).HasColumnName("day");
+
+                entity.Property(e => e.FileName)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_name");
+
+                entity.Property(e => e.FileType)
+                    .HasMaxLength(50)
+                    .HasColumnName("file_type");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.Property(e => e.Status).HasColumnName("status");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.Property(e => e.Year).HasColumnName("year");
+            });
+
+            modelBuilder.Entity<QueueStatusPoda>(entity =>
+            {
+                entity.ToTable("queue_status_podas", "queues");
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

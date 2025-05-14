@@ -1,25 +1,22 @@
 ﻿using ADO.Access.DataTest;
 using ADO.BL.DataEntities;
 using ADO.BL.Interfaces;
-using AutoMapper;
 
 namespace ADO.Access.Access
 {
-    public class PodasEssaDataAccess : IPodasEssaDataAccess
+    public class PodasDataAccess : IPodasDataAccess
     {
         protected DannteTestingContext context;
-        private readonly IMapper mapper;
 
-        public PodasEssaDataAccess(DannteTestingContext _context, IMapper _mapper)
+        public PodasDataAccess(DannteTestingContext _context)
         {
             context = _context;
-            mapper = _mapper;
         }
 
-        public Boolean SaveData(List<IaPoda> request)
+        public async Task<Boolean> SaveData(List<IaPoda> request)
         {
 
-            context.IaPodas.AddRange(request);
+            context.IaPodas.AddRangeAsync(request);
             context.SaveChanges();
             var result = true;
 

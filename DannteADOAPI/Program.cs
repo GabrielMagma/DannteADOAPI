@@ -110,8 +110,9 @@ builder.Services.AddTransient<ICompsDataAccess, CompsDataAccess>();
 builder.Services.AddTransient<IPolesEssaServices, PolesEssaServices>();
 builder.Services.AddTransient<IPolesEssaDataAccess, PolesEssaDataAccess>();
 
-builder.Services.AddTransient<IPodasEssaServices, PodasEssaServices>();
-builder.Services.AddTransient<IPodasEssaDataAccess, PodasEssaDataAccess>();
+builder.Services.AddTransient<IFilePodasValidationServices, FilePodasValidationServices>();
+builder.Services.AddTransient<IFilePodasProcessingServices, FilePodasProcessingServices>();
+builder.Services.AddTransient<IPodasDataAccess, PodasDataAccess>();
 
 builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>();
 

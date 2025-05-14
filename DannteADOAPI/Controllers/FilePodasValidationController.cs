@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PodasEssaController : ControllerBase
+    public class FilePodasValidationController : ControllerBase
     {
-        readonly IPodasEssaServices podasServices;
+        readonly IFilePodasValidationServices podasServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public PodasEssaController(IPodasEssaServices _podasServices, IHubContext<NotificationHub> hubContext)
+        public FilePodasValidationController(IFilePodasValidationServices _podasServices, IHubContext<NotificationHub> hubContext)
         {
             podasServices = _podasServices;
             _hubContext = hubContext;
@@ -27,16 +27,17 @@ namespace DannteADOAPI.Controllers
 
         
         /// <summary>
-        /// Servicio que toma los datos desde un archivo xlsx y los almacena en la tabla Podas de la base de datos
+        /// Servicio que toma los datos desde un archivo xlsx, lo valida y lo guarda en un archivo csv.
         /// </summary>
         /// <param></param>
         /// <returns></returns>
         [HttpPost]
-        [Route(nameof(PodasEssaController.SaveDataExcel))]
-        public async Task<IActionResult> SaveDataExcel()
+        [Route(nameof(FilePodasValidationController.ReadFilePodas))]
+        public async Task<IActionResult> ReadFilePodas(PodasValidationDTO request)
         {
-            ResponseEntity<List<string>> response = new ResponseEntity<List<string>>();
-            await podasServices.SaveDataExcel(response);
+            ResponseQuery<bool> response = new ResponseQuery<bool>();
+            await AddMessage(true, "El servicio de podas inicia el proceso de validación");
+            await podasServices.ReadFilePodas(request, response);
             await AddMessage(response.Success, response.Message);
             return Ok(response);            
         }
