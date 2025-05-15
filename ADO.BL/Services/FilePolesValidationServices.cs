@@ -18,12 +18,14 @@ namespace ADO.BL.Services
     public class FilePolesValidationServices : IFilePolesValidationServices
     {
         private readonly IMapper mapper;
+        private readonly string[] _timeFormats;
         private readonly string _connectionString;
         private readonly string _PolesDirectoryPath;
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _configuration;        
         private readonly IPolesDataAccess polesEepDataAccess;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IStatusFileDataAccess statusFileDataAccess;
+        private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
         public FilePolesValidationServices(IConfiguration configuration,
             IHubContext<NotificationHub> hubContext,
             IPolesDataAccess _polesEepDataAccess,
@@ -31,6 +33,7 @@ namespace ADO.BL.Services
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
+            _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _PolesDirectoryPath = configuration["PolesPath"];
             statusFileDataAccess = _statuFileDataAccess;
             polesEepDataAccess = _polesEepDataAccess;
@@ -78,6 +81,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
+                    statusFilesingle.DateRegister = ParseDateTemp($"1/{month}/{year}");
 
                     string[] fileLines = File.ReadAllLines(filePath);
                     var listDataString = new StringBuilder();
@@ -304,5 +308,16 @@ namespace ADO.BL.Services
 
         }
 
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
+        }
     }
 }

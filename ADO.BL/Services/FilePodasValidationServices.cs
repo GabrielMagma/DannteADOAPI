@@ -86,8 +86,7 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
-
-                    
+                    statusFilesingle.DateRegister = ParseDate($"1/{month}/{year}");
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= 17; i++)

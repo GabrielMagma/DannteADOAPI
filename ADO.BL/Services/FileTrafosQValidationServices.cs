@@ -88,8 +88,9 @@ namespace ADO.BL.Services
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
+                    statusFilesingle.DateRegister = ParseDateTemp($"1/{month}/{year}");
 
-                    
+
 
                     // columnas tabla datos correctos
                     for (int i = 1; i <= 10; i++)
@@ -364,5 +365,16 @@ namespace ADO.BL.Services
             return DateTime.ParseExact("31/12/2099 00:00:00", "dd/MM/yyyy HH:mm:ss", _spanishCulture);
         }
 
+        private DateOnly ParseDateTemp(string dateString)
+        {
+            foreach (var format in _timeFormats)
+            {
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
+                {
+                    return parsedDate;
+                }
+            }
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
+        }
     }
 }

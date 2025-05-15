@@ -6,7 +6,9 @@ using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using System.Globalization;
+using System.Text;
 
 namespace ADO.BL.Services
 {
@@ -43,6 +45,112 @@ namespace ADO.BL.Services
             {
                 var inputFolder = _PodasDirectoryPath;
                 var errorFlag = false;
+
+                var listStatusFiles = new List<StatusFileDTO>();
+                var lacQueueList = new List<LacQueueDTO>();
+
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx")
+                                        .ToList().OrderBy(f => f).ToArray())
+                {
+                    // Extraer el nombre del archivo sin la extensión
+                    var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    if (request.NombreArchivo != null)
+                    {
+                        if (!filePath.Contains(request.NombreArchivo))
+                        {
+                            continue;
+                        }
+                    }
+
+                    var UnitStatus = new StatusFileDTO()
+                    {
+                        FileName = fileName
+                    };
+                    var exist = listStatusFiles.FirstOrDefault(x => x.FileName == UnitStatus.FileName);
+
+                    if (exist == null)
+                    {
+                        listStatusFiles.Add(UnitStatus);
+                    }
+
+                    // Obtener los primeros 4 dígitos como el año
+                    int year = int.Parse(fileName.Substring(0, 4));
+
+                    // Obtener los siguientes 2 dígitos como el mes
+                    int month = int.Parse(fileName.Substring(4, 2));
+
+                    var beginDate = ParseDate($"01/{month}/{year}");
+                    var endDate = beginDate.AddMonths(-2);
+                    var listDates = new StringBuilder();
+                    var listFilesError = new StringBuilder();
+
+
+                    while (endDate <= beginDate)
+                    {
+                        listDates.Append($"'{endDate.Day}-{endDate.Month}-{endDate.Year}',");
+                        endDate = endDate.AddMonths(1);
+                    }
+
+                    using (var connection = new NpgsqlConnection(_connectionString))
+                    {
+                        connection.Open();
+                        var listDatesDef = listDates.ToString().Remove(listDates.Length - 1, 1);
+                        var SelectQuery = $@"SELECT file_name, year, month, day, status FROM queues.queue_status_podas where date_register in ({listDatesDef})";
+                        using (var reader = new NpgsqlCommand(SelectQuery, connection))
+                        {
+                            try
+                            {
+
+                                using (var result = await reader.ExecuteReaderAsync())
+                                {
+                                    while (await result.ReadAsync())
+                                    {
+                                        var temp = new LacQueueDTO();
+                                        temp.file_name = result[0].ToString();
+                                        temp.year = int.Parse(result[1].ToString());
+                                        temp.month = int.Parse(result[2].ToString());
+                                        temp.day = int.Parse(result[3].ToString());
+                                        temp.status = int.Parse(result[4].ToString());
+
+                                        var existEntity = lacQueueList.FirstOrDefault(x => x.file_name == temp.file_name);
+                                        if (existEntity != null)
+                                        {
+                                            continue;
+                                        }
+                                        lacQueueList.Add(temp);
+                                    }
+                                }
+                            }
+                            catch (NpgsqlException ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                    }
+
+                    var flagValidation = false;
+                    foreach (var item in lacQueueList)
+                    {
+                        if (item.status == 0 || item.status == 2 || item.status == 3)
+                        {
+                            flagValidation = true;
+                            listFilesError.Append($"{item.file_name},");
+                        }
+                    }
+
+                    if (flagValidation)
+                    {
+                        var listFilesErrorDef = listFilesError.ToString().Remove(listFilesError.Length - 1, 1);
+                        response.Message = $"Los archivos {listFilesErrorDef} no han sido procesados correctamente, favor corregirlos";
+                        response.SuccessData = false;
+                        response.Success = false;
+                        return response;
+                    }
+                }
 
                 //Procesar cada archivo.xlsx en la carpeta
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*_Correct.csv"))
