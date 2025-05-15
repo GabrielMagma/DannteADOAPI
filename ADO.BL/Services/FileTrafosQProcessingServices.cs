@@ -6,7 +6,11 @@ using ADO.BL.Responses;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using System.Globalization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Text;
 
 namespace ADO.BL.Services
 {
@@ -112,6 +116,85 @@ namespace ADO.BL.Services
 
                     var entityMap = mapper.Map<QueueStatusTransformerBurned>(statusFilesingle);
                     var resultSave = await statusFileDataAccess.UpdateDataTrafosQuemados(entityMap);
+
+                    var TrafosList = new List<UpdateTrafoDTO>();
+
+                    using (var connection = new NpgsqlConnection(_connectionString))
+                    {
+                        connection.Open();
+
+                        #region update total trafos
+                        var SelectQuery = $@"SELECT code_sig, year, month, count(*) as count FROM maps.mp_transformer_burned
+                                             group by code_sig, year, month";
+                        using (var reader = new NpgsqlCommand(SelectQuery, connection))
+                        {
+                            try
+                            {
+
+                                using (var result = await reader.ExecuteReaderAsync())
+                                {
+                                    while (await result.ReadAsync())
+                                    {
+                                        var temp = new UpdateTrafoDTO();
+
+                                        temp.code_sig = result[0].ToString();
+                                        temp.year = int.Parse(result[1].ToString());
+                                        temp.month = int.Parse(result[2].ToString());
+                                        temp.count = long.Parse(result[3].ToString());
+
+                                        TrafosList.Add(temp);
+                                    }
+                                }
+                            }
+                            catch (NpgsqlException ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                        }
+                        #endregion
+
+                    }
+
+                    var connectionUpdate = new NpgsqlConnection(_connectionString);
+
+                    await connectionUpdate.OpenAsync();
+
+                    using (var transaction = await connectionUpdate.BeginTransactionAsync())
+                    {
+                        var updateQuery = new StringBuilder();
+                        updateQuery.Append("WITH update_values (code_sig, year, month, count) AS (VALUES ");
+
+                        for (int i = 0; i < TrafosList.Count; i++)
+                        {
+                            if (i > 0) updateQuery.Append(",");
+                            updateQuery.Append($"(@code_sig{i}, @year{i}, @month{i}, @count{i})");
+                        }
+
+                        updateQuery.Append(") ");
+                        updateQuery.Append("UPDATE maps.mp_transformer_burned SET total = uv.count ");
+                        updateQuery.Append("FROM update_values uv ");
+                        updateQuery.Append("WHERE maps.mp_transformer_burned.code_sig = uv.code_sig " +
+                            "AND maps.mp_transformer_burned.year = uv.year " +
+                            "and maps.mp_transformer_burned.month = uv.month;");
+
+                        var updateCommand = new NpgsqlCommand(updateQuery.ToString(), connectionUpdate);
+
+                        for (int i = 0; i < TrafosList.Count; i++)
+                        {
+                            updateCommand.Parameters.AddWithValue($"code_sig{i}", NpgsqlTypes.NpgsqlDbType.Varchar, TrafosList[i].code_sig);
+                            updateCommand.Parameters.AddWithValue($"year{i}", NpgsqlTypes.NpgsqlDbType.Integer, TrafosList[i].year);
+                            updateCommand.Parameters.AddWithValue($"month{i}", NpgsqlTypes.NpgsqlDbType.Integer, TrafosList[i].month);
+                            updateCommand.Parameters.AddWithValue($"count{i}", NpgsqlTypes.NpgsqlDbType.Bigint, TrafosList[i].count);
+                        }
+
+                        await updateCommand.ExecuteNonQueryAsync();
+                        await transaction.CommitAsync();
+                    }
+
                 }
 
                 
