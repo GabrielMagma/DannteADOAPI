@@ -9,12 +9,12 @@ namespace DannteADOAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FileIdeamValidationController : ControllerBase
+    public class FileIdeamProcessingController : ControllerBase
     {
-        readonly IFileIdeamValidationServices fileServices;
+        readonly IFileIdeamProcessingServices fileServices;
         private readonly IHubContext<NotificationHub> _hubContext;
 
-        public FileIdeamValidationController(IFileIdeamValidationServices _fileServices, IHubContext<NotificationHub> hubContext)
+        public FileIdeamProcessingController(IFileIdeamProcessingServices _fileServices, IHubContext<NotificationHub> hubContext)
         {
             fileServices = _fileServices;
             _hubContext = hubContext;
@@ -26,15 +26,14 @@ namespace DannteADOAPI.Controllers
         }
 
         /// <summary>
-        /// Servicio que toma el nombre de un archivo de datos CSV guardado en una ruta específica del programa, lo convierte al formato de datos requerido
-        /// y lo guarda en Base de datos
+        /// Servicio que toma el nombre de un archivo de datos CSV guardado en una ruta específica del programa y lo guarda en Base de datos
         /// </summary>        
         /// <returns></returns>  
         [HttpPost]
-        [Route(nameof(FileIdeamValidationController.ReadFilesIdeam))]        
+        [Route(nameof(FileIdeamProcessingController.ReadFilesIdeam))]        
         public async Task<IActionResult> ReadFilesIdeam(RayosValidationDTO request)
         {
-            await AddMessage(true, "El archivo de Rayos empieza el proceso de validación");
+            await AddMessage(true, "El archivo de Lluvias del ideam empieza el procesado de datos");
             ResponseQuery<bool> response = new ResponseQuery<bool>();
             await fileServices.ReadFilesIdeam(request, response);
             await AddMessage(response.Success, response.Message);

@@ -53,8 +53,6 @@ builder.Services.AddSingleton(mapper);
 builder.Services.AddTransient<IFileAssetServices, FileAssetServices>();
 builder.Services.AddTransient<IFileAssetDataAccess, FileAssetDataAccess>();
 builder.Services.AddTransient<ITC1Services, TC1Services>();
-builder.Services.AddTransient<IFileIdeamValidationServices, FileIdeamValidationServices>();
-builder.Services.AddTransient<IFileDataAccess, FileDataAccess>();
 builder.Services.AddTransient<IAllAssetOracleServices, AllAssetOracleServices>();
 builder.Services.AddTransient<IAllAssetOracleDataAccess, AllAssetOracleDataAccess>();
 builder.Services.AddTransient<IFileTT2ValidationServices, FileTT2ValidationServices>();
@@ -94,6 +92,10 @@ builder.Services.AddTransient<IIoCommentsDataAccess, IoCommentsDataAccess>();
 
 builder.Services.AddTransient<IFileAssetValidationServices, FileAssetValidationServices>();
 builder.Services.AddTransient<IFileAssetProcessingServices, FileAssetProcessingServices>();
+
+builder.Services.AddTransient<IFileIdeamValidationServices, FileIdeamValidationServices>();
+builder.Services.AddTransient<IFileIdeamProcessingServices, FileIdeamProcessingServices>();
+builder.Services.AddTransient<IFileDataAccess, FileDataAccess>();
 
 builder.Services.AddTransient<IQueueGlobalServices, QueueGlobalServices>();
 

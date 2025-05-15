@@ -156,7 +156,7 @@ namespace ADO.BL.Services
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*_Correct.csv"))
                 {
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
-
+                    var fileNameTemp = fileName.Substring(0, 12);
                     if (request.NombreArchivo != null)
                     {
                         if (!fileName.Contains(request.NombreArchivo))
@@ -165,7 +165,7 @@ namespace ADO.BL.Services
                         }
                     }
 
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} está procesando los registros");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} está procesando los registros");
                     
                     var statusFileList = new List<StatusFileDTO>();
                     var statusFilesingle = new StatusFileDTO();
@@ -179,7 +179,7 @@ namespace ADO.BL.Services
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
-                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileName = fileNameTemp;
                     statusFilesingle.FileType = "PODAS";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;

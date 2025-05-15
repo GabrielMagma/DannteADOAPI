@@ -33,12 +33,14 @@ namespace ADO.BL.Services
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
             _IdeamDirectoryPath = configuration["FilesIdeamPath"];
-            mapper = _mapper;
+            statusFileDataAccess = _statuFileDataAccess;
             _hubContext = hubContext;
+            mapper = _mapper;
+            
             
         }
 
-        public async Task<ResponseQuery<bool>> CreateFileCSV(RayosValidationDTO request, ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ReadFilesIdeam(RayosValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {
@@ -46,7 +48,10 @@ namespace ADO.BL.Services
                 string inputFolder = _IdeamDirectoryPath;
 
                 //Procesar cada archivo.csv en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv").OrderBy(f => f).ToArray())
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                                        .Where(file => !file.EndsWith("_Correct.csv")
+                                        && !file.EndsWith("_Error.csv"))
+                                        .OrderBy(f => f).ToArray())
                 {
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
@@ -86,7 +91,7 @@ namespace ADO.BL.Services
                     await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} se está validando");
 
                     // columnas tabla datos correctos
-                    for (int i = 1; i <= 8; i++)
+                    for (int i = 1; i <= 11; i++)
                     {
                         dataTable.Columns.Add($"C{i}");
                     }
@@ -97,7 +102,7 @@ namespace ADO.BL.Services
                     using (var connection = new NpgsqlConnection(_connectionString))
                     {
                         connection.Open();
-                        var SelectQuery = $@"SELECT code, latitude, longitude, altitude, department, municipality FROM maps.mp_lightning_complement";
+                        var SelectQuery = $@"SELECT code, latitude, longitude, altitude, department, municipality FROM maps.mp_ideam_comp";
                         using (var reader = new NpgsqlCommand(SelectQuery, connection))
                         {
                             try
@@ -109,9 +114,9 @@ namespace ADO.BL.Services
                                     {
                                         var ideamElement = new IdeamCompDTO();
                                         ideamElement.code = result[0].ToString();
-                                        ideamElement.latitude = long.Parse(result[1].ToString());
-                                        ideamElement.longitude = long.Parse(result[2].ToString());
-                                        ideamElement.altitude = long.Parse(result[3].ToString());
+                                        ideamElement.latitude = float.Parse(result[1].ToString());
+                                        ideamElement.longitude = float.Parse(result[2].ToString());
+                                        ideamElement.altitude = float.Parse(result[3].ToString());
                                         ideamElement.department = result[4].ToString();
                                         ideamElement.municipality = result[5].ToString();
                                         ideamCompList.Add(ideamElement);
@@ -223,8 +228,8 @@ namespace ADO.BL.Services
                         await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} tiene errores");
                     }
 
-                    //var subgroupMap = mapper.Map<QueueStatusLightning>(statusFilesingle);
-                    //var resultSave = await statusFileDataAccess.UpdateDataRayos(subgroupMap);
+                    var entityMap = mapper.Map<QueueStatusPrecipitation>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataPrecipitacion(entityMap);
 
                 }
                 return response;

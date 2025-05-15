@@ -3,7 +3,7 @@ using ADO.BL.Responses;
 
 namespace ADO.BL.Interfaces
 {
-    public interface IFileIdeamValidationServices
+    public interface IFileIdeamProcessingServices
     {
 
         public Task<ResponseQuery<bool>> ReadFilesIdeam(RayosValidationDTO request, ResponseQuery<bool> response);

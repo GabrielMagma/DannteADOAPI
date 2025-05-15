@@ -50,7 +50,10 @@ namespace ADO.BL.Services
                 var errorFlag = false;
 
                 //Procesar cada archivo.xlsx en la carpeta
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv"))
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                                        .Where(file => !file.EndsWith("_Correct.csv")
+                                        && !file.EndsWith("_Error.csv"))
+                                        .OrderBy(f => f).ToArray())
                 {
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
 

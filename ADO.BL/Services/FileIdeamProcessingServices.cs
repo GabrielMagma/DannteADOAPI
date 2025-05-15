@@ -8,49 +8,50 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Globalization;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Text;
 
 namespace ADO.BL.Services
 {
-    public class FileTrafosQProcessingServices : IFileTrafosQProcessingServices
+    public class FileIdeamProcessingServices : IFileIdeamProcessingServices
     {
         private readonly IMapper mapper;
         private readonly string[] _timeFormats;
         private readonly string _connectionString;
-        private readonly string _TrafosDirectoryPath;        
+        private readonly string _IdeamDirectoryPath;        
         private readonly IConfiguration _configuration;
-        private readonly ITrafosDataAccess trafosDataAccess;
+        private readonly IFileDataAccess ideamDataAccess;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly IStatusFileDataAccess statusFileDataAccess;
         private static readonly CultureInfo _spanishCulture = new CultureInfo("es-CO"); // o "es-ES"
-        public FileTrafosQProcessingServices(IConfiguration configuration,
+        public FileIdeamProcessingServices(IConfiguration configuration,
             IHubContext<NotificationHub> hubContext,
-            ITrafosDataAccess _trafosDataAccess,
+            IFileDataAccess _ideamDataAccess,
             IStatusFileDataAccess _statuFileDataAccess,
             IMapper _mapper)
         {
             _connectionString = configuration.GetConnectionString("PgDbTestingConnection");
             _timeFormats = configuration.GetSection("DateTimeFormats").Get<string[]>();
-            _TrafosDirectoryPath = configuration["TrafosPath"];
+            _IdeamDirectoryPath = configuration["FilesIdeamPath"];
             statusFileDataAccess = _statuFileDataAccess;
-            trafosDataAccess = _trafosDataAccess;
+            ideamDataAccess = _ideamDataAccess;
             _configuration = configuration;
             _hubContext = hubContext;
             mapper = _mapper;
         }
 
-        public async Task<ResponseQuery<bool>> ReadFileTrafos(TrafosValidationDTO request, ResponseQuery<bool> response)
+        public async Task<ResponseQuery<bool>> ReadFilesIdeam(RayosValidationDTO request, ResponseQuery<bool> response)
         {
             try
             {
-                var inputFolder = _TrafosDirectoryPath;
+                var inputFolder = _IdeamDirectoryPath;
                 var errorFlag = false;
+
                 var listStatusFiles = new List<StatusFileDTO>();
                 var lacQueueList = new List<LacQueueDTO>();
 
-                foreach (var filePath in Directory.GetFiles(inputFolder, "*.xlsx")
+                foreach (var filePath in Directory.GetFiles(inputFolder, "*.csv")
+                                        .Where(file => !file.EndsWith("_Correct.csv")
+                                        && !file.EndsWith("_Error.csv"))
                                         .ToList().OrderBy(f => f).ToArray())
                 {
                     // Extraer el nombre del archivo sin la extensión
@@ -96,7 +97,7 @@ namespace ADO.BL.Services
                     {
                         connection.Open();
                         var listDatesDef = listDates.ToString().Remove(listDates.Length - 1, 1);
-                        var SelectQuery = $@"SELECT file_name, year, month, day, status FROM queues.queue_status_transformer_burned where date_register in ({listDatesDef})";
+                        var SelectQuery = $@"SELECT file_name, year, month, day, status FROM queues.queue_status_precipitation where date_register in ({listDatesDef})";
                         using (var reader = new NpgsqlCommand(SelectQuery, connection))
                         {
                             try
@@ -157,7 +158,8 @@ namespace ADO.BL.Services
                 foreach (var filePath in Directory.GetFiles(inputFolder, "*_Correct.csv"))
                 {
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
-                    var fileNameTemp = fileName.Substring(0, 20);
+                    var fileNameTemp = fileName.Substring(0,12);
+
                     if (request.NombreArchivo != null)
                     {
                         if (!fileName.Contains(request.NombreArchivo))
@@ -170,7 +172,7 @@ namespace ADO.BL.Services
                     
                     var statusFileList = new List<StatusFileDTO>();
                     var statusFilesingle = new StatusFileDTO();
-                    var listDTOTrafos = new List<MpTransformerBurnedDTO>();
+                    var listDTOIdeam = new List<IdeamDTO>();
 
                     // Obtener los primeros 4 dígitos como el año
                     int year = int.Parse(fileName.Substring(0, 4));
@@ -181,7 +183,7 @@ namespace ADO.BL.Services
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
                     statusFilesingle.FileName = fileNameTemp;
-                    statusFilesingle.FileType = "TRANSFORMADORES QUEMADOS";
+                    statusFilesingle.FileType = "IDEAM";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
                     statusFilesingle.Day = 1;
@@ -193,22 +195,21 @@ namespace ADO.BL.Services
                         var valueLines = item.Split(',');
 
 
-                        var newEntity = new MpTransformerBurnedDTO();
+                        var newEntity = new IdeamDTO();
 
-                        
-                        newEntity.CodeSig = valueLines[0].Trim();
-                        newEntity.Year = int.Parse(valueLines[1].Trim());
-                        newEntity.Month = int.Parse(valueLines[2].Trim());
-                        newEntity.Total = int.Parse(valueLines[3].Trim());
-                        newEntity.Fparent = valueLines[4].Trim();
-                        newEntity.FailureDate = ParseDate(valueLines[5].Trim());
-                        newEntity.RetireDate = ParseDate(valueLines[6].Trim());
-                        newEntity.ChangeDate = ParseDate(valueLines[7].Trim());
-                        newEntity.Latitude = float.Parse(valueLines[8].Trim());
-                        newEntity.Longitude = float.Parse(valueLines[9].Trim());
+                        newEntity.Stationcode = valueLines[0].Trim();
+                        newEntity.Stationname = valueLines[1].Trim();
+                        newEntity.Latitude = double.Parse(valueLines[2].Trim());
+                        newEntity.Longitude = double.Parse(valueLines[3].Trim());
+                        newEntity.Altitude = double.Parse(valueLines[4].Trim());
+                        newEntity.Department = valueLines[5].Trim();
+                        newEntity.Municipality = valueLines[6].Trim();
+                        newEntity.Parameterid = valueLines[7].Trim();
+                        newEntity.Frequency = valueLines[8].Trim();
+                        newEntity.Date = ParseDate(valueLines[9].Trim());
+                        newEntity.Precipitation = double.Parse(valueLines[10].Trim());
 
-
-                        listDTOTrafos.Add(newEntity);
+                        listDTOIdeam.Add(newEntity);
 
                     }
 
@@ -216,90 +217,11 @@ namespace ADO.BL.Services
 
                     statusFileList.Add(statusFilesingle);
 
-                    var trafosMapped = mapper.Map<List<MpTransformerBurned>>(listDTOTrafos);
-                    var respCreate = CreateData(trafosMapped);
+                    var EntityListMapped = mapper.Map<List<IaIdeam>>(listDTOIdeam);
+                    var respCreate = CreateData(EntityListMapped);
 
-                    var entityMap = mapper.Map<QueueStatusTransformerBurned>(statusFilesingle);
-                    var resultSave = await statusFileDataAccess.UpdateDataTrafosQuemados(entityMap);
-
-                    var TrafosList = new List<UpdateTrafoDTO>();
-
-                    using (var connection = new NpgsqlConnection(_connectionString))
-                    {
-                        connection.Open();
-
-                        #region update total trafos
-                        var SelectQuery = $@"SELECT code_sig, year, month, count(*) as count FROM maps.mp_transformer_burned
-                                             group by code_sig, year, month";
-                        using (var reader = new NpgsqlCommand(SelectQuery, connection))
-                        {
-                            try
-                            {
-
-                                using (var result = await reader.ExecuteReaderAsync())
-                                {
-                                    while (await result.ReadAsync())
-                                    {
-                                        var temp = new UpdateTrafoDTO();
-
-                                        temp.code_sig = result[0].ToString();
-                                        temp.year = int.Parse(result[1].ToString());
-                                        temp.month = int.Parse(result[2].ToString());
-                                        temp.count = long.Parse(result[3].ToString());
-
-                                        TrafosList.Add(temp);
-                                    }
-                                }
-                            }
-                            catch (NpgsqlException ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex.Message);
-                            }
-                        }
-                        #endregion
-
-                    }
-
-                    var connectionUpdate = new NpgsqlConnection(_connectionString);
-
-                    await connectionUpdate.OpenAsync();
-
-                    using (var transaction = await connectionUpdate.BeginTransactionAsync())
-                    {
-                        var updateQuery = new StringBuilder();
-                        updateQuery.Append("WITH update_values (code_sig, year, month, count) AS (VALUES ");
-
-                        for (int i = 0; i < TrafosList.Count; i++)
-                        {
-                            if (i > 0) updateQuery.Append(",");
-                            updateQuery.Append($"(@code_sig{i}, @year{i}, @month{i}, @count{i})");
-                        }
-
-                        updateQuery.Append(") ");
-                        updateQuery.Append("UPDATE maps.mp_transformer_burned SET total = uv.count ");
-                        updateQuery.Append("FROM update_values uv ");
-                        updateQuery.Append("WHERE maps.mp_transformer_burned.code_sig = uv.code_sig " +
-                            "AND maps.mp_transformer_burned.year = uv.year " +
-                            "and maps.mp_transformer_burned.month = uv.month;");
-
-                        var updateCommand = new NpgsqlCommand(updateQuery.ToString(), connectionUpdate);
-
-                        for (int i = 0; i < TrafosList.Count; i++)
-                        {
-                            updateCommand.Parameters.AddWithValue($"code_sig{i}", NpgsqlTypes.NpgsqlDbType.Varchar, TrafosList[i].code_sig);
-                            updateCommand.Parameters.AddWithValue($"year{i}", NpgsqlTypes.NpgsqlDbType.Integer, TrafosList[i].year);
-                            updateCommand.Parameters.AddWithValue($"month{i}", NpgsqlTypes.NpgsqlDbType.Integer, TrafosList[i].month);
-                            updateCommand.Parameters.AddWithValue($"count{i}", NpgsqlTypes.NpgsqlDbType.Bigint, TrafosList[i].count);
-                        }
-
-                        await updateCommand.ExecuteNonQueryAsync();
-                        await transaction.CommitAsync();
-                    }
-
+                    var entityMap = mapper.Map<QueueStatusPrecipitation>(statusFilesingle);
+                    var resultSave = await statusFileDataAccess.UpdateDataPrecipitacion(entityMap);
                 }
 
                 
@@ -326,27 +248,29 @@ namespace ADO.BL.Services
                 response.SuccessData = false;
                 return response;
             }
+
+            
         }
 
         // acciones en bd y mappeo
 
-        public async Task<Boolean> CreateData(List<MpTransformerBurned> request)
+        public async Task<Boolean> CreateData(List<IaIdeam> request)
         {            
-            await trafosDataAccess.SaveData(request);
+            await ideamDataAccess.CreateFile(request);
             return true;
 
         }
 
-        private DateTime ParseDate(string dateString)
+        private DateOnly ParseDate(string dateString)
         {
             foreach (var format in _timeFormats)
             {
-                if (DateTime.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateTime parsedDate))
+                if (DateOnly.TryParseExact(dateString, format, _spanishCulture, DateTimeStyles.None, out DateOnly parsedDate))
                 {
                     return parsedDate;
                 }
             }
-            return DateTime.ParseExact("31/12/2099 00:00:00", "dd/MM/yyyy HH:mm:ss", _spanishCulture);
+            return DateOnly.ParseExact("31/12/2099", "dd/MM/yyyy", _spanishCulture);
         }
 
     }

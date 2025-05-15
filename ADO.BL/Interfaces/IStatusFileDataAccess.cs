@@ -81,5 +81,12 @@ namespace ADO.BL.Interfaces
 
         public Task<Boolean> UpdateDataTrafosQuemadosList(List<QueueStatusTransformerBurned> request);
 
+        //Precipitaciones
+        public Task<Boolean> SaveDataPrecipitacionList(List<QueueStatusPrecipitation> request);
+
+        public Task<Boolean> UpdateDataPrecipitacion(QueueStatusPrecipitation request);
+
+        public Task<Boolean> UpdateDataPrecipitacionList(List<QueueStatusPrecipitation> request);
+
     }
 }

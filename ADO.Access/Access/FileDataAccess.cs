@@ -13,10 +13,10 @@ namespace ADO.Access.Access
             context = _context;            
         }
 
-        public Boolean CreateFile(List<IaIdeam> request)
+        public async Task<Boolean> CreateFile(List<IaIdeam> request)
         {
             
-            context.IaIdeams.AddRange(request);
+            context.IaIdeams.AddRangeAsync(request);
             context.SaveChanges();
             var result = true;
 

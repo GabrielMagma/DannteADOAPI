@@ -160,6 +160,7 @@ namespace ADO.BL.Services
                 {
                     // Extraer el nombre del archivo sin la extensión
                     var fileName = Path.GetFileNameWithoutExtension(filePath);
+                    var fileNameTemp = fileName.Substring(0, 12);
                     if (request.NombreArchivo != null)
                     {
                         if (!fileName.Contains(request.NombreArchivo))
@@ -168,7 +169,7 @@ namespace ADO.BL.Services
                         }
                     }
 
-                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileName} está Procesando para guardado de registros");
+                    await _hubContext.Clients.All.SendAsync("Receive", true, $"El archivo {fileNameTemp} está Procesando para guardado de registros");
 
                     var statusFileList = new List<StatusFileDTO>();
 
@@ -184,7 +185,7 @@ namespace ADO.BL.Services
 
                     statusFilesingle.DateFile = DateOnly.FromDateTime(DateTime.Now);
                     statusFilesingle.UserId = request.UserId;
-                    statusFilesingle.FileName = fileName;
+                    statusFilesingle.FileName = fileNameTemp;
                     statusFilesingle.FileType = "RAYOS";
                     statusFilesingle.Year = year;
                     statusFilesingle.Month = month;
