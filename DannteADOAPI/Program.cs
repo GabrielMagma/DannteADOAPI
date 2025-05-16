@@ -125,7 +125,10 @@ builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>
 builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();
 builder.Services.AddTransient<IFileAssetModifiedDataAccess, FileAssetModifiedDataAccess>();
 
-builder.Services.AddHostedService<Worker>().AddSingleton<ITestServices, TestServices>();
+//builder.Services.AddHostedService<Worker>().AddSingleton<ITestServices, TestServices>();
+
+builder.Services.AddHostedService<Worker>().AddSingleton<IFileAssetValidationServices, FileAssetValidationServices>();
+builder.Services.AddHostedService<Worker>().AddSingleton<IFileAssetProcessingServices, FileAssetProcessingServices>();
 
 // bd connection
 builder.Services.AddDbContext<DannteTestingContext>(options =>
