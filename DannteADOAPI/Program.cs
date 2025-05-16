@@ -125,6 +125,8 @@ builder.Services.AddTransient<IFileAssetCierreServices, FileAssetCierreServices>
 builder.Services.AddTransient<IFileAssetModifiedServices, FileAssetModifiedServices>();
 builder.Services.AddTransient<IFileAssetModifiedDataAccess, FileAssetModifiedDataAccess>();
 
+builder.Services.AddHostedService<Worker>().AddSingleton<ITestServices, TestServices>();
+
 // bd connection
 builder.Services.AddDbContext<DannteTestingContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PgDbTestingConnection")));

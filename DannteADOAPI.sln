@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DannteADOAPI", "DannteADOAP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ADO.BL", "ADO.BL\ADO.BL.csproj", "{32261139-A091-40B6-A494-5A1B7466C082}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADO.Access", "ADO.Access\ADO.Access.csproj", "{835641B7-647C-47C2-AF1F-B1DBF92EC859}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ADO.Access", "ADO.Access\ADO.Access.csproj", "{835641B7-647C-47C2-AF1F-B1DBF92EC859}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
